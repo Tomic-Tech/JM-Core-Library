@@ -1,6 +1,8 @@
 #include "jm_serial_port.hpp"
 #include "jm_log.hpp"
 
+#ifdef JM_OS_WIN
+
 // see http://msdn.microsoft.com/en-us/library/ms791134.aspx for list of GUID classes
 #ifndef GUID_DEVCLASS_PORTS
 DEFINE_GUID(GUID_DEVCLASS_PORTS, 0x4D36E978, 0xE325, 0x11CE, 0xBF, 0xC1, 0x08,
@@ -64,7 +66,7 @@ int32 serial_port::set_baudrate(int32 baudrate) {
         }
     }
     if (!is_open()) {
-        return -1;
+        return 0;
     }
     switch (baudrate) {
     case 110:
@@ -139,7 +141,7 @@ int32 serial_port::set_databits(uint8 databits) {
     }
 
     if (!is_open()) {
-        return -1;
+        return 0;
     }
 
     switch (databits) {
@@ -192,7 +194,7 @@ int32 serial_port::set_parity(int32 parity) {
     }
 
     if (!is_open()) {
-        return -1;
+        return 0;
     }
 
     _comm_config.dcb.Parity = (BYTE) parity;
@@ -242,7 +244,7 @@ int32 serial_port::set_stopbits(int32 stopbits) {
     }
 
     if (!is_open()) {
-        return -1;
+        return 0;
     }
 
     switch (stopbits) {
@@ -285,7 +287,7 @@ int32 serial_port::set_flow_control(int32 flow_contorl) {
     }
 
     if (!is_open()) {
-        return -1;
+        return 0;
     }
 
     switch (_flow_control) {
@@ -323,11 +325,12 @@ int32 serial_port::set_flow_control(int32 flow_contorl) {
 }
 
 int32 serial_port::set_write_timeout(int64 millic_seconds) {
-    if (_write_timeout == millic_seconds) {
+    _write_timeout = millic_seconds;
+    
+    if (!is_open()) {
         return 0;
     }
-
-    _write_timeout = millic_seconds;
+    
     if (millic_seconds == -1) {
         _comm_timeouts.WriteTotalTimeoutConstant = MAXDWORD;
         _comm_timeouts.WriteTotalTimeoutMultiplier = MAXDWORD;
@@ -338,6 +341,7 @@ int32 serial_port::set_write_timeout(int64 millic_seconds) {
 
     if (_is_multi_setting)
         return 0;
+    
     if (!SetCommTimeouts(_handle, &(_comm_timeouts))) {
         return GetLastError();
     }
@@ -346,11 +350,12 @@ int32 serial_port::set_write_timeout(int64 millic_seconds) {
 }
 
 int32 serial_port::set_read_timeout(int64 millic_seconds) {
-    if (_read_timeout == millic_seconds) {
+    _read_timeout = millic_seconds;
+    
+    if (!is_open()) {
         return 0;
     }
-
-    _read_timeout = millic_seconds;
+    
     if (millic_seconds == -1) {
         _comm_timeouts.ReadIntervalTimeout = MAXDWORD;
         _comm_timeouts.ReadTotalTimeoutConstant = 0;
@@ -618,3 +623,5 @@ std::string serial_port::get_reg_key_value(HKEY key, const std::string &property
 }
 
 }
+
+#endif
