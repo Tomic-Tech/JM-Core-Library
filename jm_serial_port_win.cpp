@@ -537,7 +537,7 @@ int32 serial_port::set_rts(bool set) {
     return 0;
 }
 
-int64 serial_port::read(uint8 *data, int64 offset, int64 count) {
+int64 serial_port::read(uint8 *data, int32 offset, int32 count) {
     if (data == NULL) {
         return -1;
     }
@@ -560,7 +560,7 @@ int64 serial_port::read(uint8 *data, int64 offset, int64 count) {
     return static_cast<int64>(ret_val);
 }
 
-int64 serial_port::write(const uint8 *data, int64 offset, int64 count) {
+int64 serial_port::write(const uint8 *data, int32 offset, int32 count) {
     if (data == NULL) {
         return -1;
     }

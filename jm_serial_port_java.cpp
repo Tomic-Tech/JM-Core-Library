@@ -174,7 +174,7 @@ extern "C" {
         return port->set_rts(set);
     }
     
-    jlong Java_jm_lib_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jlong offset, jlong count) {
+    jlong Java_jm_lib_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
@@ -186,7 +186,7 @@ extern "C" {
         return ret;
     }
     
-    jlong Java_jm_lib_SerialPort_nativeWrite(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jlong offset, jlong count) {
+    jlong Java_jm_lib_SerialPort_nativeWrite(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
