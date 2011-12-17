@@ -34,11 +34,11 @@ int32 serial_port::set_port_name(const std::string &name) {
     if (is_open()) {
         return -1;
     }
-    return full_name_win(name);
+    return full_name_win(name, _port_name);
 }
 
-int32 serial_port::full_name_win(const std::string &name) {
-    std::string result;
+int32 serial_port::full_name_win(const std::string &name, std::string &result) {
+    result.clear();
     if (name[0] != '\\')
         result += "\\\\.\\";
 

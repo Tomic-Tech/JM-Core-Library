@@ -52,6 +52,10 @@ uint8 serial_port::databits() const {
     return _databits;
 }
 
+int32 serial_port::stopbits() const {
+    return _stopbits;
+}
+
 int32 serial_port::parity() const {
     return _parity;
 }

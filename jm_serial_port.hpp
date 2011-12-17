@@ -128,7 +128,7 @@ private:
     COMMTIMEOUTS _comm_timeouts;
     DWORD _event_mask;
     
-    int32 full_name_win(const std::string &name);
+    static int32 full_name_win(const std::string &name, std::string &result);
     static std::vector<std::string> enumerate_device_win(const GUID *guid);
     static std::string get_reg_key_value(HKEY key, const std::string &property);
 #else
