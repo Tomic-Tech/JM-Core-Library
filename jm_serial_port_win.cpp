@@ -537,7 +537,7 @@ int32 serial_port::set_rts(bool set) {
     return 0;
 }
 
-int64 serial_port::read(uint8 *data, int32 offset, int32 count) {
+int32 serial_port::read(uint8 *data, int32 offset, int32 count) {
     if (data == NULL) {
         return -1;
     }
@@ -557,10 +557,10 @@ int64 serial_port::read(uint8 *data, int32 offset, int32 count) {
         }
         GetOverlappedResult(_handle, &_read_overlap, &ret_val, TRUE);
     }
-    return static_cast<int64>(ret_val);
+    return static_cast<int32>(ret_val);
 }
 
-int64 serial_port::write(const uint8 *data, int32 offset, int32 count) {
+int32 serial_port::write(const uint8 *data, int32 offset, int32 count) {
     if (data == NULL) {
         return -1;
     }
@@ -581,7 +581,7 @@ int64 serial_port::write(const uint8 *data, int32 offset, int32 count) {
         WaitForSingleObject(_write_overlap.hEvent, INFINITE);
         GetOverlappedResult(_handle, &_write_overlap, &ret_val, TRUE);
     }
-    return static_cast<int64>(ret_val);
+    return static_cast<int32>(ret_val);
 }
 
 std::vector<std::string> serial_port::get_system_ports() {

@@ -537,7 +537,7 @@ int32 serial_port::set_rts(bool set) {
     return ioctl(_fd, TIOCMSET, &status);
 }
 
-int64 serial_port::read(uint8 *data, int32 offset, int32 count) {
+int32 serial_port::read(uint8 *data, int32 offset, int32 count) {
     if (data == NULL)
         return -1;
 
@@ -548,10 +548,10 @@ int64 serial_port::read(uint8 *data, int32 offset, int32 count) {
         return -1;
 
     int ret_val = ::read(_fd, data + offset, count);
-    return ret_val;
+    return static_cast<int32>(ret_val);
 }
 
-int64 serial_port::write(const uint8 *data, int32 offset, int32 count) {
+int32 serial_port::write(const uint8 *data, int32 offset, int32 count) {
     if (data == NULL)
         return -1;
 
@@ -562,7 +562,7 @@ int64 serial_port::write(const uint8 *data, int32 offset, int32 count) {
         return -1;
 
     int ret_val = ::write(_fd, data + offset, count);
-    return ret_val;
+    return static_cast<int32>(ret_val);
 }
 
 std::vector<std::string> serial_port::get_system_ports() {

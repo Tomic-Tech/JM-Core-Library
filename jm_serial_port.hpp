@@ -78,8 +78,8 @@ public:
     int32 set_flow_control(int32 flow_control);
     int32 flow_control() const;
     
-    int64 write(const uint8 *data, int32 offset, int32 count);
-    int64 read(uint8 *data, int32 offset, int32 count);
+    int32 write(const uint8 *data, int32 offset, int32 count);
+    int32 read(uint8 *data, int32 offset, int32 count);
     
     int32 set_read_timeout(int64 millic_seconds);
     int64 read_timeout() const;

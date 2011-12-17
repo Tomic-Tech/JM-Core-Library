@@ -174,19 +174,19 @@ extern "C" {
         return port->set_rts(set);
     }
     
-    jlong Java_jm_lib_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
+    jint Java_jm_lib_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         boost::scoped_array<uint8> temp(new uint8[count]);
-        int64 ret = port->read(temp.get(), 0, count);
+        int32 ret = port->read(temp.get(), 0, count);
         if (ret == count) {
             env->SetByteArrayRegion(buff, offset, count, (const jbyte*)temp.get());
         }
         return ret;
     }
     
-    jlong Java_jm_lib_SerialPort_nativeWrite(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
+    jint Java_jm_lib_SerialPort_nativeWrite(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
