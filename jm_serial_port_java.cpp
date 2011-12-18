@@ -6,12 +6,12 @@ using namespace std;
 using namespace jm;
 
 extern "C" {
-    jlong Java_jm_lib_SerialPort_nativeNewSerialPort(JNIEnv *env, jclass cls) {
+    jlong Java_jm_io_SerialPort_nativeNewSerialPort(JNIEnv *env, jclass cls) {
         serial_port *port = new serial_port();
         return (jlong)port;
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetPortName(JNIEnv *env, jclass cls, jlong handle, jstring port_name) {
+    jint Java_jm_io_SerialPort_nativeSetPortName(JNIEnv *env, jclass cls, jlong handle, jstring port_name) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
@@ -19,7 +19,7 @@ extern "C" {
         return static_cast<jint>(port->set_port_name(name));
     }
     
-    jstring Java_jm_lib_Serial_port_nativePortName(JNIEnv *env, jclass cls, jlong handle) {
+    jstring Java_jm_io_Serial_port_nativePortName(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return NULL;
@@ -27,154 +27,154 @@ extern "C" {
         return env->NewStringUTF(name.c_str());
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetBaudrate(JNIEnv *env, jclass cls, jlong handle, jint baudrate) {
+    jint Java_jm_io_SerialPort_nativeSetBaudrate(JNIEnv *env, jclass cls, jlong handle, jint baudrate) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_baudrate(baudrate);
     }
     
-    jint Java_jm_lib_SerialPort_nativeBaudrate(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeBaudrate(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->baudrate();
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetDatabits(JNIEnv *env, jclass cls, jlong handle, jbyte databits) {
+    jint Java_jm_io_SerialPort_nativeSetDatabits(JNIEnv *env, jclass cls, jlong handle, jbyte databits) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_databits(databits);
     }
     
-    jint Java_jm_lib_SerialPort_nativeDatabits(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeDatabits(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->databits();
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetParity(JNIEnv *env, jclass cls, jlong handle, jint parity) {
+    jint Java_jm_io_SerialPort_nativeSetParity(JNIEnv *env, jclass cls, jlong handle, jint parity) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_parity(parity);
     }
     
-    jint Java_jm_lib_SerialPort_nativeParity(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeParity(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->parity();
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetStopbits(JNIEnv *env, jclass cls, jlong handle, jint stopbits) {
+    jint Java_jm_io_SerialPort_nativeSetStopbits(JNIEnv *env, jclass cls, jlong handle, jint stopbits) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_stopbits(stopbits);
     }
     
-    jint Java_jm_lib_SerialPort_nativeStopbits(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeStopbits(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->stopbits();
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetFlowControl(JNIEnv *env, jclass cls, jlong handle, jint flow) {
+    jint Java_jm_io_SerialPort_nativeSetFlowControl(JNIEnv *env, jclass cls, jlong handle, jint flow) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_flow_control(flow);
     }
     
-    jint Java_jm_lib_SerialPort_nativeFlowControl(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeFlowControl(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->flow_control();
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetReadTimeout(JNIEnv *env, jclass cls, jlong handle, jlong millic_seconds) {
+    jint Java_jm_io_SerialPort_nativeSetReadTimeout(JNIEnv *env, jclass cls, jlong handle, jlong millic_seconds) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_read_timeout(millic_seconds);
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetWriteTimeout(JNIEnv *env, jclass cls, jlong handle, jlong millic_seconds) {
+    jint Java_jm_io_SerialPort_nativeSetWriteTimeout(JNIEnv *env, jclass cls, jlong handle, jlong millic_seconds) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_write_timeout(millic_seconds);
     }
     
-    jboolean Java_jm_lib_SerialPort_nativeIsOpen(JNIEnv *env, jclass cls, jlong handle) {
+    jboolean Java_jm_io_SerialPort_nativeIsOpen(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return JNI_FALSE;
         return port->is_open();
     }
     
-    jint Java_jm_lib_SerialPort_nativeOpen(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeOpen(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->open();
     }
     
-    jint Java_jm_lib_SerialPort_nativeClose(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeClose(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->close();
     }
     
-    jint Java_jm_lib_SerialPort_nativeFlush(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeFlush(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->flush();
     }
     
-    jint Java_jm_lib_SerialPort_nativeDiscardInBuffer(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeDiscardInBuffer(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->discard_in_buffer();
     }
     
-    jint Java_jm_lib_SerialPort_nativeDiscardOutBuffer(JNIEnv *env, jclass cls, jlong handle) {
+    jint Java_jm_io_SerialPort_nativeDiscardOutBuffer(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->discard_out_buffer();
     }
     
-    jlong Java_jm_lib_SerialPort_nativeBytesAvailable(JNIEnv *env, jclass cls, jlong handle) {
+    jlong Java_jm_io_SerialPort_nativeBytesAvailable(JNIEnv *env, jclass cls, jlong handle) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->bytes_available();
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetDtr(JNIEnv *env, jclass cls, jlong handle, jboolean set) {
+    jint Java_jm_io_SerialPort_nativeSetDtr(JNIEnv *env, jclass cls, jlong handle, jboolean set) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_dtr(set);
     }
     
-    jint Java_jm_lib_SerialPort_nativeSetRts(JNIEnv *env, jclass cls, jlong handle, jboolean set) {
+    jint Java_jm_io_SerialPort_nativeSetRts(JNIEnv *env, jclass cls, jlong handle, jboolean set) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->set_rts(set);
     }
     
-    jint Java_jm_lib_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
+    jint Java_jm_io_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
@@ -186,14 +186,14 @@ extern "C" {
         return ret;
     }
     
-    jint Java_jm_lib_SerialPort_nativeWrite(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
+    jint Java_jm_io_SerialPort_nativeWrite(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return -1;
         return port->write((const uint8*)env->GetByteArrayElements(buff, NULL), offset, count);
     }
     
-    jobjectArray Java_jm_lib_SerialPort_getSystemPorts(JNIEnv *env, jclass cls) {
+    jobjectArray Java_jm_io_SerialPort_getSystemPorts(JNIEnv *env, jclass cls) {
         std::vector<std::string> vec = serial_port::get_system_ports();
         jobjectArray ret = env->NewObjectArray(vec.size(), env->FindClass("java/lang/String"), env->NewStringUTF(""));
         for (int i = 0; i < vec.size(); i++) {

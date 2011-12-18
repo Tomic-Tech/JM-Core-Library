@@ -421,18 +421,22 @@ int32 serial_port::open() {
     _comm_config.c_cc[VSTOP] = vdisable;
     _comm_config.c_cc[VSUSP] = vdisable;
 #endif /* _POSIX_VDISABLE */
+    _is_multi_setting = true;
     if (set_baudrate(_baudrate)
             || set_databits(_databits)
             || set_parity(_parity)
             || set_stopbits(_stopbits)
             || set_flow_control(_flow_control)
             || set_read_timeout(_read_timeout)
-            || set_write_timeout(_write_timeout))
+            || set_write_timeout(_write_timeout)) {
+        _is_multi_setting = false;
         return -1;
+    }
 
     int error_code = tcsetattr(_fd, TCSAFLUSH, &_comm_config);
     if (error_code)
         close();
+    _is_multi_setting = false;
     return error_code;
 }
 

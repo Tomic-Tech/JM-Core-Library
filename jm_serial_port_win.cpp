@@ -100,6 +100,7 @@ int32 serial_port::set_baudrate(int32 baudrate) {
         _comm_config.dcb.BaudRate = CBR_38400;
         break;
     case 57600:
+        log_inst().write(log::debug, "serial port", "set baudrate 57600");
         _comm_config.dcb.BaudRate = CBR_57600;
         break;
     case 115200:
@@ -414,14 +415,19 @@ int32 serial_port::open() {
             || set_flow_control(_flow_control)
             || set_read_timeout(_read_timeout)
             || set_write_timeout(_write_timeout)) {
+        _is_multi_setting = false;
         return -1;
     }
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
+        _is_multi_setting = false;
         return GetLastError();
     }
     if (!SetCommTimeouts(_handle, &(_comm_timeouts))) {
+        _is_multi_setting = false;
         return GetLastError();
     }
+    
+    _is_multi_setting = false;
 
     //    _comm_timeouts.ReadIntervalTimeout = MAXDWORD;
     //    _comm_timeouts.ReadTotalTimeoutMultiplier = 0;
