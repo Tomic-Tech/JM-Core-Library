@@ -2,7 +2,7 @@
 #define JM_TYPES_HPP
 
 #ifdef _MSC_VER
-#pragam once
+#pragma once
 #endif
 
 #include <jm_macros.hpp>
