@@ -111,7 +111,7 @@ byte_array& byte_array::operator=(const byte_array &rhs) {
     return *this;
 }
 
-void byte_array::push_back(uint8 *data, byte_array::size_type length) {
+void byte_array::push_back(const uint8 *data, byte_array::size_type length) {
     if (_alloc_size == 0) {
         _alloc_size = length;
         uint8 *temp = new uint8[length];
@@ -141,6 +141,10 @@ void byte_array::push_back(uint8 *data, byte_array::size_type length) {
 
 void byte_array::push_back(uint8 elem) {
     push_back(&elem, 1);
+}
+
+void byte_array::push_back(const byte_array &other) {
+    push_back(other.data(), other.size());
 }
 
 }

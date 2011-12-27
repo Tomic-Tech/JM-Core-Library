@@ -36,7 +36,8 @@ public:
     byte_array& operator =(const byte_array &rhs);
 
     void push_back(uint8 elem);
-    void push_back(uint8 *data, size_type length);
+    void push_back(const uint8 *data, size_type length);
+    void push_back(const byte_array &other);
     // iterator support
     iterator begin();
     const_iterator begin() const;
