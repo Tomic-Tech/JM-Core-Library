@@ -323,7 +323,7 @@ int32 serial_port::set_flow_control(int32 flow_contorl) {
         break;
     }
 
-    if (!_is_multi_setting)
+    if (_is_multi_setting)
         return 0;
 
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
