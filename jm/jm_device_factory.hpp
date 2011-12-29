@@ -12,20 +12,20 @@
 #pragma once
 #endif
 
-#include <jm_commbox_version.hpp>
-#include <jm_commbox.hpp>
 #include <map>
 #include <boost/smart_ptr.hpp>
+#include <jm_commbox_version.hpp>
+#include <jm_commbox.hpp>
 
 namespace jm {
 class device_factory {
 public:
-    device_factory(const boost::shared_ptr<port> &port);
+    device_factory(const commbox_port_ptr &port);
     boost::shared_ptr<commbox> create(commbox_version ver);
     boost::shared_ptr<commbox> create();
 private:
-    std::multimap<commbox_version, boost::shared_ptr<commbox> > _obj_map;
-    boost::shared_ptr<port> _port;
+    std::multimap<commbox_version, commbox_ptr > _obj_map;
+    commbox_port_ptr _port;
 };
 }
 

@@ -12,14 +12,16 @@
 #pragma once
 #endif
 
+#include <vector>
 #include <jm_protocol.hpp>
 #include <jm_canbus_baud.hpp>
 #include <jm_canbus_filter_mask.hpp>
 #include <jm_canbus_frame_type.hpp>
 #include <jm_canbus_id_mode.hpp>
-#include <vector>
+#include <jm_error.hpp>
 
 namespace jm {
+
 class canbus : public protocol {
 protected:
     int32 _target_id;
@@ -31,15 +33,19 @@ protected:
     int32 _low;
     std::vector<int32> _id_array;
     int32 _flow_control[8];
-    
+
 public:
     canbus();
-    int32 pack(const byte_array &source, byte_array &target);
-    int32 unpack(const byte_array &source, byte_array &target);
-    virtual int32 set_lines(int32 high, int32 low) = 0;
-    virtual int32 set_filter(int32 *id_array, int32 count) = 0;
-    virtual int32 set_options(int32 id, canbus_baud baud, canbus_id_mode id_mode, canbus_filter_mask mask, canbus_frame_type frame) = 0;
+    virtual size_t pack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset);
+    virtual size_t unpack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset);
+    virtual error_code set_lines(int32 high, int32 low) = 0;
+    virtual error_code set_filter(int32 *id_array, int32 count) = 0;
+    virtual error_code set_options(int32 id, canbus_baud baud, canbus_id_mode id_mode, canbus_filter_mask mask, canbus_frame_type frame) = 0;
 };
+
+typedef boost::shared_ptr<canbus> canbus_ptr;
 }
 
 #endif	/* JM_CANBUS_HPP */

@@ -14,6 +14,7 @@
 
 #include <jm_types.hpp>
 #include <boost/smart_ptr.hpp>
+#include <boost/thread.hpp>
 
 namespace jm {
 
@@ -29,14 +30,14 @@ public:
     typedef std::ptrdiff_t difference_type;
 
     byte_array();
-    byte_array(uint8 *data, size_type size);
+    byte_array(uint8 *data, size_type offset, size_type size);
     byte_array(const byte_array &rhs);
 
     //assignment with type conversion
     byte_array& operator =(const byte_array &rhs);
 
     void push_back(uint8 elem);
-    void push_back(const uint8 *data, size_type length);
+    void push_back(const uint8 *data, size_type offset, size_type length);
     void push_back(const byte_array &other);
     // iterator support
     iterator begin();
@@ -68,6 +69,7 @@ public:
     size_type size() const;
     bool empty() const;
     void clear();
+    void resize(size_type size);
 private:
     // check range (may be private because it is static)
     void range_check(size_type i);
@@ -76,7 +78,11 @@ private:
     size_type _alloc_size;
     size_type _size;
     boost::shared_array<uint8> _elems;
+    boost::recursive_mutex _mutex;
 };
+
+typedef boost::shared_ptr<byte_array> byte_array_ptr;
+
 }
 
 #endif	/* JMBYTEARRAY_HPP */

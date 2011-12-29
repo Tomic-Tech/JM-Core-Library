@@ -4,8 +4,8 @@
 #include "jm_utils.hpp"
 
 namespace jm {
-
-v1_w80_box::v1_w80_box(const boost::shared_ptr<port> &port, const boost::shared_ptr<v1_shared> &shared)
+namespace v1 {
+v1_w80_box::v1_w80_box(const commbox_port_ptr &port, const v1_shared_ptr &shared)
 : v1_box(port, shared)
 , _serial_port_baud(115200)
 , _serial_port_stopbits(serial_port::stopbits_two)
@@ -559,6 +559,7 @@ bool v1_w80_box::serial_port_change_config() {
 
 bool v1_w80_box::check_serial_port_change_config() {
     return false;
+}
 }
 }
 

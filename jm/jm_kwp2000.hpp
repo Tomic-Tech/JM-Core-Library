@@ -16,6 +16,7 @@
 #include <jm_kwp_mode.hpp>
 
 namespace jm {
+
 class kwp2000 : public kline_protocol {
 public:
     static const int32 KWP8XHeaderLength = 3;
@@ -30,15 +31,20 @@ protected:
     kwp_mode _msg_mode;
     kwp_mode _link_mode;
     int32 _baud;
-    
+
 public:
     kwp2000();
     void set_options(kwp_mode msg_mode, kwp_mode link_mode, int32 baud);
-    int32 pack(const byte_array &source, byte_array &target);
-    int32 unpack(const byte_array &source, byte_array &target);
-    virtual int32 fast_init(const byte_array &data) = 0;
-    
+    size_t pack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset);
+    size_t unpack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset);
+    virtual error_code fast_init(const uint8 *data, size_t offset, size_t count) = 0;
+    virtual error_code fast_init(const byte_array &data);
 };
+
+typedef boost::shared_ptr<kwp2000> kwp2000_ptr;
+
 }
 
 #endif	/* JM_KWP2000_HPP */

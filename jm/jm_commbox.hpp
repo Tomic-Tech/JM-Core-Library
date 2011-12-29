@@ -12,24 +12,24 @@
 #pragma once
 #endif
 
-#include <jm_port.hpp>
+#include <boost/smart_ptr.hpp>
+#include <jm_commbox_port.hpp>
 #include <jm_comm.hpp>
 #include <jm_connector_type.hpp>
 #include <jm_protocol_type.hpp>
 #include <jm_serial_port.hpp>
-#include <jm_commbox_error.hpp>
-#include <boost/smart_ptr.hpp>
+#include <jm_error.hpp>
 
 namespace jm {
 
 class commbox {
 public:
-    commbox(const boost::shared_ptr<port> &port);
-    virtual boost::shared_ptr<port> get_port();
-    virtual int32 open() = 0;
-    virtual int32 close() = 0;
-    virtual void* configure(protocol_type type) = 0;
-    virtual int32 set_connector(connector_type type) = 0;
+    commbox(const commbox_port_ptr &port);
+    virtual commbox_port_ptr get_port();
+    virtual error_code open() = 0;
+    virtual error_code close() = 0;
+    virtual pointer configure(protocol_type type) = 0;
+    virtual error_code set_connector(connector_type type) = 0;
     // this only for serial port configuration.
     virtual int32 serial_port_baud();
     virtual uint8 serial_port_databits();
@@ -39,8 +39,10 @@ public:
     virtual bool serial_port_change_config();
     virtual bool check_serial_port_change_config();
 private:
-    boost::shared_ptr<port> _port;
+    commbox_port_ptr _port;
 };
+
+typedef boost::shared_ptr<commbox> commbox_ptr;
 
 }
 

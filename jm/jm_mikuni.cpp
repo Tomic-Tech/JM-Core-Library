@@ -2,27 +2,27 @@
 
 namespace jm {
 
-int32 Mikuni::pack(const byte_array &source, byte_array &target) {
-    if (source.size() <= 0) {
-        return -1;
-    }
-    
-    target.clear();
-    target.push_back(HEAD_FORMAT);
-    target.push_back(source);
-    target.push_back(0x0D);
-    target.push_back(0x0A);
-    return target.size();
+size_t mikuni::pack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+    if (count <= 0)
+        return 0;
+
+    size_t pos = tar_offset;
+    tar[pos++] = HEAD_FORMAT;
+    memcpy(tar + pos, src + src_offset, count);
+    pos += count;
+    tar[pos++] = 0x0D;
+    tar[pos++] = 0x0A;
+    return pos - tar_offset;
 }
 
-int32 Mikuni::unpack(const byte_array &source, byte_array &target) {
-    if (source.size() <= 0) {
-        return -1;
-    }
-    
-    target.clear();
-    target.push_back(source.data() + 1, source.size() - 2);
-    return target.size();
+size_t mikuni::unpack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+    if (count <= 0)
+        return 0;
+
+    memcpy(tar + tar_offset, src + src_offset + 1, count - 2);
+    return count - 2;
 }
 
 }

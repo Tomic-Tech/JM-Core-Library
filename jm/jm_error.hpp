@@ -12,13 +12,18 @@
 #pragma once
 #endif
 
+#include <jm_types.hpp>
+
 namespace jm {
 
-enum commbox_error {
-    commbox_success = 0,
-    commbox_open_fail = -1,
-    commbox_try_again = -2
-};
+namespace error {
+
+const error_code success = 0;
+const error_code generic_error = -1;
+const error_code commbox_open_fail = -2;
+const error_code commbox_try_again = -3;
+
+}
 
 }
 

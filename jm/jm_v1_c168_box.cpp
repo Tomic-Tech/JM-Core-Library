@@ -5,8 +5,9 @@
 #include "jm_utils.hpp"
 
 namespace jm {
+namespace v1 {
 
-v1_c168_box::v1_c168_box(const boost::shared_ptr<port> &p, const boost::shared_ptr<v1_shared> &s)
+v1_c168_box::v1_c168_box(const commbox_port_ptr &p, const v1_shared_ptr &s)
 : v1_box(p, s)
 , _serial_port_baud(9600)
 , _serial_port_stopbits(serial_port::stopbits_one)
@@ -62,7 +63,7 @@ uint32 v1_c168_box::get_box_ver() {
     return (_info.version[0] << 8) | (_info.version[1]);
 }
 
-bool v1_c168_box::commbox_do(uint8 command_word, int32 offset, int32 count, const uint8 *buff) {
+bool v1_c168_box::commbox_do(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
     if (count > CMD_DATALEN) {
         return send_data_to_ecu(command_word, offset, count, buff);
     } else {
@@ -70,7 +71,7 @@ bool v1_c168_box::commbox_do(uint8 command_word, int32 offset, int32 count, cons
     }
 }
 
-bool v1_c168_box::send_data_to_ecu(uint8 command_word, int32 offset, int32 count, const uint8 *buff) {
+bool v1_c168_box::send_data_to_ecu(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
     if (command_word == SEND_DATA && count <= SEND_LEN) {
         if (_buffer.size() < (count + 1)) {
             get_shared()->last_error = NOBUFF_TOSEND;
@@ -93,7 +94,7 @@ bool v1_c168_box::send_data_to_ecu(uint8 command_word, int32 offset, int32 count
     return false;
 }
 
-bool v1_c168_box::send_data_to_ecu_new(uint8 command_word, int32 offset, int32 count, const uint8 *buff) {
+bool v1_c168_box::send_data_to_ecu_new(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
     std::size_t i;
     byte_array command;
     command.push_back(WR_DATA + _info.head_password);
@@ -120,7 +121,7 @@ bool v1_c168_box::send_data_to_ecu_new(uint8 command_word, int32 offset, int32 c
     return false;
 }
 
-bool v1_c168_box::send_data_to_ecu_old(uint8 command_word, int32 offset, int32 count, const uint8 *buff) {
+bool v1_c168_box::send_data_to_ecu_old(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
     byte_array command;
     command.push_back(WR_DATA + _info.head_password);
     command.push_back(low_byte(count + 2));
@@ -145,7 +146,7 @@ bool v1_c168_box::send_data_to_ecu_old(uint8 command_word, int32 offset, int32 c
     return false;
 }
 
-bool v1_c168_box::commbox_command(uint8 command_word, int32 offset, int32 count, const uint8 *buff) {
+bool v1_c168_box::commbox_command(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
     uint8 checksum = low_byte(command_word + count);
     if (command_word < WR_DATA) {
         if (count == 0) {
@@ -224,7 +225,7 @@ bool v1_c168_box::stop_now(bool is_stop_execute) {
     }
 }
 
-bool v1_c168_box::do_set(uint8 command_word, int32 offset, int32 count, const uint8 *buff) {
+bool v1_c168_box::do_set(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
     uint32 times = REPLAYTIMES;
     while (times--) {
         if (!commbox_do(command_word, offset, count, buff)) {
@@ -237,12 +238,12 @@ bool v1_c168_box::do_set(uint8 command_word, int32 offset, int32 count, const ui
     return false;
 }
 
-int32 v1_c168_box::read_data(uint8 *buff, int32 offset, int32 count, int64 microseconds) {
+size_t v1_c168_box::read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds) {
     get_port()->set_read_timeout(microseconds);
     return get_port()->read(buff, offset, count);
 }
 
-int32 v1_c168_box::get_cmd_data(uint8 command, uint8* receive_buffer) {
+size_t v1_c168_box::get_cmd_data(uint8 command, uint8* receive_buffer) {
     uint8 checksum = command;
     uint8 cmd_info[2];
     if (read_data(cmd_info, 0, 2, timer::to_ms(150)) != 2) {
@@ -631,7 +632,7 @@ bool v1_c168_box::turn_over_one_by_one() {
     return send_to_box(SET_ONEBYONE, 0, 0, NULL);
 }
 
-bool v1_c168_box::set_echo_data(uint8* echo_buff, int32 echo_len) {
+bool v1_c168_box::set_echo_data(uint8* echo_buff, size_t echo_len) {
     if (echo_buff == NULL || echo_len == 0 || echo_len > 4) {
         get_shared()->last_error = ILLIGICAL_LEN;
         return false;
@@ -900,7 +901,7 @@ bool v1_c168_box::commbox_delay(uint32 time) {
     }
 }
 
-bool v1_c168_box::send_out_data(const uint8 *buffer, int32 offset, int32 count) {
+bool v1_c168_box::send_out_data(const uint8 *buffer, size_t offset, size_t count) {
     if (count == 0) {
         get_shared()->last_error = ILLIGICAL_LEN;
         return false;
@@ -912,9 +913,9 @@ bool v1_c168_box::send_out_data(const uint8 *buffer, int32 offset, int32 count) 
     }
 }
 
-bool v1_c168_box::run_batch(uint8 *buff_id, int32 count, bool is_execute_many) {
+bool v1_c168_box::run_batch(uint8 *buff_id, size_t count, bool is_execute_many) {
     int command_word = D0_BAT;
-    for (int32 i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         if (_buffer.add[buff_id[i]] == NULLADD) {
             get_shared()->last_error = NOUSED_BUFF;
             return false;
@@ -954,7 +955,7 @@ bool v1_c168_box::set_rf(uint8 cmd, uint8 cmd_info) {
     return false;
 }
 
-int32 v1_c168_box::read_bytes(uint8 *buff, int32 offset, int32 count) {
+size_t v1_c168_box::read_bytes(uint8 *buff, size_t offset, size_t count) {
     return read_data(buff, offset, count, get_shared()->res_wait_time);
 }
 
@@ -979,4 +980,4 @@ int32 v1_c168_box::serial_port_flow_control() {
 }
 
 }
-
+}

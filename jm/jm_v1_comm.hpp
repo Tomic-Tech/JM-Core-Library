@@ -14,10 +14,11 @@
 
 #include <boost/smart_ptr.hpp>
 #include <jm_comm.hpp>
+#include <jm_error.hpp>
 #include <jm_v1_box.hpp>
 
 namespace jm {
-
+namespace v1 {
 template <typename P>
 class v1_comm : public comm<P> {
 private:
@@ -30,44 +31,45 @@ public:
         _protocol = protocol;
     }
     
-    int32 send_one_frame(const byte_array &data) {
-        return _protocol->send_one_frame(data);
+    size_t send_one_frame(const uint8* data, size_t offset, size_t count) {
+        return _protocol->send_one_frame(data, offset, count);
     }
     
-    int32 send_frames(const byte_array &data) {
-        return _protocol->send_frames(data);
+    size_t send_frames(const uint8 *data, size_t offset, size_t count) {
+        return _protocol->send_frames(data, offset, count);
     }
     
-    int32 read_one_frame(byte_array &data) {
-        return _protocol->read_one_frame(data);
+    size_t read_one_frame(uint8 *data, size_t offset) {
+        return _protocol->read_one_frame(data, offset);
     }
     
-    int32 read_frames(byte_array &data) {
-        return _protocol->read_frames(data);
+    size_t read_frames(uint8 *data, size_t offset) {
+        return _protocol->read_frames(data, offset);
     }
     
-    int32 send_and_recv(const byte_array &send, byte_array &recv) {
+    size_t send_and_recv(const uint8 *send, size_t send_offset, size_t count,
+            uint8 *recv, size_t recv_offset) {
         int32 times = v1_c168_d::REPLAYTIMES;
         while (times--) {
-            if (send_frames(send) > 0) {
-                return read_frames(recv);
+            if (send_frames(send, offset, count) > 0) {
+                return read_frames(recv, recv_offset);
             }
         }
         return -1;
     }
     
-    int32 set_timeout(int32 tx_b2b, int32 rx_b2b, int32 rx_f2f, int32 total) {
-        return 0;
+    error_code set_timeout(int32 tx_b2b, int32 rx_b2b, int32 rx_f2f, int32 total) {
+        return error::success;
     }
     
-    int32 start_keep_link(bool run) {
+    error_code start_keep_link(bool run) {
         if (!_box->keep_link(run)) {
-            return -1;
+            return error::generic_error;
         }
-        return 0;
+        return error::success;
     }
     
-    int32 set_keep_link(const byte_array &data) {
+    error_code set_keep_link(const byte_array &data) {
         return _protocol->set_keep_link(data);  
     }
     
@@ -76,6 +78,7 @@ public:
     }
 };
 
+}
 }
 
 

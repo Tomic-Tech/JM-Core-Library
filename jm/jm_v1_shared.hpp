@@ -17,27 +17,27 @@
 #include <jm_connector_type.hpp>
 
 namespace jm {
-
+namespace v1 {
 class v1_shared {
 public:
-    static const uint8 REC_FR = 0xE0;
-    static const uint8 REC_LEN_1 = 0xE1;
-    static const uint8 REC_LEN_2 = 0xE2;
-    static const uint8 REC_LEN_3 = 0xE3;
-    static const uint8 REC_LEN_4 = 0xE4;
-    static const uint8 REC_LEN_5 = 0xE5;
-    static const uint8 REC_LEN_6 = 0xE6;
-    static const uint8 REC_LEN_7 = 0xE7;
-    static const uint8 REC_LEN_8 = 0xE8;
-    static const uint8 REC_LEN_9 = 0xE9;
-    static const uint8 REC_LEN_10 = 0xEA;
-    static const uint8 REC_LEN_11 = 0xEB;
-    static const uint8 REC_LEN_12 = 0xEC;
-    static const uint8 REC_LEN_13 = 0xED;
-    static const uint8 REC_LEN_14 = 0xEE;
-    static const uint8 REC_LEN_15 = 0xEF;
-    static const uint8 RECEIVE = 0xF0;
-    static const uint32 LINKBLOCK = 0x40;
+//    static const uint8 REC_FR = 0xE0;
+//    static const uint8 REC_LEN_1 = 0xE1;
+//    static const uint8 REC_LEN_2 = 0xE2;
+//    static const uint8 REC_LEN_3 = 0xE3;
+//    static const uint8 REC_LEN_4 = 0xE4;
+//    static const uint8 REC_LEN_5 = 0xE5;
+//    static const uint8 REC_LEN_6 = 0xE6;
+//    static const uint8 REC_LEN_7 = 0xE7;
+//    static const uint8 REC_LEN_8 = 0xE8;
+//    static const uint8 REC_LEN_9 = 0xE9;
+//    static const uint8 REC_LEN_10 = 0xEA;
+//    static const uint8 REC_LEN_11 = 0xEB;
+//    static const uint8 REC_LEN_12 = 0xEC;
+//    static const uint8 REC_LEN_13 = 0xED;
+//    static const uint8 REC_LEN_14 = 0xEE;
+//    static const uint8 REC_LEN_15 = 0xEF;
+//    static const uint8 RECEIVE = 0xF0;
+//    static const uint32 LINKBLOCK = 0x40;
 public:
     connector_type connector;
     uint8 buff_id;
@@ -54,8 +54,10 @@ public:
     v1_shared();
 };
 
-}
+typedef boost::shared_ptr<v1_shared> v1_shared_ptr;
 
+}
+}
 
 
 #endif	/* JM_V1_SHARED_HPP */

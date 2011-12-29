@@ -17,27 +17,29 @@
 #include <jm_v1_shared.hpp>
 
 namespace jm {
+namespace v1 {
 
 template <typename T>
 class v1_default {
 private:
-    boost::shared_ptr<v1_box> _box;
-    boost::shared_ptr<v1_shared> _shared;
+    v1_box_ptr _box;
+    v1_shared_ptr _shared;
     boost::shared_ptr<T> _protocol;
 public:
-    v1_default(const boost::shared_ptr<v1_box> box, boost::shared_ptr<v1_shared> shared, boost::shared_ptr<T> protocol) {
+
+    v1_default(const v1_box_ptr box, v1_shared_ptr shared, boost::shared_ptr<T> protocol) {
         _box = box;
         _shared = shared;
         _protocol = protocol;
     }
-    
-    int32 send_one_frame(const uint8 *data, int32 count, bool need_recv) {
+
+    size_t send_one_frame(const uint8 *data, size_t offset, size_t count, bool need_recv) {
         _shared->buff_id = 0;
         if (!_box->new_batch(_shared->buff_id)) {
             return -1;
         }
         byte_array send_buff;
-        _protocol.pack(send_buff, byte_array(data, count));
+        _protocol.pack(send_buff, byte_array(data + offset, count));
         if (send_buff.empty()) {
             return -1;
         }
@@ -58,12 +60,12 @@ public:
         _protocol->finish_execute(!need_recv);
         return send_buff.size();
     }
-    
-    int32 set_keep_link(const uint8 *data, int32 count) {
+
+    error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {
         if (!_box->new_batch(v1_shared::LINKBLOCK)) {
-            return -1;
+            return error::generic_error;
         }
-        if (!_box->send_out_data(data, 0, count)
+        if (!_box->send_out_data(data, offset, count)
                 || !_box->end_batch()) {
             return -1;
         }
@@ -71,6 +73,7 @@ public:
     }
 };
 
+}
 }
 
 

@@ -1,7 +1,7 @@
 #include "jm_v1_shared.hpp"
 
 namespace jm {
-
+namespace v1 {
 v1_shared::v1_shared() {
     connector = OBDII_16;
     buff_id = 0;
@@ -15,4 +15,5 @@ v1_shared::v1_shared() {
     next_address = 0;
 }
 
+}
 }

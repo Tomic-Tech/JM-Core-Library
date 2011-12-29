@@ -15,6 +15,7 @@
 #include <jm_kline_protocol.hpp>
 
 namespace jm {
+
 class kwp1281 : public kline_protocol {
 public:
     static const uint8 FRAME_END = 0x03;
@@ -22,11 +23,16 @@ protected:
     uint8 _frame_counter;
 public:
     kwp1281();
-    int32 pack(const byte_array &source, byte_array &target);
-    int32 unpack(const byte_array &source, byte_array &target);
+    size_t pack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset);
+    size_t unpack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset);
 protected:
     uint8 frame_counter_increment();
 };
+
+typedef boost::shared_ptr<kwp1281> kwp1281_ptr;
+
 }
 
 

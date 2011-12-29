@@ -21,64 +21,63 @@ canbus::canbus() {
     _flow_control[7] = 0x00;
 }
 
-int32 canbus::pack(const byte_array &source, byte_array &target) {
-    target.clear();
-    if (source.size() > 8 || source.size() <= 0) {
-        return -1;
+size_t canbus::pack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+
+    if (count > 8 || count <= 0) {
+        return 0;
     }
-    
+
     if (_id_mode == STD) {
-        target.push_back(0);
-        target.push_back(high_byte(low_word(_target_id)));
-        target.push_back(low_byte(low_word(_target_id)));
+        tar[tar_offset + 1] = high_byte(low_word(_target_id));
+        tar[tar_offset + 2] = low_byte(low_word(_target_id));
         if (_frame_type == Data) {
-            target[0] = low_byte(source.size() | STD | Data);
+            tar[tar_offset] = low_byte(count | STD | Data);
         } else {
-            target[0] = low_byte(source.size() | STD | Remote);
+            tar[tar_offset] = low_byte(count | STD | Remote);
         }
-        target.push_back(target);
-        return target.size();
+        memcpy(tar + tar_offset + 3, src + src_offset, count);
+        return count + 3;
     } else if (_id_mode == EXT) {
-        target.push_back(0);
-        target.push_back(high_byte(high_word(_target_id)));
-        target.push_back(low_byte(high_word(_target_id)));
-        target.push_back(high_byte(low_word(_target_id)));
-        target.push_back(low_byte(low_word(_target_id)));
+        tar[tar_offset + 1] = high_byte(high_word(_target_id));
+        tar[tar_offset + 2] = low_byte(high_word(_target_id));
+        tar[tar_offset + 3] = high_byte(low_word(_target_id));
+        tar[tar_offset + 4] = low_byte(low_word(_target_id));
         if (_frame_type == Data) {
-            target[0] = low_byte(source.size() | EXT | Data);
+            tar[tar_offset] = low_byte(count | EXT | Data);
         } else {
-            target[0] = low_byte(source.size() | EXT | Remote);
+            tar[tar_offset] = low_byte(count | EXT | Remote);
         }
-        target.push_back(source);
-        return target.size();
+        memcpy(tar + tar_offset + 5, src + src_offset, count);
+        return count + 5;
     }
-    return -1;
+    return 0;
 }
 
-int32 canbus::unpack(const byte_array &source, byte_array &target) {
-    target.clear();
-    int32 length = 0;
-    if (source.size() <= 0) {
-        return -1;
+size_t canbus::unpack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+    size_t length = 0;
+    if (count <= 0) {
+        return 0;
     }
-    
-    int32 mode = (source[0] & (EXT | Remote));
+
+    int32 mode = (src[src_offset] & (EXT | Remote));
     if (mode == (STD | Data)) {
-        length = source[0] & 0x0F;
-        if (length != source.size() - 3) {
-            return -1;
+        length = src[src_offset] & 0x0F;
+        if (length != count - 3) {
+            return 0;
         }
-        target.push_back(source.data() + 3, length);
+        memcpy(tar + tar_offset, src + src_offset + 3, length);
     } else if (mode == (STD | Remote)) {
     } else if (mode == (EXT | Data)) {
-        length = source[0] & 0x0F;
-        if (length != source.size() - 5) {
-            return -1;
+        length = src[0] & 0x0F;
+        if (length != count - 5) {
+            return 0;
         }
-        target.push_back(source.data() + 5, length);
+        memcpy(tar + tar_offset, src + src_offset + 5, length);
     } else {
     }
-    return target.size();
+    return length;
 }
 
 

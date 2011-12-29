@@ -15,11 +15,19 @@
 #include <jm_byte_array.hpp>
 
 namespace jm {
+
 class protocol {
 public:
-    virtual int32 pack(const byte_array &source, byte_array &target) = 0;
-    virtual int32 unpack(const byte_array &source, byte_array &target) = 0;
+    virtual size_t pack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset) = 0;
+    virtual size_t unpack(const uint8 *src, size_t src_offset, size_t count,
+            uint8 *tar, size_t tar_offset) = 0;
+    virtual size_t pack(const byte_array &src, byte_array &tar);
+    virtual size_t unpack(const byte_array &src, byte_array &tar);
 };
+
+typedef boost::shared_ptr<protocol> protocol_ptr;
+
 }
 
 

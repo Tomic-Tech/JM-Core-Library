@@ -90,39 +90,43 @@ byte_array::byte_array()
     
 }
 
-byte_array::byte_array(uint8 *data, size_type size) {
+byte_array::byte_array(uint8 *data, size_type offset, size_type size) {
+    boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _alloc_size = size;
     _size = size;
     uint8 *temp = new uint8[size];
-    memcpy(temp, data, size);
+    memcpy(temp, data + offset, size);
     _elems.reset(temp);
 }
 
 byte_array::byte_array(const byte_array &rhs) {
+    boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _alloc_size = rhs._alloc_size;
     _size = rhs._size;
     _elems = rhs._elems;
 }
 
 byte_array& byte_array::operator=(const byte_array &rhs) {
+    boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _alloc_size = rhs._alloc_size;
     _size = rhs._size;
     _elems = rhs._elems;
     return *this;
 }
 
-void byte_array::push_back(const uint8 *data, byte_array::size_type length) {
+void byte_array::push_back(const uint8 *data, size_type offset, size_type length) {
+    boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (_alloc_size == 0) {
         _alloc_size = length;
         uint8 *temp = new uint8[length];
-        memcpy(temp, data, length);
+        memcpy(temp, data + offset, length);
         _elems.reset(temp);
         _size = length;
     } else if ((_size + length) > _alloc_size) {
         _alloc_size += length;
         uint8 *temp = new uint8[_alloc_size];
         memcpy(temp, _elems.get(), _size);
-        memcpy(temp + _size, data, length);
+        memcpy(temp + _size, data + offset, length);
         _size += length;
         _elems.reset(temp);
     } else {
@@ -144,7 +148,24 @@ void byte_array::push_back(uint8 elem) {
 }
 
 void byte_array::push_back(const byte_array &other) {
-    push_back(other.data(), other.size());
+    push_back(other.data(), 0, other.size());
+}
+
+void byte_array::resize(int32 size) {
+    boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
+    if (size > _alloc_size) {
+        _alloc_size = size;
+        uint8 *temp = new uint8[_alloc_size];
+        memcpy(temp, _elems.get(), _size);
+        memset(temp + _size, 0, _alloc_size - _size);
+        _elems.reset(temp);
+        _size = size;
+    } else if (size > _size) {
+        memset(temp + _size, 0, size - _size);
+        _size = size;
+    } else {
+        _size = size;
+    }
 }
 
 }

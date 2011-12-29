@@ -4,7 +4,7 @@
 namespace jm {
 
 kwp2000::kwp2000() : _mode(KWP8X), _msg_mode(KWP8X), _link_mode(KWP8X), _baud(0) {
-    
+
 }
 
 void kwp2000::set_options(kwp_mode msg_mode, kwp_mode link_mode, int32 baud) {
@@ -14,86 +14,92 @@ void kwp2000::set_options(kwp_mode msg_mode, kwp_mode link_mode, int32 baud) {
     _baud = baud;
 }
 
-int32 kwp2000::pack(const byte_array &source, byte_array &target) {
-    if (source.size() <= 0) {
-        return -1;
-    }
-    
-    target.clear();
+size_t kwp2000::pack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+    if (count <= 0)
+        return 0;
+
+    size_t pos = src_offset;
+
     if (_mode == KWP8X) {
-        target.push_back(low_byte(0x80 | source.size()));
-        target.push_back(low_byte(_target_address));
-        target.push_back(low_byte(_source_address));
-        target.push_back(source);
+        tar[pos++] = low_byte(0x80 | count);
+        tar[pos++] = low_byte(_target_address);
+        tar[pos++] = low_byte(_source_address);
+        memcpy(tar + pos, src + src_offset, count);
+        pos += count;
     } else if (_mode == KWPCX) {
-        target.push_back(low_byte(0xC0 | source.size()));
-        target.push_back(low_byte(_target_address));
-        target.push_back(low_byte(_source_address));
-        target.push_back(source);
+        tar[pos++] = low_byte(0xC0 | count);
+        tar[pos++] = low_byte(_target_address);
+        tar[pos++] = low_byte(_source_address);
+        memcpy(tar + pos, src + src_offset, count);
+        pos += count;
     } else if (_mode == KWP80) {
-        target.push_back(low_byte(0x80));
-        target.push_back(low_byte(_target_address));
-        target.push_back(low_byte(_source_address));
-        target.push_back(low_byte(source.size()));
-        target.push_back(source);
+        tar[pos++] = low_byte(0x80);
+        tar[pos++] = low_byte(_target_address);
+        tar[pos++] = low_byte(_source_address);
+        tar[pos++] = low_byte(count);
+        memcpy(pos, src + src_offset, count);
+        pos += count;
     } else if (_mode == KWP00) {
-        target.push_back(0x00);
-        target.push_back(low_byte(source.size()));
-        target.push_back(source);
+        tar[pos++] = 0x00;
+        tar[pos++] = low_byte(count);
+        memcpy(tar + pos, src + src_offset, count);
+        pos += count;
     } else {
-        target.push_back(low_byte(source.size()));
-        target.push_back(source);
+        tar[pos++] = low_byte(count);
+        memcpy(tar + pos, src + src_offset, count);
+        pos += count;
     }
-    
+
     uint8 checksum = 0;
-    for (std::size_t i = 0; i < target.size(); i++) {
-        checksum += target[i];
+    for (std::size_t i = tar_offset; i < pos; i++) {
+        checksum += tar[i];
     }
-    target.push_back(checksum);
-    return target.size();
+    tar[pos++] = checksum;
+    return pos - tar_offset;
 }
 
-int32 kwp2000::unpack(const byte_array &source, byte_array &target) {
-    if (source.size() <= 0) {
-        return -1;
-    }
-    target.clear();
-    int32 length = 0;
-    if (source[0] > 0x80) {
-        length = source[0] - 0x80;
-        if (source[1] != _source_address) {
-            return -1;
+size_t kwp2000::unpack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+    if (count <= 0)
+        return 0;
+    
+    size_t length = 0;
+    if (src[0] > 0x80) {
+        length = src[0] - 0x80;
+        if (src[1] != _source_address) {
+            return 0;
         }
-        if (length != (source.size() - KWP8XHeaderLength - KWPChecksumLength)) {
-            length = source[0] - 0xC0; // for KWPCX
-            if (length != (source.size() - KWPCXHeaderLength - KWPChecksumLength)) {
-                return -1;
+        if (length != (count - KWP8XHeaderLength - KWPChecksumLength)) {
+            length = src[0] - 0xC0; // for KWPCX
+            if (length != (count - KWPCXHeaderLength - KWPChecksumLength)) {
+                return 0;
             }
         }
-        target.push_back(source.data() + KWP8XHeaderLength, length);
-    } else if (source[0] == 0x80) {
-        length = source[3];
-        if (source[1] != _source_address) {
-            return -1;
+        memcpy(tar + tar_offset, src + src_offset + KWP8XHeaderLength, length);
+    } else if (src[0] == 0x80) {
+        length = src[3];
+        if (src[1] != _source_address) {
+            return 0;
         }
-        if (length != (source.size() - KWP80HeaderLength - KWPChecksumLength)) {
-            return -1;
+        if (length != (count - KWP80HeaderLength - KWPChecksumLength)) {
+            return 0;
         }
-        target.push_back(source.data() + KWP80HeaderLength, length);
-    } else if (source[0] == 0) {
-        length = source[1];
-        if (length != (source.size() - KWP00HeaderLength - KWPChecksumLength)) {
-            return -1;
+        memcpy(tar + tar_offset, src + src_offset + KWP80HeaderLength, length);
+    } else if (src[0] == 0) {
+        length = src[1];
+        if (length != (count - KWP00HeaderLength - KWPChecksumLength)) {
+            return 0;
         }
-        target.push_back(source.data() + KWP00HeaderLength, length);
+        memcpy(tar + tar_offset, src + src_offset + KWP00HeaderLength, length);
     } else {
-        length = source[0];
-        if (length != (source.size() - KWP00HeaderLength - KWPChecksumLength)) {
-            return -1;
+        length = src[0];
+        if (length != (count - KWP00HeaderLength - KWPChecksumLength)) {
+            return 0;
         }
-        target.push_back(source.data() + KWP00HeaderLength, length);
+        memcpy(tar + tar_offset, src + src_offset + KWP00HeaderLength, length);
     }
-    return target.size();
+    return length;
 }
 
 }

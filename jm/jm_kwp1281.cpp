@@ -7,26 +7,30 @@ kwp1281::kwp1281() {
     _frame_counter = 0;
 }
 
-int32 kwp1281::pack(const byte_array &source, byte_array &target) {
-    target.clear();
-    if (source.size() <= 0) {
-        return -1;
+size_t kwp1281::pack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+
+    if (count <= 0) {
+        return 0;
     }
-    target.push_back(low_byte(source.size() + 20));
-    target.push_back(frame_counter_increment());
-    target.push_back(source);
-    target.push_back(FRAME_END);
-    return target.size();
+
+    size_t pos = tar_offset;
+    tar[pos++] = low_byte(count + 20);
+    tar[pos++] = frame_counter_increment();
+    memcpy(tar + pos, src + src_offset, count);
+    pos += count;
+    tar[pos++] = FRAME_END;
+    return pos - tar_offset;
 }
 
-int32 kwp1281::unpack(const byte_array &source, byte_array &target) {
-    if ((source.size() - 2) <= 0) {
-        return -1;
+size_t kwp1281::unpack(const uint8 *src, size_t src_offset, size_t count,
+        uint8 *tar, size_t tar_offset) {
+    if ((count - 2) <= 0) {
+        return 0;
     }
-    
-    target.clear();
-    target.push_back(source.data() + 1, source.size() - 2);
-    return target.size();
+
+    memcpy(tar + tar_offset, src + src_offset + 1, count - 2);
+    return count - 2;
 }
 
 uint8 kwp1281::frame_counter_increment() {

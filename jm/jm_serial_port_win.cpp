@@ -28,30 +28,30 @@ void serial_port::platform_destroy() {
 
 }
 
-int32 serial_port::set_port_name(const std::string &name) {
+error_code serial_port::set_port_name(const std::string &name) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (name.empty()) {
-        return -1;
+        return error::generic_error;
     }
     if (is_open()) {
-        return -1;
+        return error::generic_error;
     }
     return full_name_win(name, _port_name);
 }
 
-int32 serial_port::full_name_win(const std::string &name, std::string &result) {
+error_code serial_port::full_name_win(const std::string &name, std::string &result) {
     result.clear();
     if (name[0] != '\\')
         result += "\\\\.\\";
 
     result += name;
     if (result[4] != 'C' || result[5] != 'O' || result[6] != 'M') {
-        return -1;
+        return error::generic_error;
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_baudrate(int32 baudrate) {
+error_code serial_port::set_baudrate(int32 baudrate) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (_baudrate != baudrate) {
         switch (baudrate) {
@@ -62,14 +62,14 @@ int32 serial_port::set_baudrate(int32 baudrate) {
         case 200:
         case 1800:
         case 76800:
-            return -1;
+            return error::generic_error;
         default:
             _baudrate = baudrate;
             break;
         }
     }
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
     switch (baudrate) {
     case 110:
@@ -116,64 +116,64 @@ int32 serial_port::set_baudrate(int32 baudrate) {
         _comm_config.dcb.BaudRate = CBR_256000;
         break;
     default:
-        return -1;
+        return error::generic_error;
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
         return GetLastError();
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_databits(uint8 databits) {
+error_code serial_port::set_databits(uint8 databits) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (databits < 5 || databits > 8) {
-        return -1;
+        return error::generic_error;
     }
     if (_databits != databits) {
         if (_stopbits == stopbits_two && databits == 5) {
-            return -1;
+            return error::generic_error;
         } else if (_stopbits == stopbits_one_point_five && databits != 5) {
-            return -1;
+            return error::generic_error;
         } else if (_parity == parity_space && databits == 8) {
-            return -1;
+            return error::generic_error;
         } else {
             _databits = databits;
         }
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (databits) {
     case 5:
         if (_stopbits == stopbits_two) {
-            return -1;
+            return error::generic_error;
         } else {
             _comm_config.dcb.ByteSize = 5;
         }
         break;
     case 6:
         if (_stopbits == stopbits_one_point_five) {
-            return -1;
+            return error::generic_error;
         } else {
             _comm_config.dcb.ByteSize = 6;
         }
         break;
     case 7:
         if (_stopbits == stopbits_one_point_five) {
-            return -1;
+            return error::generic_error;
         } else {
             _comm_config.dcb.ByteSize = 7;
         }
         break;
     case 8:
         if (_stopbits == stopbits_one_point_five) {
-            return -1;
+            return error::generic_error;
         } else {
             _comm_config.dcb.ByteSize = 8;
         }
@@ -181,18 +181,18 @@ int32 serial_port::set_databits(uint8 databits) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
         return GetLastError();
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_parity(int32 parity) {
+error_code serial_port::set_parity(int32 parity) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!(parity == parity_even || parity == parity_mark || parity == parity_none || parity == parity_odd || parity == parity_space)) {
-        return -1;
+        return error::generic_error;
     }
 
     if (_parity != parity) {
@@ -200,7 +200,7 @@ int32 serial_port::set_parity(int32 parity) {
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     _comm_config.dcb.Parity = (BYTE) parity;
@@ -227,31 +227,31 @@ int32 serial_port::set_parity(int32 parity) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
         return GetLastError();
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_stopbits(int32 stopbits) {
+error_code serial_port::set_stopbits(int32 stopbits) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!(stopbits == stopbits_one || stopbits == stopbits_one_point_five || stopbits == stopbits_two)) {
-        return -1;
+        return error::generic_error;
     }
     if (_stopbits != stopbits) {
         if (_databits == 5 && stopbits == stopbits_two) {
-            return -1;
+            return error::generic_error;
         } else if (stopbits == stopbits_one_point_five && _databits != 5) {
-            return -1;
+            return error::generic_error;
         } else {
             _stopbits = stopbits;
         }
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (stopbits) {
@@ -268,7 +268,7 @@ int32 serial_port::set_stopbits(int32 stopbits) {
         break;
     case stopbits_two:
         if (_databits == 5) {
-            return -1;
+            return error::generic_error;
         } else {
             _comm_config.dcb.StopBits = TWOSTOPBITS;
         }
@@ -276,18 +276,18 @@ int32 serial_port::set_stopbits(int32 stopbits) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
         return GetLastError();
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_flow_control(int32 flow_contorl) {
+error_code serial_port::set_flow_control(int32 flow_contorl) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!(_flow_control == flow_control_hardware || _flow_control == flow_control_software || _flow_control == flow_control_none)) {
-        return -1;
+        return error::generic_error;
     }
 
     if (_flow_control != _flow_control) {
@@ -295,7 +295,7 @@ int32 serial_port::set_flow_control(int32 flow_contorl) {
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (_flow_control) {
@@ -324,20 +324,20 @@ int32 serial_port::set_flow_control(int32 flow_contorl) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
         return GetLastError();
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_write_timeout(int64 millic_seconds) {
+error_code serial_port::set_write_timeout(int64 millic_seconds) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _write_timeout = millic_seconds;
     
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
     
     if (millic_seconds == -1) {
@@ -349,21 +349,21 @@ int32 serial_port::set_write_timeout(int64 millic_seconds) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
     
     if (!SetCommTimeouts(_handle, &(_comm_timeouts))) {
         return GetLastError();
     }
 
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_read_timeout(int64 millic_seconds) {
+error_code serial_port::set_read_timeout(int64 millic_seconds) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _read_timeout = millic_seconds;
     
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
     
     if (millic_seconds == -1) {
@@ -375,19 +375,19 @@ int32 serial_port::set_read_timeout(int64 millic_seconds) {
     }
     _comm_timeouts.ReadTotalTimeoutMultiplier = 0;
     if (_is_multi_setting)
-        return 0;
+        return error::success;
     if (!SetCommTimeouts(_handle, &(_comm_timeouts))) {
         return GetLastError();
     }
 
-    return 0;
+    return error::success;
 }
 
 bool serial_port::is_open() {
     return _handle != INVALID_HANDLE_VALUE;
 }
 
-int32 serial_port::open() {
+error_code serial_port::open() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     ulong conf_size = sizeof (COMMCONFIG);
     DWORD dw_flags_and_attribute = FILE_FLAG_OVERLAPPED;
@@ -396,7 +396,7 @@ int32 serial_port::open() {
     _comm_config.dwSize = conf_size;
 
     if (is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     /* Open the port */
@@ -426,7 +426,7 @@ int32 serial_port::open() {
             || set_read_timeout(_read_timeout)
             || set_write_timeout(_write_timeout)) {
         _is_multi_setting = false;
-        return -1;
+        return error::generic_error;
     }
     if (!SetCommConfig(_handle, &(_comm_config), sizeof (COMMCONFIG))) {
         _is_multi_setting = false;
@@ -449,13 +449,13 @@ int32 serial_port::open() {
     //    if (!SetCommMask(_handle, EV_TXEMPTY | EV_RXCHAR | EV_DSR))
     //        throw IOException() << ErrorString("JM::IO::SerialPort: Failed to set Comm Mask") << error_code(::GetLastError());
 
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::close() {
+error_code serial_port::close() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     _bytes_to_write = 0;
@@ -466,67 +466,67 @@ int32 serial_port::close() {
     if (CloseHandle(_handle)) {
         _handle = INVALID_HANDLE_VALUE;
     } else {
-        return -1;
+        return error::generic_error;
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::flush() {
+error_code serial_port::flush() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     if (!FlushFileBuffers(_handle)) {
-        return -1;
+        return error::generic_error;
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::discard_in_buffer() {
+error_code serial_port::discard_in_buffer() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     if (!PurgeComm(_handle, PURGE_RXABORT | PURGE_RXCLEAR)) {
-        return -1;
+        return error::generic_error;
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::discard_out_buffer() {
+error_code serial_port::discard_out_buffer() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     if (!PurgeComm(_handle, PURGE_TXABORT | PURGE_TXCLEAR)) {
-        return -1;
+        return error::generic_error;
     }
-    return 0;
+    return error::success;
 }
 
-int64 serial_port::bytes_available() {
+size_t serial_port::bytes_available() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     DWORD errors;
     COMSTAT status;
 
     if (!is_open()) {
-        return -1;
+        return 0;
     }
 
     if (!ClearCommError(_handle, &errors, &status)) {
-        return -1;
+        return 0;
     }
 
-    return static_cast<int64> (status.cbInQue);
+    return static_cast<size_t> (status.cbInQue);
 }
 
-int32 serial_port::set_dtr(bool set) {
+error_code serial_port::set_dtr(bool set) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     DWORD dwFunc;
@@ -536,15 +536,15 @@ int32 serial_port::set_dtr(bool set) {
         dwFunc = CLRDTR;
 
     if (!EscapeCommFunction(_handle, dwFunc)) {
-        return -1;
+        return error::generic_error;
     }
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::set_rts(bool set) {
+error_code serial_port::set_rts(bool set) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     DWORD dwFunc;
@@ -554,59 +554,59 @@ int32 serial_port::set_rts(bool set) {
         dwFunc = CLRRTS;
 
     if (!EscapeCommFunction(_handle, dwFunc)) {
-        return -1;
+        return error::generic_error;
     }
 
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::read(uint8 *data, int32 offset, int32 count) {
+size_t serial_port::read(uint8 *data, size_t offset, size_t count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (data == NULL) {
-        return -1;
+        return 0;
     }
     
     if (count <= 0) {
-        return -1;
+        return 0;
     }
     
     if (!is_open()) {
-        return -1;
+        return 0;
     }
     
     DWORD ret_val = -1;
     if (!ReadFile(_handle, (void*)(data + offset), (DWORD)count, &ret_val, &_read_overlap)) {
         if (GetLastError() != ERROR_IO_PENDING) {
-            return -1;
+            return 0;
         }
         GetOverlappedResult(_handle, &_read_overlap, &ret_val, TRUE);
     }
-    return static_cast<int32>(ret_val);
+    return static_cast<size_t>(ret_val);
 }
 
-int32 serial_port::write(const uint8 *data, int32 offset, int32 count) {
+size_t serial_port::write(const uint8 *data, size_t offset, size_t count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (data == NULL) {
-        return -1;
+        return 0;
     }
     
     if (count <= 0) {
-        return -1;
+        return 0;
     }
     
     if (!is_open()) {
-        return -1;
+        return 0;
     }
     
     DWORD ret_val = -1;
     if (!WriteFile(_handle, (const void*)(data + offset), (DWORD)count, &ret_val, &_write_overlap)) {
         if (GetLastError() != ERROR_IO_PENDING) {
-            return -1;
+            return 0;
         }
         WaitForSingleObject(_write_overlap.hEvent, INFINITE);
         GetOverlappedResult(_handle, &_write_overlap, &ret_val, TRUE);
     }
-    return static_cast<int32>(ret_val);
+    return static_cast<size_t>(ret_val);
 }
 
 std::vector<std::string> serial_port::get_system_ports() {

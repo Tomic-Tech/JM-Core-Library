@@ -18,7 +18,7 @@ void serial_port::platform_destroy() {
 
 }
 
-int32 serial_port::set_baudrate_p(tcflag_t baud) {
+error_code serial_port::set_baudrate_p(tcflag_t baud) {
 #ifdef CBAUD
     _comm_config.c_cflag &= (~CBAUD);
     _comm_config.c_cflag |= baud;
@@ -27,30 +27,30 @@ int32 serial_port::set_baudrate_p(tcflag_t baud) {
     cfsetospeed(&_comm_config, baud);
 #endif
     if (_is_multi_setting)
-        return 0;
+        return error::success;
     return tcsetattr(_fd, TCSAFLUSH, &_comm_config);
 }
 
-int32 serial_port::set_databits_p(tcflag_t bits) {
+error_code serial_port::set_databits_p(tcflag_t bits) {
     _comm_config.c_cflag &= (~CSIZE);
     _comm_config.c_cflag |= bits;
     if (_is_multi_setting)
-        return 0;
+        return error::success;
     return tcsetattr(_fd, TCSAFLUSH, &_comm_config);
 }
 
-int32 serial_port::set_port_name(const std::string &name) {
+error_code serial_port::set_port_name(const std::string &name) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (name.empty()) {
-        return -1;
+        return error::generic_error;
     }
 
     if (is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     _port_name = name;
-    return 0;
+    return error::success;
 }
 
 int32 serial_port::set_baudrate(int32 baudrate) {
@@ -61,10 +61,10 @@ int32 serial_port::set_baudrate(int32 baudrate) {
         case 56000:
         case 128000:
         case 256000:
-            return -1;
+            return error::generic_error;
         case 76800:
 #ifndef B76800
-            return -1;
+            return error::generic_error;
 #else
             _baudrate = baudrate;
 #endif
@@ -76,7 +76,7 @@ int32 serial_port::set_baudrate(int32 baudrate) {
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (baudrate) {
@@ -122,7 +122,7 @@ int32 serial_port::set_baudrate(int32 baudrate) {
 #ifdef B76800
         return set_baudrate_p(B76800, ec);
 #else
-        return -1;
+        return error::generic_error;
 #endif
         break;
     case 115200:
@@ -132,37 +132,37 @@ int32 serial_port::set_baudrate(int32 baudrate) {
     case 56000:
     case 14400:
     default:
-        return -1;
+        return error::generic_error;
     }
-    return -1;
+    return error::generic_error;
 }
 
-int32 serial_port::set_databits(uint8 databits) {
+error_code serial_port::set_databits(uint8 databits) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (databits < 5 || databits > 8) {
-        return -1;
+        return error::generic_error;
     }
 
     if (_databits != databits) {
         if (_stopbits == stopbits_two && databits == 5) {
-            return -1;
+            return error::generic_error;
         } else if (_stopbits == stopbits_one_point_five && databits != 5) {
-            return -1;
+            return error::generic_error;
         } else if (_parity == parity_space && databits == 8) {
-            return -1;
+            return error::generic_error;
         } else {
             _databits = databits;
         }
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (databits) {
     case 5:
         if (_stopbits == stopbits_two) {
-            return -1;
+            return error::generic_error;
         } else {
             _databits = databits;
             return set_databits_p(CS5, ec);
@@ -170,7 +170,7 @@ int32 serial_port::set_databits(uint8 databits) {
         break;
     case 6:
         if (_stopbits == stopbits_one_point_five) {
-            return -1;
+            return error::generic_error;
         } else {
             _databits = databits;
             return set_databits_p(CS6, ec);
@@ -178,7 +178,7 @@ int32 serial_port::set_databits(uint8 databits) {
         break;
     case 7:
         if (_stopbits == stopbits_one_point_five) {
-            return -1;
+            return error::generic_error;
         } else {
             _databits = databits;
             return set_databits_p(CS7, ec);
@@ -186,38 +186,38 @@ int32 serial_port::set_databits(uint8 databits) {
         break;
     case 8:
         if (_stopbits == stopbits_one_point_five) {
-            return -1;
+            return error::generic_error;
         } else {
             _databits = databits;
             return set_databits_p(CS8, ec);
         }
         break;
     }
-    return -1;
+    return error::generic_error;
 }
 
-int32 serial_port::set_parity(int32 parity) {
+error_code serial_port::set_parity(int32 parity) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!(parity == parity_even || parity == parity_mark || parity == parity_none || parity == parity_odd || parity == parity_space)) {
-        return -1;
+        return error::generic_error;
     }
 
     if (_parity != parity) {
         if (parity == parity_mark || (parity == parity_space && _databits == 8)) {
-            return -1;
+            return error::generic_error;
         } else {
             _parity = parity;
         }
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (parity) {
     case parity_space:
         if (_databits == 8) {
-            return -1;
+            return error::generic_error;
         } else {
             /* space parity not directly supported - add an extra data bit to simulate it */
             _comm_config.c_cflag &= ~(PARENB | CSIZE);
@@ -241,7 +241,7 @@ int32 serial_port::set_parity(int32 parity) {
         break;
 
     case parity_mark:
-        return -1;
+        return error::generic_error;
     case parity_none:
         _comm_config.c_cflag &= (~PARENB);
         break;
@@ -254,29 +254,29 @@ int32 serial_port::set_parity(int32 parity) {
         break;
     }
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     return tcsetattr(_fd, TCSAFLUSH, &_comm_config);
 }
 
-int32 serial_port::set_stopbits(int32 stopbits) {
+error_code serial_port::set_stopbits(int32 stopbits) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!(stopbits == stopbits_one || stopbits == stopbits_one_point_five || stopbits == stopbits_two)) {
-        return -1;
+        return error::generic_error;
     }
 
     if (_stopbits != stopbits) {
         if (_databits == 5 && stopbits == stopbits_two) {
-            return -1;
+            return error::generic_error;
         } else if (stopbits == stopbits_one_point_five && _databits != 5) {
-            return -1;
+            return error::generic_error;
         } else {
             _stopbits = stopbits;
         }
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (stopbits) {
@@ -300,15 +300,15 @@ int32 serial_port::set_stopbits(int32 stopbits) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     return tcsetattr(_fd, TCSAFLUSH, &_comm_config);
 }
 
-int32 serial_port::set_flow_control(int32 flow_control) {
+error_code serial_port::set_flow_control(int32 flow_control) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!(flow_control == flow_control_hardware || flow_control == flow_control_xon_xoff || flow_control == flow_control_none)) {
-        return -1;
+        return error::generic_error;
     }
 
     if (_flow_control != flow_control) {
@@ -316,7 +316,7 @@ int32 serial_port::set_flow_control(int32 flow_control) {
     }
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     switch (flow_control) {
@@ -337,17 +337,17 @@ int32 serial_port::set_flow_control(int32 flow_control) {
     }
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
 
     return tcsetattr(_fd, TCSAFLUSH, &_comm_config);
 }
 
-int32 serial_port::set_read_timeout(int64 millic_seconds) {
+error_code serial_port::set_read_timeout(int64 millic_seconds) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _read_timeout = millic_seconds;
 
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     _copy_timeout.tv_sec = millic_seconds / 1000;
@@ -375,33 +375,33 @@ int32 serial_port::set_read_timeout(int64 millic_seconds) {
     _comm.config.c_cc[VTIME] = millic_seconds / 100;
 
     if (_is_multi_setting)
-        return 0;
+        return error::success;
     return tcsetattr(_fd, TCSAFLUSH, &_comm_config);
 }
 
-int32 serial_port::set_write_timeout(int64 millic_seconds) {
+error_code serial_port::set_write_timeout(int64 millic_seconds) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _write_timeout = millic_seconds;
-    return 0;
+    return error::success;
 }
 
 bool serial_port::is_open() {
     return _fd != -1;
 }
 
-int32 serial_port::open() {
+error_code serial_port::open() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     const long vdisable = fpathconf(_fd, _PC_VDISABLE);
 
     if (is_open()) {
-        return -1;
+        return error::generic_error;
     }
     log_inst().write(jm::core::log::debug, "serialport", std::string("trying to open file") + _port_name);
 
     /* note: linux 2.6.21 seems to ignore O_NDELAY flag */
     _fd = ::open(_port_name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     if (_fd == -1) {
-        return -1;
+        return error::generic_error;
     }
 
     log_inst().write(jm::core::log::debug, "serialport", "file opened successfully");
@@ -440,7 +440,7 @@ int32 serial_port::open() {
             || set_read_timeout(_read_timeout)
             || set_write_timeout(_write_timeout)) {
         _is_multi_setting = false;
-        return -1;
+        return error::generic_error;
     }
 
     int error_code = tcsetattr(_fd, TCSAFLUSH, &_comm_config);
@@ -450,11 +450,11 @@ int32 serial_port::open() {
     return error_code;
 }
 
-int32 serial_port::close() {
+error_code serial_port::close() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     log_inst().write(jm::core::log::debug, "serialport", "close");
     if (!is_open()) {
-        return 0;
+        return error::success;
     }
 
     const long vdisable = fpathconf(_fd, _PC_VDISABLE);
@@ -472,56 +472,56 @@ int32 serial_port::close() {
         return error_code;
     }
     _fd = -1;
-    return 0;
+    return error::success;
 }
 
-int32 serial_port::flush() {
+error_code serial_port::flush() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     return tcflush(_fd, TCIOFLUSH);
 }
 
-int32 serial_port::discard_in_buffer() {
+error_code serial_port::discard_in_buffer() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     return tcflush(_fd, TCIFLUSH);
 }
 
-int32 serial_port::discard_out_buffer() {
+error_code serial_port::discard_out_buffer() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     return tcflush(_fd, TCOFLUSH);
 }
 
-int64 serial_port::bytes_available() {
+size_t serial_port::bytes_available() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return 0;
     }
 
     int bytes_queued;
 
     int error_code = ioctl(_fd, FIONREAD, &bytes_queued);
     if (error_code != 0) {
-        return -1;
+        return 0;
     }
 
-    return static_cast<int64> (bytes_queued);
+    return static_cast<size_t> (bytes_queued);
 }
 
-int32 serial_port::set_dtr(bool set) {
+error_code serial_port::set_dtr(bool set) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     int status;
@@ -539,10 +539,10 @@ int32 serial_port::set_dtr(bool set) {
     return ioctl(_fd, TIOCMSET, &status);
 }
 
-int32 serial_port::set_rts(bool set) {
+error_code serial_port::set_rts(bool set) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
-        return -1;
+        return error::generic_error;
     }
 
     int status;
@@ -558,22 +558,22 @@ int32 serial_port::set_rts(bool set) {
     return ioctl(_fd, TIOCMSET, &status);
 }
 
-int32 serial_port::read(uint8 *data, int32 offset, int32 count) {
+size_t serial_port::read(uint8 *data, size_t offset, size_t count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (data == NULL)
-        return -1;
+        return 0;
 
     if (count <= 0)
-        return -1;
+        return 0;
 
     if (!is_open())
-        return -1;
+        return 0;
 
     int ret_val = ::read(_fd, data + offset, count);
     return static_cast<int32>(ret_val);
 }
 
-int32 serial_port::write(const uint8 *data, int32 offset, int32 count) {
+size_t serial_port::write(const uint8 *data, size_t offset, size_t count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (data == NULL)
         return -1;

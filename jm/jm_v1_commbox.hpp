@@ -17,14 +17,16 @@
 #include <jm_v1_shared.hpp>
 
 namespace jm {
+namespace v1 {
+
 
 class v1_commbox : public commbox {
 public:
-    v1_commbox(const boost::shared_ptr<port> &port);
-    int32 open();
-    int32 close();
-    void* configure(protocol_type type);
-    int32 set_connector(connector_type type);
+    v1_commbox(const commbox_port_ptr &port);
+    error_code open();
+    error_code close();
+    pointer configure(protocol_type type);
+    error_code set_connector(connector_type type);
     // this only for serial port configuration.
     int32 serial_port_baud();
     uint8 serial_port_databits();
@@ -34,11 +36,12 @@ public:
     bool serial_port_change_config();
     bool check_serial_port_change_config();
 private:
-    boost::shared_ptr<v1_box> _box;
-    boost::shared_ptr<v1_shared> _shared;
+    v1_box_ptr _box;
+    v1_shared_ptr _shared;
     uint32 _current_box;
 };
 
+}
 }
 
 

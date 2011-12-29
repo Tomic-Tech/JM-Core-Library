@@ -4,11 +4,11 @@
 
 namespace jm {
 
-commbox::commbox(const boost::shared_ptr<port> &port) {
+commbox::commbox(const commbox_port_ptr &port) {
     _port = port;
 }
 
-boost::shared_ptr<port> commbox::get_port() {
+commbox_port_ptr commbox::get_port() {
     return _port;
 }
 

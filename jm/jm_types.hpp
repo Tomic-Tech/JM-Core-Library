@@ -6,6 +6,7 @@
 #endif
 
 #include <jm_macros.hpp>
+#include <stddef.h>
 
 namespace jm {
 
@@ -18,6 +19,11 @@ typedef signed short int16;
 typedef unsigned int uint32;
 typedef signed int int32;
 typedef unsigned long ulong;
+
+typedef int32 error_code;
+typedef std::size_t size_t;
+
+typedef void* pointer;
 
 #ifndef _MSC_VER
 JM_GNUC_EXTENSION typedef signed long long int64;

@@ -40,6 +40,7 @@
 #endif
 
 #include <boost/thread.hpp>
+#include <jm_error.hpp>
 
 namespace jm {
 class serial_port {
@@ -64,39 +65,39 @@ public:
     std::string port_name() const;
     int32 set_port_name(const std::string &name);
     
-    int32 set_baudrate(int32 baudrate);
+    error_code set_baudrate(int32 baudrate);
     int32 baudrate() const;
     
-    int32 set_databits(uint8 databits);
+    error_code set_databits(uint8 databits);
     uint8 databits() const;
     
-    int32 set_parity(int32 parity);
+    error_code set_parity(int32 parity);
     int32 parity() const;
     
-    int32 set_stopbits(int32 stopbits);
+    error_code set_stopbits(int32 stopbits);
     int32 stopbits() const;
     
-    int32 set_flow_control(int32 flow_control);
+    error_code set_flow_control(int32 flow_control);
     int32 flow_control() const;
     
-    int32 write(const uint8 *data, int32 offset, int32 count);
-    int32 read(uint8 *data, int32 offset, int32 count);
+    size_t write(const uint8 *data, size_t offset, size_t count);
+    size_t read(uint8 *data, size_t offset, size_t count);
     
-    int32 set_read_timeout(int64 millic_seconds);
+    error_code set_read_timeout(int64 millic_seconds);
     int64 read_timeout() const;
     
-    int32 set_write_timeout(int64 millic_seconds);
+    error_code set_write_timeout(int64 millic_seconds);
     int64 write_timeout() const;
     
     bool is_open();
-    int32 open();
-    int32 close();
-    int32 flush();
-    int32 discard_in_buffer();
-    int32 discard_out_buffer();
-    int64 bytes_available();
-    int32 set_dtr(bool set);
-    int32 set_rts(bool set);
+    error_code open();
+    error_code close();
+    error_code flush();
+    error_code discard_in_buffer();
+    error_code discard_out_buffer();
+    size_t bytes_available();
+    error_code set_dtr(bool set);
+    error_code set_rts(bool set);
     
     static std::vector<std::string> get_system_ports();
     
@@ -130,7 +131,7 @@ private:
     COMMTIMEOUTS _comm_timeouts;
     DWORD _event_mask;
     
-    static int32 full_name_win(const std::string &name, std::string &result);
+    static error_code full_name_win(const std::string &name, std::string &result);
     static std::vector<std::string> enumerate_device_win(const GUID *guid);
     static std::string get_reg_key_value(HKEY key, const std::string &property);
 #else
@@ -140,8 +141,8 @@ private:
     struct timeval _timeout;
     struct timeval _copy_timeout;
     
-    int32 set_baudrate_p(tcflag_t baud);
-    int32 set_databits_p(tcflag_t bits);
+    error_code set_baudrate_p(tcflag_t baud);
+    error_code set_databits_p(tcflag_t bits);
 #endif
 };
 }

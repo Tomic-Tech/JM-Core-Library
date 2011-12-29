@@ -12,8 +12,8 @@
 #pragma once
 #endif
 
-#include <jm_types.hpp>
 #include <string>
+#include <jm_types.hpp>
 
 namespace jm {
 class time_val {
@@ -64,6 +64,8 @@ public:
 private:
     time_val _expire;
 };
+
+typedef boost::shared_ptr<timer> timer_ptr;
 
 }
 
