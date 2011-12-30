@@ -144,14 +144,14 @@ void byte_array::push_back(const uint8 *data, size_type offset, size_type length
 }
 
 void byte_array::push_back(uint8 elem) {
-    push_back(&elem, 1);
+    push_back(&elem, 0, 1);
 }
 
 void byte_array::push_back(const byte_array &other) {
     push_back(other.data(), 0, other.size());
 }
 
-void byte_array::resize(int32 size) {
+void byte_array::resize(size_t size) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (size > _alloc_size) {
         _alloc_size = size;
@@ -161,7 +161,7 @@ void byte_array::resize(int32 size) {
         _elems.reset(temp);
         _size = size;
     } else if (size > _size) {
-        memset(temp + _size, 0, size - _size);
+        memset(_elems.get() + _size, 0, size - _size);
         _size = size;
     } else {
         _size = size;

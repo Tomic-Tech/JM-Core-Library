@@ -129,7 +129,7 @@ public:
     // 2.在指定时间内读完数据则退出
     // 3.超出指定时间则退出
     // /////////////////////////////////////////////////////////////////
-    int32 read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds);
+    size_t read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds);
     // for serial port
     bool serial_port_change_config();
     bool check_serial_port_change_config();
@@ -257,7 +257,7 @@ public:
     // 功能: 设置执行将EchoBuff中的数值原样返回。
     // 如要立即执行，则返回执行结果，如写入缓冲区，返回下条命令的地址
     // ////////////////////////////////////////////////////////////////////
-    bool set_echo_data(uint8 *echo_buff, int32 echo_len);
+    bool set_echo_data(uint8 *echo_buff, size_t echo_len);
     // ////////////////////////////////////////////////////////////////////
     // 全局函数:
     // BYTE KeepLink(bool IsRunLink)
@@ -395,7 +395,7 @@ public:
     // 功能: 使用后，需判断是否执行结束。
     // ////////////////////////////////////////////////////////////////////
     bool run_batch(uint8 *buff_id, size_t count, bool is_execute_many);
-    int32 read_bytes(uint8 *buff, size_t offset, size_t count);
+    size_t read_bytes(uint8 *buff, size_t offset, size_t count);
 private:
     // ///////////////////////////////////////////////////////////////////////////
     // 静态函数：bool CheckIdle()
@@ -450,7 +450,7 @@ private:
     // 3.如在指定时间内未能读完数据则错误退出
     // 4.未能读到指定命令的数据错误退出
     // /////////////////////////////////////////////////////////////////
-    int32 get_cmd_data(uint8 command, uint8 *receive_buffer);
+    size_t get_cmd_data(uint8 command, uint8 *receive_buffer);
     // ////////////////////////////////////////////////////////////////////
     // 通讯串口和Commbox初始化设定
     // 并进行握手通信，以能正常通讯
@@ -519,6 +519,8 @@ private:
     // ////////////////////////////////////////////////////////////////////
     bool set_rf(uint8 cmd, uint8 cmd_info);
 };
+
+typedef boost::shared_ptr<v1_c168_box> v1_c168_box_ptr;
 
 }
 }

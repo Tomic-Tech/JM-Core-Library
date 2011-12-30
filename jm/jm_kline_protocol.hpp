@@ -24,7 +24,7 @@ protected:
 public:
     kline_protocol();
     void set_address(int32 target_address, int32 source_address);
-    virtual error_code addr_init(int32 addr_code) = 0;
+    virtual error_code addr_init(uint8 addr_code) = 0;
     virtual error_code set_lines(int32 com_line, bool l_line) = 0;
 };
 }

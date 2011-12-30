@@ -13,6 +13,7 @@
 #endif
 
 #include <string>
+#include <boost/smart_ptr.hpp>
 #include <jm_types.hpp>
 
 namespace jm {

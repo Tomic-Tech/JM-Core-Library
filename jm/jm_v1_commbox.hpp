@@ -15,6 +15,8 @@
 #include <jm_commbox.hpp>
 #include <jm_v1_box.hpp>
 #include <jm_v1_shared.hpp>
+#include "jm_v1_c168_box.hpp"
+#include "jm_v1_w80_box.hpp"
 
 namespace jm {
 namespace v1 {
@@ -36,8 +38,9 @@ public:
     bool serial_port_change_config();
     bool check_serial_port_change_config();
 private:
-    v1_box_ptr _box;
     v1_shared_ptr _shared;
+    v1_c168_box_ptr _c168_box;
+    v1_w80_box_ptr _w80_box;
     uint32 _current_box;
 };
 

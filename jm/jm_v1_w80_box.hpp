@@ -86,6 +86,8 @@ private:
     uint32 get_box_ver();
 };
 
+typedef boost::shared_ptr<v1_w80_box> v1_w80_box_ptr;
+
 }
 }
 

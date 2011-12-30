@@ -19,15 +19,15 @@
 namespace jm {
 namespace v1 {
 
-template <typename T>
+template <typename BOX, typename T>
 class v1_default {
 private:
-    v1_box_ptr _box;
+    boost::shared_ptr<BOX> _box;
     v1_shared_ptr _shared;
     boost::shared_ptr<T> _protocol;
 public:
 
-    v1_default(const v1_box_ptr box, v1_shared_ptr shared, boost::shared_ptr<T> protocol) {
+    v1_default(const boost::shared_ptr<BOX> &box, v1_shared_ptr &shared, boost::shared_ptr<T> &protocol) {
         _box = box;
         _shared = shared;
         _protocol = protocol;
@@ -39,13 +39,13 @@ public:
             return -1;
         }
         byte_array send_buff;
-        _protocol.pack(send_buff, byte_array(data + offset, count));
+        _protocol->pack(send_buff, byte_array(data + offset, count));
         if (send_buff.empty()) {
             return -1;
         }
         if (need_recv) {
             if (!_box->send_out_data(send_buff.data(), 0, send_buff.size())
-                    || !_box->run_receive(v1_shared::RECEIVE)
+                    || !_box->run_receive(BOX::D::RECEIVE)
                     || !_box->end_batch()
                     || !_box->run_batch(&_shared->buff_id, 1, false)) {
                 return -1;
@@ -62,7 +62,7 @@ public:
     }
 
     error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {
-        if (!_box->new_batch(v1_shared::LINKBLOCK)) {
+        if (!_box->new_batch(BOX::D::LINKBLOCK)) {
             return error::generic_error;
         }
         if (!_box->send_out_data(data, offset, count)
