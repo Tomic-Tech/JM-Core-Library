@@ -24,41 +24,42 @@ class v1_default {
 private:
     boost::shared_ptr<BOX> _box;
     v1_shared_ptr _shared;
-    boost::shared_ptr<T> _protocol;
+    T* _protocol;
 public:
 
-    v1_default(const boost::shared_ptr<BOX> &box, v1_shared_ptr &shared, boost::shared_ptr<T> &protocol) {
-        _box = box;
-        _shared = shared;
-        _protocol = protocol;
+    v1_default(const boost::shared_ptr<BOX> &box, const v1_shared_ptr &shared, T* protocol)
+    : _box(box)
+    , _shared(shared)
+    , _protocol(protocol) {
     }
 
     size_t send_one_frame(const uint8 *data, size_t offset, size_t count, bool need_recv) {
         _shared->buff_id = 0;
         if (!_box->new_batch(_shared->buff_id)) {
-            return -1;
+            return 0;
         }
-        byte_array send_buff;
-        _protocol->pack(send_buff, byte_array(data + offset, count));
-        if (send_buff.empty()) {
-            return -1;
+        uint8 send_buff[256];
+        size_t length = _protocol->pack(data, offset, count, send_buff, 0);
+
+        if (length <= 0) {
+            return 0;
         }
         if (need_recv) {
-            if (!_box->send_out_data(send_buff.data(), 0, send_buff.size())
+            if (!_box->send_out_data(send_buff, 0, length)
                     || !_box->run_receive(BOX::D::RECEIVE)
                     || !_box->end_batch()
                     || !_box->run_batch(&_shared->buff_id, 1, false)) {
-                return -1;
+                return 0;
             }
         } else {
-            if (!_box->send_out_data(send_buff.data(), 0, send_buff.size())
+            if (!_box->send_out_data(send_buff, 0, length)
                     || !_box->end_batch()
                     || !_box->run_batch(&_shared->buff_id, 1, false)) {
-                return -1;
+                return 0;
             }
         }
         _protocol->finish_execute(!need_recv);
-        return send_buff.size();
+        return length;
     }
 
     error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {

@@ -35,7 +35,7 @@ public:
     v1_iso14230(const boost::shared_ptr<BOX> &box, const v1_shared_ptr &shared)
     : _box(box)
     , _shared(shared)
-    , _default(boost::make_shared<v1_default<BOX, v1_iso14230> >(_box, _shared, *this))
+    , _default(boost::make_shared<v1_default<BOX, v1_iso14230> >(_box, _shared, this))
     , _l_line(false)
     , _send_line(0)
     , _recv_line(0) {
@@ -65,13 +65,13 @@ public:
         if (!_box->new_batch(_shared->buff_id)) {
             return error::generic_error;
         }
-        jm::byte_array pack_enter;
-        pack(byte_array(data, offset, count), pack_enter);
+        uint8 pack_enter[256];
+        size_t length = pack(data, offset, count, pack_enter, 0);
         if (!_box->set_line_level(BOX::D::COMS, BOX::D::SET_NULL)
                 || !_box->commbox_delay(jm::timer::to_ms(25))
                 || !_box->set_line_level(BOX::D::SET_NULL, BOX::D::COMS)
                 || !_box->commbox_delay(jm::timer::to_ms(25))
-                || !_box->send_out_data(pack_enter.data(), 0, pack_enter.size())
+                || !_box->send_out_data(pack_enter, 0, length)
                 || !_box->run_receive(BOX::D::REC_FR)
                 || !_box->end_batch()) {
             _box->del_batch(_shared->buff_id);
@@ -80,7 +80,8 @@ public:
         if (!_box->run_batch(&_shared->buff_id, 1, false))
             return error::generic_error;
 
-        if (read_one_frame(pack_enter) <= 0)
+        length = read_one_frame(pack_enter, 0);
+        if (length <= 0)
             return error::generic_error;
         _box->set_comm_time(BOX::D::SETWAITTIME, jm::timer::to_ms(55));
     }
@@ -137,8 +138,8 @@ public:
         if (_shared->connector == OBDII_16) {
             switch (com_line) {
                 case 7:
-                    _send_line = BOX::D::SK_1;
-                    _recv_line = BOX::D::RK_1;
+                    _send_line = BOX::D::SK1;
+                    _recv_line = BOX::D::RK1;
                     break;
                 default:
                     return error::generic_error;
@@ -174,10 +175,10 @@ public:
     }
     error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {
         _mode = _link_mode;
-        byte_array buff;
-        pack(byte_array(data, offset, count), buff);
+        uint8 buff[256];
+        size_t length = pack(data, offset, count, buff, 0);
         _mode = _msg_mode;
-        return _default->set_keep_link(buff.data(), 0, buff.size());
+        return _default->set_keep_link(buff, 0, length);
     }
 private:
 

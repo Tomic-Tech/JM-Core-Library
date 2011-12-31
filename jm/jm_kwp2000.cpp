@@ -38,7 +38,7 @@ size_t kwp2000::pack(const uint8 *src, size_t src_offset, size_t count,
         tar[pos++] = low_byte(_target_address);
         tar[pos++] = low_byte(_source_address);
         tar[pos++] = low_byte(count);
-        memcpy(pos, src + src_offset, count);
+        memcpy(tar + pos, src + src_offset, count);
         pos += count;
     } else if (_mode == KWP00) {
         tar[pos++] = 0x00;
@@ -100,6 +100,10 @@ size_t kwp2000::unpack(const uint8 *src, size_t src_offset, size_t count,
         memcpy(tar + tar_offset, src + src_offset + KWP00HeaderLength, length);
     }
     return length;
+}
+
+error_code kwp2000::fast_init(const byte_array &data) {
+    return fast_init(data.data(), 0, data.size());
 }
 
 }

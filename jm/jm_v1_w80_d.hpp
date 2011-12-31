@@ -173,6 +173,24 @@ struct v1_w80_d {
     static const uint8 DISCONNECT_COMBOX = 3;
     static const uint8 OTHER_ERROR = 4;
 
+    static const uint8 SK0 = 0;
+    static const uint8 SK1 = 1;
+    static const uint8 SK2 = 2;
+    static const uint8 SK3 = 3;
+    static const uint8 SK4 = 4;
+    static const uint8 SK5 = 5;
+    static const uint8 SK6 = 6;
+    static const uint8 SK7 = 7;
+    static const uint8 SK_NO = 0xFF;
+    static const uint8 RK0 = 0;
+    static const uint8 RK1 = 1;
+    static const uint8 RK2 = 2;
+    static const uint8 RK3 = 3;
+    static const uint8 RK4 = 4;
+    static const uint8 RK5 = 5;
+    static const uint8 RK6 = 6;
+    static const uint8 RK7 = 7;
+    static const uint8 RK_NO = 0xFF;
 };
 
 }

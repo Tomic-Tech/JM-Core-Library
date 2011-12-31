@@ -37,7 +37,7 @@ public:
     virtual size_t read_one_frame(byte_array& data) {
         uint8 buff[256];
         data.clear();
-        size_t ret = read_one_frame(data, 0);
+        size_t ret = read_one_frame(buff, 0);
         if (ret > 0) {
             data.push_back(buff, 0, ret);
         }

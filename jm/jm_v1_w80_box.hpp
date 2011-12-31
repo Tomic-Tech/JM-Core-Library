@@ -36,6 +36,7 @@ private:
     uint32 _run_flag;
     uint32 _box_ver;
     uint32 _start_pos;
+    bool _is_initialize;
 public:
     bool serial_port_change_config();
     bool check_serial_port_change_config();

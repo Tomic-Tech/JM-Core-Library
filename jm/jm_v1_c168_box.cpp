@@ -412,8 +412,8 @@ bool v1_c168_box::new_batch(uint8 buff_id) {
         return false;
     }
 
-    uint8 header = D::WR_DATA;
-    uint32 length = 0x01;
+    _cmd_temp[0] = D::WR_DATA;
+    _cmd_temp[1] = 0x01;
     if (buff_id == D::LINKBLOCK) {
         _cmd_temp[2] = 0xFF;
         _buffer.add[D::LINKBLOCK] = _info.cmd_buff_len;
@@ -426,19 +426,16 @@ bool v1_c168_box::new_batch(uint8 buff_id) {
         return false;
     }
     _cmd_temp[3] = D::WR_DATA + 0x01 + _cmd_temp[2];
-    header += _info.head_password;
-    _cmd_temp[0] = header;
-    _cmd_temp[1] = static_cast<uint8> (length);
+    _cmd_temp[0] = _info.head_password;
     _buffer.id = buff_id;
     get_shared()->is_do_now = false;
     return true;
 }
 
 bool v1_c168_box::add_to_buff(uint8 command_word, size_t offset, size_t count, const uint8 *data) {
-    _cmd_temp;
-    uint8 data_length = _cmd_temp[1];
-    uint8 checksum = _cmd_temp[data_length + 2];
-    get_shared()->next_address = data_length + count + 1;
+    size_t i = 0;
+    uint8 checksum = _cmd_temp[_cmd_temp[1] + 2];
+    get_shared()->next_address = _cmd_temp[1] + count + 1;
     
     if (_buffer.id == D::NULLADD) {
         // 数据块标识登记是否有申请?
@@ -462,35 +459,33 @@ bool v1_c168_box::add_to_buff(uint8 command_word, size_t offset, size_t count, c
             // 是否合法命令?
             if (command_word == D::SEND_DATA && get_box_ver() > 0x400) {
                 // 增加发送长命令
-                _cmd_temp[data_length + 2] = D::SEND_CMD;
+                _cmd_temp[_cmd_temp[1] + 2] = D::SEND_CMD;
                 checksum += D::SEND_CMD;
-                data_length++;
-                _cmd_temp[data_length + 2] = static_cast<uint8> (command_word + count);
+                _cmd_temp[1]++;
+                _cmd_temp[_cmd_temp[1] + 2] = static_cast<uint8> (command_word + count);
                 if (count > 0) {
-                    _cmd_temp[data_length + 2]--;
+                    _cmd_temp[_cmd_temp[1] + 2]--;
                 }
-                checksum += _cmd_temp[data_length + 2];
-                data_length++;
-                for (int i = 0; i < count; i++, data_length++) {
-                    _cmd_temp[data_length + 2] = data[i];
-                    checksum += data[i];
+                checksum += _cmd_temp[_cmd_temp[1] + 2];
+                _cmd_temp[1]++;
+                for (i = 0; i < count; i++, _cmd_temp[1]++) {
+                    _cmd_temp[_cmd_temp[1] + 2] = data[i + offset];
+                    checksum += data[i + offset];
                 }
-                _cmd_temp[1] = data_length;
-                _cmd_temp[data_length + 2] = static_cast<uint8> (checksum + count + 2);
+                _cmd_temp[_cmd_temp[1] + 2] = static_cast<uint8> (checksum + count + 2);
                 get_shared()->next_address++;
             } else {
-                _cmd_temp[data_length + 2] = static_cast<uint8> (command_word + count);
+                _cmd_temp[_cmd_temp[1] + 2] = static_cast<uint8> (command_word + count);
                 if (count > 0) {
-                    _cmd_temp[data_length + 2]--;
+                    _cmd_temp[_cmd_temp[1] + 2]--;
                 }
-                checksum += _cmd_temp[data_length + 2];
-                data_length++;
-                for (int i = 0; i < count; i++, data_length++) {
-                    _cmd_temp[data_length + 2] = data[i];
-                    checksum += data[i];
+                checksum += _cmd_temp[_cmd_temp[1] + 2];
+                _cmd_temp[1]++;
+                for (i = 0; i < count; i++, _cmd_temp[1]++) {
+                    _cmd_temp[_cmd_temp[1] + 2] = data[i + offset];
+                    checksum += data[i + offset];
                 }
-                _cmd_temp[1] = data_length;
-                _cmd_temp[data_length + 2] = static_cast<uint8> (checksum + count + 1);
+                _cmd_temp[_cmd_temp[1] + 2] = static_cast<uint8> (checksum + count + 1);
                 get_shared()->next_address++; // Ogilvy Xu ad
             }
             return true;

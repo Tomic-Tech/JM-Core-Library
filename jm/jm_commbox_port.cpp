@@ -1,4 +1,5 @@
 #include "jm_commbox_port.hpp"
+#include "jm_log.hpp"
 
 namespace jm {
 
@@ -44,6 +45,7 @@ size_t commbox_port::read(uint8 *data, size_t offset, size_t count) {
             data[i + offset] = _in_deque.front();
             _in_deque.pop_front();
         }
+        log_inst().write_hex(log::debug, "commbox port read", data, offset, count);
         return count;
     }
     _timer.set_timeout(_read_timeout);
@@ -54,14 +56,16 @@ size_t commbox_port::read(uint8 *data, size_t offset, size_t count) {
                 data[i + offset] = _in_deque.front();
                 _in_deque.pop_front();
             }
+            log_inst().write_hex(log::debug, "commbox port read", data, offset, count);
             return count;
         }
     }
-    return -1;
+    return 0;
 }
 
 size_t commbox_port::write(const uint8 *data, size_t offset, size_t count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_out_mutex);
+    log_inst().write_hex(log::debug, "commbox port write", data, offset, count);
     for (int i = 0; i < count; i++) {
         _out_deque.push_back(data[i + offset]);
     }

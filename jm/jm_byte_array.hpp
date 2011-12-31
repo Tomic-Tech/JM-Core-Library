@@ -30,7 +30,7 @@ public:
     typedef std::ptrdiff_t difference_type;
 
     byte_array();
-    byte_array(uint8 *data, size_type offset, size_type size);
+    byte_array(const uint8 *data, size_type offset, size_type size);
     byte_array(const byte_array &rhs);
 
     //assignment with type conversion

@@ -11,7 +11,8 @@ v1_w80_box::v1_w80_box(const commbox_port_ptr &port, const v1_shared_ptr &shared
 , _serial_port_stopbits(serial_port::stopbits_two)
 , _serial_port_databits(8)
 , _serial_port_flow_control(serial_port::flow_control_none)
-, _serial_port_parity(serial_port::parity_none) {
+, _serial_port_parity(serial_port::parity_none)
+, _is_initialize(true) {
 
 }
 
@@ -22,7 +23,10 @@ bool v1_w80_box::check_idle() {
         get_port()->discard_in_buffer();
         return true;
     }
-    while (get_port()->read(&rb, 0, 1));
+    while (get_port()->bytes_available()) {
+        get_port()->read(&rb, 0, 1);
+    }
+//    while (get_port()->read(&rb, 0, 1));
     if (rb == D::READY || rb == D::Error) {
         return true;
     }
@@ -63,8 +67,8 @@ bool v1_w80_box::send_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *d
     byte_array command;
     command.push_back(cmd);
     for (int i = 0; i < count; i++) {
-        command.push_back(data[i]);
-        cs += data[i];
+        command.push_back(data[i + offset]);
+        cs += data[i + offset];
     }
     command.push_back(cs);
     for (int32 i = 0; i < 3; i++) {
@@ -417,18 +421,21 @@ bool v1_w80_box::open_box() {
     if (init_box() && check_box()) {
         get_port()->discard_in_buffer();
         get_port()->discard_out_buffer();
+        _is_initialize = false;
         return true;
     }
     return false;
 }
 
 bool v1_w80_box::open_comm() {
+    _is_initialize = true;
     return open_box();
 }
 
 bool v1_w80_box::close_comm() {
     reset();
     set_rf(D::RF_RESET, 0);
+    _is_initialize = false;
     return true;
 }
 
@@ -554,11 +561,13 @@ int32 v1_w80_box::serial_port_flow_control() {
 }
 
 bool v1_w80_box::serial_port_change_config() {
+    if (_is_initialize)
+        return true;
     return false;
 }
 
 bool v1_w80_box::check_serial_port_change_config() {
-    return false;
+    return true;
 }
 }
 }

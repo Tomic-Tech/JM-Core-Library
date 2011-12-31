@@ -1,5 +1,6 @@
 #include "jm_v1_commbox.hpp"
 #include "jm_v1_iso14230.hpp"
+#include "jm_v1_comm.hpp"
 
 
 namespace jm {
@@ -41,24 +42,30 @@ error_code v1_commbox::close() {
 }
 
 pointer v1_commbox::configure(protocol_type type) {
-    pointer pro;
+    pointer comm;
     if (_current_box == 0) {
         // C168
         switch (type) {
-            case ISO14230:
-                pro = new v1_iso14230<v1_c168_box > (_c168_box, _shared);
-                return pro;
-            default:
-                return NULL;
+        case ISO14230:
+        {
+            boost::shared_ptr<v1_iso14230<v1_c168_box> > pro = boost::make_shared<v1_iso14230<v1_c168_box> >(_c168_box, _shared);
+            comm = new v1_comm<v1_c168_box, v1_iso14230<v1_c168_box> >(_c168_box, pro);
+            return comm;
+        }
+        default:
+            return NULL;
         }
     } else {
         // W80
         switch (type) {
-            case ISO14230:
-                pro = new v1_iso14230<v1_w80_box > (_w80_box, _shared);
-                return pro;
-            default:
-                return NULL;
+        case ISO14230:
+        {
+            boost::shared_ptr<v1_iso14230<v1_w80_box> > pro = boost::make_shared<v1_iso14230<v1_w80_box> >(_w80_box, _shared);
+            comm = new v1_comm<v1_w80_box, v1_iso14230<v1_w80_box> >(_w80_box, pro);
+            return comm;
+        }
+        default:
+            return NULL;
         }
     }
     return NULL;

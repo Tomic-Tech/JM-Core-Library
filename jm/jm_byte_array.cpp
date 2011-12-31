@@ -90,7 +90,7 @@ byte_array::byte_array()
     
 }
 
-byte_array::byte_array(uint8 *data, size_type offset, size_type size) {
+byte_array::byte_array(const uint8 *data, size_type offset, size_type size) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     _alloc_size = size;
     _size = size;
@@ -124,6 +124,7 @@ void byte_array::push_back(const uint8 *data, size_type offset, size_type length
         _size = length;
     } else if ((_size + length) > _alloc_size) {
         _alloc_size += length;
+        _alloc_size *= 2;
         uint8 *temp = new uint8[_alloc_size];
         memcpy(temp, _elems.get(), _size);
         memcpy(temp + _size, data + offset, length);
