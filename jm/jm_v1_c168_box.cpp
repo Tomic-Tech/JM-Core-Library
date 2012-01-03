@@ -48,13 +48,19 @@ bool v1_c168_box::check_idle() {
 bool v1_c168_box::send_ok(int64 microseconds) {
     uint8 receive_buffer = 0;
     get_port()->set_read_timeout(microseconds);
-    if (get_port()->read(&receive_buffer, 0, 1) != 1) {
-        get_shared()->last_error = D::TIMEOUT_ERROR;
-        return false;
-    }
-    if (receive_buffer == D::SEND_OK) {
-        return true;
-    }
+	while (true) {
+		if (get_port()->read(&receive_buffer, 0, 1) != 1) {
+			get_shared()->last_error = D::TIMEOUT_ERROR;
+			return false;
+		}
+		if (receive_buffer == D::SEND_OK) {
+			return true;
+		} else if (receive_buffer >= D::UP_TIMEOUT && receive_buffer <= D::ERROR_REC) {
+			get_shared()->last_error = D::SENDDATA_ERROR;
+			return false;
+		}
+	}
+
     get_shared()->last_error = D::SENDDATA_ERROR;
     return false;
 }
@@ -63,7 +69,7 @@ uint32 v1_c168_box::get_box_ver() {
     return (_info.version[0] << 8) | (_info.version[1]);
 }
 
-bool v1_c168_box::commbox_do(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
+bool v1_c168_box::commbox_do(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
     if (count > D::CMD_DATALEN) {
         return send_data_to_ecu(command_word, offset, count, buff);
     } else {
@@ -71,7 +77,7 @@ bool v1_c168_box::commbox_do(uint8 command_word, size_t offset, size_t count, co
     }
 }
 
-bool v1_c168_box::send_data_to_ecu(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
+bool v1_c168_box::send_data_to_ecu(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
     if (command_word == D::SEND_DATA && count <= D::SEND_LEN) {
         if (_buffer.size() < (count + 1)) {
             get_shared()->last_error = D::NOBUFF_TOSEND;
@@ -94,8 +100,8 @@ bool v1_c168_box::send_data_to_ecu(uint8 command_word, size_t offset, size_t cou
     return false;
 }
 
-bool v1_c168_box::send_data_to_ecu_new(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
-    std::size_t i;
+bool v1_c168_box::send_data_to_ecu_new(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
+    size_type i;
     byte_array command;
     command.push_back(D::WR_DATA + _info.head_password);
     command.push_back(low_byte(count + 3));
@@ -121,14 +127,14 @@ bool v1_c168_box::send_data_to_ecu_new(uint8 command_word, size_t offset, size_t
     return false;
 }
 
-bool v1_c168_box::send_data_to_ecu_old(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
+bool v1_c168_box::send_data_to_ecu_old(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
     byte_array command;
     command.push_back(D::WR_DATA + _info.head_password);
     command.push_back(low_byte(count + 2));
     command.push_back(_buffer.add[D::SWAPBLOCK]);
     command.push_back(low_byte(count - 1));
     uint8 checksum = D::WR_DATA + command[1] + command[2] + command[3];
-    int32 i;
+    size_type i;
     for (i = 0; i < count; i++) {
         command.push_back(buff[offset + i]);
         checksum += buff[offset + i];
@@ -146,7 +152,7 @@ bool v1_c168_box::send_data_to_ecu_old(uint8 command_word, size_t offset, size_t
     return false;
 }
 
-bool v1_c168_box::commbox_command(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
+bool v1_c168_box::commbox_command(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
     uint8 checksum = low_byte(command_word + count);
     if (command_word < D::WR_DATA) {
         if (count == 0) {
@@ -162,7 +168,7 @@ bool v1_c168_box::commbox_command(uint8 command_word, size_t offset, size_t coun
     }
     byte_array command;
     command.push_back(checksum + _info.head_password);
-    std::size_t i;
+    size_type i;
     for (i = 0; i < count; i++) {
         command.push_back(buff[offset + i]);
         checksum += buff[offset + i];
@@ -225,7 +231,7 @@ bool v1_c168_box::stop_now(bool is_stop_execute) {
     }
 }
 
-bool v1_c168_box::do_set(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
+bool v1_c168_box::do_set(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
     uint32 times = D::REPLAYTIMES;
     while (times--) {
         if (!commbox_do(command_word, offset, count, buff)) {
@@ -238,12 +244,12 @@ bool v1_c168_box::do_set(uint8 command_word, size_t offset, size_t count, const 
     return false;
 }
 
-size_t v1_c168_box::read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds) {
+size_type v1_c168_box::read_data(uint8 *buff, size_type offset, size_type count, int64 microseconds) {
     get_port()->set_read_timeout(microseconds);
     return get_port()->read(buff, offset, count);
 }
 
-size_t v1_c168_box::get_cmd_data(uint8 command, uint8* receive_buffer) {
+size_type v1_c168_box::get_cmd_data(uint8 command, uint8* receive_buffer) {
     uint8 checksum = command;
     uint8 cmd_info[2];
     if (read_data(cmd_info, 0, 2, timer::to_ms(150)) != 2) {
@@ -259,7 +265,7 @@ size_t v1_c168_box::get_cmd_data(uint8 command, uint8* receive_buffer) {
         return 0;
     }
     checksum += cmd_info[1];
-    for (std::size_t i = 0; i < cmd_info[1]; i++) {
+    for (size_type i = 0; i < cmd_info[1]; i++) {
         checksum += receive_buffer[i];
     }
 
@@ -275,7 +281,7 @@ bool v1_c168_box::check_box() {
     srand((unsigned) time(NULL));
     uint8 temp[5];
     temp[4] = 0x00;
-    std::size_t i = 0;
+    size_type i = 0;
     while (i < 4) {
         temp[i] = low_byte(rand());
         temp[4] += temp[i];
@@ -320,7 +326,7 @@ bool v1_c168_box::init_box() {
     }
     _info.time_unit = 0;
     uint32 pos = 0;
-    for (std::size_t i = 0; i < D::MINITIMELEN; i++) {
+    for (size_type i = 0; i < D::MINITIMELEN; i++) {
         _info.time_unit = _info.time_unit * 256 + _cmd_temp[pos++];
     }
 
@@ -333,10 +339,10 @@ bool v1_c168_box::init_box() {
         get_shared()->last_error = D::COMMTIME_ZERO;
         return false;
     }
-    for (std::size_t i = 0; i < D::COMMBOXIDLEN; i++) {
+    for (size_type i = 0; i < D::COMMBOXIDLEN; i++) {
         _info.id[i] = _cmd_temp[pos++];
     }
-    for (std::size_t i = 0; i < D::VERSIONLEN; i++) {
+    for (size_type i = 0; i < D::VERSIONLEN; i++) {
         _info.version[i] = _cmd_temp[pos++];
     }
     _info.port[0] = D::NULLADD;
@@ -383,6 +389,8 @@ bool v1_c168_box::check_serial_port_change_config() {
 }
 
 bool v1_c168_box::open_comm() {
+	set_rf(D::RESET_RF, 0);
+	set_rf(D::SETDTR_L, 0);
     if (init_box() && check_box()) {
         _is_initialize = false;
         return true;
@@ -432,8 +440,8 @@ bool v1_c168_box::new_batch(uint8 buff_id) {
     return true;
 }
 
-bool v1_c168_box::add_to_buff(uint8 command_word, size_t offset, size_t count, const uint8 *data) {
-    size_t i = 0;
+bool v1_c168_box::add_to_buff(uint8 command_word, size_type offset, size_type count, const uint8 *data) {
+    size_type i = 0;
     uint8 checksum = _cmd_temp[_cmd_temp[1] + 2];
     get_shared()->next_address = _cmd_temp[1] + count + 1;
     
@@ -519,7 +527,7 @@ bool v1_c168_box::end_batch() {
         }
         if (!check_idle() || (get_port()->write(_cmd_temp, 0, _cmd_temp[1] + 3) != (_cmd_temp[1] + 3))) {
             continue;
-        } else if (send_ok(20 * (_cmd_temp[1] + 10))) {
+        } else if (send_ok(jm::timer::to_ms(20) * (_cmd_temp[1] + 10))) {
             break;
         }
         if (!stop_now(true)) {
@@ -532,7 +540,7 @@ bool v1_c168_box::end_batch() {
         _buffer.add[D::LINKBLOCK] = static_cast<uint8> (_info.cmd_buff_len - _cmd_temp[1]);
     } else {
         _buffer.add[_buffer.id] = _buffer.add[D::SWAPBLOCK];
-        _buffer.used[_buffer.used_num] = (byte) (_buffer.id);
+        _buffer.used[_buffer.used_num] = _buffer.id;
         _buffer.used_num++;
         _buffer.add[D::SWAPBLOCK] = _buffer.add[D::SWAPBLOCK] + _cmd_temp[1];
     }
@@ -559,7 +567,7 @@ bool v1_c168_box::del_batch(uint8 buff_id) {
     if (buff_id == D::LINKBLOCK) {
         _buffer.add[D::LINKBLOCK] = static_cast<uint8> (_info.cmd_buff_len);
     } else {
-        int i = 0;
+        size_type i = 0;
         for (; i < _buffer.used_num; i++) {
             if (_buffer.used[i] == buff_id) {
                 break;
@@ -588,7 +596,7 @@ bool v1_c168_box::del_batch(uint8 buff_id) {
     return true;
 }
 
-bool v1_c168_box::send_to_box(uint8 command_word, size_t offset, size_t count, const uint8 *buff) {
+bool v1_c168_box::send_to_box(uint8 command_word, size_type offset, size_type count, const uint8 *buff) {
     if (get_shared()->is_do_now) {
         return do_set(command_word, offset, count, buff);
     } else {
@@ -627,7 +635,7 @@ bool v1_c168_box::turn_over_one_by_one() {
     return send_to_box(D::SET_ONEBYONE, 0, 0, NULL);
 }
 
-bool v1_c168_box::set_echo_data(uint8* echo_buff, size_t echo_len) {
+bool v1_c168_box::set_echo_data(uint8* echo_buff, size_type echo_len) {
     if (echo_buff == NULL || echo_len == 0 || echo_len > 4) {
         get_shared()->last_error = D::ILLIGICAL_LEN;
         return false;
@@ -638,7 +646,7 @@ bool v1_c168_box::set_echo_data(uint8* echo_buff, size_t echo_len) {
                 || (read_data(receive_buff, 0, echo_len, 100000) != echo_len)) {
             return false;
         }
-        for (int i = 0; i < echo_len; i++) {
+        for (size_type i = 0; i < echo_len; i++) {
             if (receive_buff[i] != echo_buff[i]) {
                 get_shared()->last_error = D::CHECKSUM_ERROR;
                 return false;
@@ -662,7 +670,7 @@ bool v1_c168_box::set_comm_link(uint8 ctrl_word1, uint8 ctrl_word2, uint8 ctrl_w
     uint8 ctrl_word[3]; // 通讯控制字3
     int mode_control = ctrl_word1 & 0xE0;
     ctrl_word[0] = ctrl_word1;
-    std::size_t length = 3;
+    size_type length = 3;
     if ((ctrl_word1 & 0x04) != 0) {
         get_shared()->is_db_20 = true;
     } else {
@@ -780,7 +788,7 @@ uint8 v1_c168_box::get_abs_add(uint8 buff_id, uint8 add) {
         if (buff_id == D::LINKBLOCK) {
             length = _info.cmd_buff_len - _buffer.add[D::LINKBLOCK];
         } else {
-            int i;
+            size_type i;
             for (i = 0; i < _buffer.used_num; i++) {
                 if (_buffer.used[i] == buff_id) {
                     break;
@@ -896,7 +904,7 @@ bool v1_c168_box::commbox_delay(uint32 time) {
     }
 }
 
-bool v1_c168_box::send_out_data(const uint8 *buffer, size_t offset, size_t count) {
+bool v1_c168_box::send_out_data(const uint8 *buffer, size_type offset, size_type count) {
     if (count == 0) {
         get_shared()->last_error = D::ILLIGICAL_LEN;
         return false;
@@ -908,9 +916,9 @@ bool v1_c168_box::send_out_data(const uint8 *buffer, size_t offset, size_t count
     }
 }
 
-bool v1_c168_box::run_batch(uint8 *buff_id, size_t count, bool is_execute_many) {
+bool v1_c168_box::run_batch(uint8 *buff_id, size_type count, bool is_execute_many) {
     int command_word = D::D0_BAT;
-    for (size_t i = 0; i < count; i++) {
+    for (size_type i = 0; i < count; i++) {
         if (_buffer.add[buff_id[i]] == D::NULLADD) {
             get_shared()->last_error = D::NOUSED_BUFF;
             return false;
@@ -928,7 +936,7 @@ bool v1_c168_box::run_batch(uint8 *buff_id, size_t count, bool is_execute_many) 
 }
 
 bool v1_c168_box::set_rf(uint8 cmd, uint8 cmd_info) {
-    std::size_t times = D::REPLAYTIMES;
+    size_type times = D::REPLAYTIMES;
     cmd_info += cmd;
     if (cmd == D::SETRFBAUD) {
         times = 2;
@@ -950,7 +958,7 @@ bool v1_c168_box::set_rf(uint8 cmd, uint8 cmd_info) {
     return false;
 }
 
-size_t v1_c168_box::read_bytes(uint8 *buff, size_t offset, size_t count) {
+size_type v1_c168_box::read_bytes(uint8 *buff, size_type offset, size_type count) {
     return read_data(buff, offset, count, get_shared()->res_wait_time);
 }
 

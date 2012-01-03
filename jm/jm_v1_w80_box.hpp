@@ -47,9 +47,9 @@ public:
     int32 serial_port_flow_control();
     v1_w80_box(const commbox_port_ptr &port, const v1_shared_ptr &shared);
     bool check_result(int64 microseconds);
-    size_t read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds);
-    size_t read_bytes(uint8 *buff, size_t offset, size_t count);
-    uint8 get_cmd_data(uint8 *buff, size_t count);
+    size_type read_data(uint8 *buff, size_type offset, size_type count, int64 microseconds);
+    size_type read_bytes(uint8 *buff, size_type offset, size_type count);
+    uint8 get_cmd_data(uint8 *buff, size_type count);
     bool set_line_level(uint8 value_low, uint8 value_high);
     bool set_comm_ctrl(uint8 value_open, uint8 value_close);
     bool set_comm_line(uint8 send_line, uint8 recv_line);
@@ -60,7 +60,7 @@ public:
     void get_link_time(uint8 type, uint32 time);
     bool set_comm_time(uint8 type, uint32 time);
     bool commbox_delay(uint32 time);
-    bool send_out_data(const uint8* buff, size_t offset, size_t count);
+    bool send_out_data(const uint8* buff, size_type offset, size_type count);
     bool run_receive(uint8 type);
     bool stop_now(bool is_stop_execute);
     bool open_comm();
@@ -71,15 +71,15 @@ public:
     bool new_batch(uint8 buff_id);
     bool end_batch();
     bool del_batch(uint8 buff_id);
-    bool run_batch(uint8 *buff, size_t count, bool is_exeucte_many);
+    bool run_batch(uint8 *buff, size_type count, bool is_exeucte_many);
     bool reset();
 private:
     bool check_idle();
     bool check_send();
-    bool send_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *buff);
-    bool do_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *buff);
-    bool do_set(uint8 cmd, size_t offset, size_t count, const uint8 *buff);
-    uint8 get_buff_data(uint8 addr, uint8 *buff, size_t count);
+    bool send_cmd(uint8 cmd, size_type offset, size_type count, const uint8 *buff);
+    bool do_cmd(uint8 cmd, size_type offset, size_type count, const uint8 *buff);
+    bool do_set(uint8 cmd, size_type offset, size_type count, const uint8 *buff);
+    uint8 get_buff_data(uint8 addr, uint8 *buff, size_type count);
     bool init_box();
     bool check_box();
     bool open_box();

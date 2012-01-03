@@ -7,6 +7,7 @@
 
 #include <jm_macros.hpp>
 #include <iostream>
+#include <vector>
 
 namespace jm {
 
@@ -21,9 +22,11 @@ typedef signed int int32;
 typedef unsigned long ulong;
 
 typedef int32 error_code;
-typedef std::size_t size_t;
+typedef std::size_t size_type;
 
 typedef void* pointer;
+
+typedef std::vector<int32> int32_vector;
 
 #ifndef _MSC_VER
 JM_GNUC_EXTENSION typedef signed long long int64;

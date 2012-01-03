@@ -7,14 +7,14 @@ kwp1281::kwp1281() {
     _frame_counter = 0;
 }
 
-size_t kwp1281::pack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type kwp1281::pack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
 
     if (count <= 0) {
         return 0;
     }
 
-    size_t pos = tar_offset;
+    size_type pos = tar_offset;
     tar[pos++] = low_byte(count + 20);
     tar[pos++] = frame_counter_increment();
     memcpy(tar + pos, src + src_offset, count);
@@ -23,8 +23,8 @@ size_t kwp1281::pack(const uint8 *src, size_t src_offset, size_t count,
     return pos - tar_offset;
 }
 
-size_t kwp1281::unpack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type kwp1281::unpack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
     if ((count - 2) <= 0) {
         return 0;
     }

@@ -17,7 +17,7 @@
 #include <jm_types.hpp>
 
 namespace jm {
-class time_val {
+class JMCORE_API time_val {
 public:
     static const int32 USEC_PER_SEC = 1000000;
     time_val();
@@ -47,7 +47,7 @@ private:
     int64 _tv_usec;
 };
 
-class timer {
+class JMCORE_API timer {
 public:
     timer();
     void set_timeout(int64 microseconds);

@@ -46,17 +46,17 @@
 #define JM_GNUC_EXTENSION
 #endif
 
-#ifdef JMLIB_BUILD
+#ifdef JMCORE_BUILD
 #ifdef JM_OS_WIN
-#define JMLIB_API __declspec(dllexport)
+#define JMCORE_API __declspec(dllexport)
 #elif defined(JM_OS_UNIX)
-#define JMLIB_API
+#define JMCORE_API
 #endif
 #else
 #ifdef JM_OS_WIN
-#define JMLIB_API __declspec(dllimport)
+#define JMCORE_API __declspec(dllimport)
 #elif defined(JM_OS_UNIX)
-#define JMLIB_API extern
+#define JMCORE_API extern
 #endif
 #endif
 

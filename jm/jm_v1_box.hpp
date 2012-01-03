@@ -42,7 +42,7 @@ public:
     }
     virtual bool open_comm() = 0;
     virtual bool close_comm() = 0;
-    virtual size_t read_bytes(uint8 *buff, size_t offset, size_t count) = 0;
+    virtual size_type read_bytes(uint8 *buff, size_type offset, size_type count) = 0;
     virtual bool set_comm_ctrl(uint8 value_open, uint8 value_close) = 0;
     virtual bool set_comm_line(uint8 send_line, uint8 recv_line) = 0;
     virtual bool set_comm_link(uint8 ctrl_word1, uint8 ctrl_word2, uint8 ctrl_word3) = 0;
@@ -56,11 +56,11 @@ public:
     virtual bool del_batch(uint8 buff_id) = 0;
     virtual bool check_result(int64 microseconds) = 0;
     virtual bool keep_link(bool is_run_link) = 0;
-    virtual bool send_out_data(const uint8 *buff, size_t offset, size_t count) = 0;
+    virtual bool send_out_data(const uint8 *buff, size_type offset, size_type count) = 0;
     virtual bool run_receive(uint8 type) = 0;
     virtual bool end_batch() = 0;
-    virtual bool run_batch(uint8 *buff_id, size_t count, bool is_execute_many) = 0;
-    virtual size_t read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds) = 0;
+    virtual bool run_batch(uint8 *buff_id, size_type count, bool is_execute_many) = 0;
+    virtual size_type read_data(uint8 *buff, size_type offset, size_type count, int64 microseconds) = 0;
     virtual bool update_buff(uint8 type, uint8 *buff) = 0;
     virtual uint8 get_abs_add(uint8 buff_id, uint8 add) = 0;
     virtual int32 serial_port_baud() = 0;

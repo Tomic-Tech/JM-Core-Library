@@ -14,12 +14,12 @@ void kwp2000::set_options(kwp_mode msg_mode, kwp_mode link_mode, int32 baud) {
     _baud = baud;
 }
 
-size_t kwp2000::pack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type kwp2000::pack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
     if (count <= 0)
         return 0;
 
-    size_t pos = src_offset;
+    size_type pos = src_offset;
 
     if (_mode == KWP8X) {
         tar[pos++] = low_byte(0x80 | count);
@@ -52,19 +52,19 @@ size_t kwp2000::pack(const uint8 *src, size_t src_offset, size_t count,
     }
 
     uint8 checksum = 0;
-    for (std::size_t i = tar_offset; i < pos; i++) {
+    for (size_type i = tar_offset; i < pos; i++) {
         checksum += tar[i];
     }
     tar[pos++] = checksum;
     return pos - tar_offset;
 }
 
-size_t kwp2000::unpack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type kwp2000::unpack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
     if (count <= 0)
         return 0;
     
-    size_t length = 0;
+    size_type length = 0;
     if (src[0] > 0x80) {
         length = src[0] - 0x80;
         if (src[1] != _source_address) {

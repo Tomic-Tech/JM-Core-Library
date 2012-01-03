@@ -16,13 +16,13 @@
 
 namespace jm {
 
-class mikuni : public kline_protocol {
+class JMCORE_API mikuni : public kline_protocol {
 public:
     static const int32 HEAD_FORMAT = 0x48;
-    size_t pack(const uint8 *src, size_t src_offset, size_t count,
-            uint8 *tar, size_t tar_offset);
-    size_t unpack(const uint8 *src, size_t src_offset, size_t count,
-            uint8 *tar, size_t tar_offset);
+    size_type pack(const uint8 *src, size_type src_offset, size_type count,
+            uint8 *tar, size_type tar_offset);
+    size_type unpack(const uint8 *src, size_type src_offset, size_type count,
+            uint8 *tar, size_type tar_offset);
 };
 
 typedef boost::shared_ptr<mikuni> mikuni_ptr;

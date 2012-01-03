@@ -16,7 +16,7 @@
 
 namespace jm {
 
-class kline_protocol : public protocol {
+class JMCORE_API kline_protocol : public protocol {
 protected:
     int32 _target_address;
     int32 _source_address;

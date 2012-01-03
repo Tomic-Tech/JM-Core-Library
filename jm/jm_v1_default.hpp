@@ -33,13 +33,13 @@ public:
     , _protocol(protocol) {
     }
 
-    size_t send_one_frame(const uint8 *data, size_t offset, size_t count, bool need_recv) {
+    size_type send_one_frame(const uint8 *data, size_type offset, size_type count, bool need_recv) {
         _shared->buff_id = 0;
         if (!_box->new_batch(_shared->buff_id)) {
             return 0;
         }
         uint8 send_buff[256];
-        size_t length = _protocol->pack(data, offset, count, send_buff, 0);
+        size_type length = _protocol->pack(data, offset, count, send_buff, 0);
 
         if (length <= 0) {
             return 0;
@@ -62,7 +62,7 @@ public:
         return length;
     }
 
-    error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {
+    error_code set_keep_link(const uint8 *data, size_type offset, size_type count) {
         if (!_box->new_batch(BOX::D::LINKBLOCK)) {
             return error::generic_error;
         }

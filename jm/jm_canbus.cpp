@@ -21,8 +21,8 @@ canbus::canbus() {
     _flow_control[7] = 0x00;
 }
 
-size_t canbus::pack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type canbus::pack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
 
     if (count > 8 || count <= 0) {
         return 0;
@@ -54,9 +54,9 @@ size_t canbus::pack(const uint8 *src, size_t src_offset, size_t count,
     return 0;
 }
 
-size_t canbus::unpack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
-    size_t length = 0;
+size_type canbus::unpack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
+    size_type length = 0;
     if (count <= 0) {
         return 0;
     }

@@ -18,7 +18,9 @@
 
 namespace jm {
 
-class byte_array {
+class byte_array_private;
+
+class JMCORE_API byte_array {
 public:
     // type definitions
     typedef uint8 value_type;
@@ -26,12 +28,12 @@ public:
     typedef const uint8* const_iterator;
     typedef uint8& reference;
     typedef const uint8& const_reference;
-    typedef std::size_t size_type;
     typedef std::ptrdiff_t difference_type;
 
     byte_array();
     byte_array(const uint8 *data, size_type offset, size_type size);
     byte_array(const byte_array &rhs);
+	~byte_array();
 
     //assignment with type conversion
     byte_array& operator =(const byte_array &rhs);
@@ -75,10 +77,7 @@ private:
     void range_check(size_type i);
     void range_check(size_type i) const;
 private:
-    size_type _alloc_size;
-    size_type _size;
-    boost::shared_array<uint8> _elems;
-    boost::recursive_mutex _mutex;
+	byte_array_private *_pri;
 };
 
 typedef boost::shared_ptr<byte_array> byte_array_ptr;

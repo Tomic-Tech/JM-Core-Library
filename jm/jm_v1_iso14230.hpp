@@ -35,13 +35,13 @@ public:
     v1_iso14230(const boost::shared_ptr<BOX> &box, const v1_shared_ptr &shared)
     : _box(box)
     , _shared(shared)
-    , _default(boost::make_shared<v1_default<BOX, v1_iso14230> >(_box, _shared, this))
     , _l_line(false)
     , _send_line(0)
     , _recv_line(0) {
+		_default = boost::make_shared<v1_default<BOX, v1_iso14230> >(_box, _shared, this);
     }
 
-    error_code fast_init(const uint8 *data, size_t offset, size_t count) {
+    error_code fast_init(const uint8 *data, size_type offset, size_type count) {
         uint8 value_open = 0;
         if (_l_line) {
             value_open = BOX::D::PWC | BOX::D::RZFC | BOX::D::CK;
@@ -52,11 +52,11 @@ public:
                 || !_box->set_comm_line(_send_line, _recv_line)
                 || !_box->set_comm_link(BOX::D::RS_232 | BOX::D::BIT9_MARK | BOX::D::SEL_SL | BOX::D::UN_DB20, BOX::D::SET_NULL, BOX::D::SET_NULL)
                 || !_box->set_comm_baud(10416)
-                || !_box->set_comm_time(BOX::D::SETBYTETIME, jm::timer::to_ms(5))
-                || !_box->set_comm_time(BOX::D::SETWAITTIME, jm::timer::to_ms(0))
-                || !_box->set_comm_time(BOX::D::SETRECBBOUT, jm::timer::to_ms(400))
-                || !_box->set_comm_time(BOX::D::SETRECFROUT, jm::timer::to_ms(500))
-                || !_box->set_comm_time(BOX::D::SETLINKTIME, jm::timer::to_ms(500))) {
+                || !_box->set_comm_time(BOX::D::SETBYTETIME, static_cast<uint32>(jm::timer::to_ms(5)))
+                || !_box->set_comm_time(BOX::D::SETWAITTIME, static_cast<uint32>(jm::timer::to_ms(0)))
+                || !_box->set_comm_time(BOX::D::SETRECBBOUT, static_cast<uint32>(jm::timer::to_ms(400)))
+                || !_box->set_comm_time(BOX::D::SETRECFROUT, static_cast<uint32>(jm::timer::to_ms(500)))
+                || !_box->set_comm_time(BOX::D::SETLINKTIME, static_cast<uint32>(jm::timer::to_ms(500)))) {
             return error::generic_error;
         }
 
@@ -66,11 +66,11 @@ public:
             return error::generic_error;
         }
         uint8 pack_enter[256];
-        size_t length = pack(data, offset, count, pack_enter, 0);
+        size_type length = pack(data, offset, count, pack_enter, 0);
         if (!_box->set_line_level(BOX::D::COMS, BOX::D::SET_NULL)
-                || !_box->commbox_delay(jm::timer::to_ms(25))
+                || !_box->commbox_delay(static_cast<uint32>(jm::timer::to_ms(25)))
                 || !_box->set_line_level(BOX::D::SET_NULL, BOX::D::COMS)
-                || !_box->commbox_delay(jm::timer::to_ms(25))
+                || !_box->commbox_delay(static_cast<uint32>(jm::timer::to_ms(25)))
                 || !_box->send_out_data(pack_enter, 0, length)
                 || !_box->run_receive(BOX::D::REC_FR)
                 || !_box->end_batch()) {
@@ -83,18 +83,19 @@ public:
         length = read_one_frame(pack_enter, 0);
         if (length <= 0)
             return error::generic_error;
-        _box->set_comm_time(BOX::D::SETWAITTIME, jm::timer::to_ms(55));
+        _box->set_comm_time(BOX::D::SETWAITTIME, static_cast<uint32>(jm::timer::to_ms(55)));
+		return error::success;
     }
 
     error_code addr_init(uint8 addr_code) {
         if (!_box->set_comm_ctrl(BOX::D::PWC | BOX::D::REFC | BOX::D::RZFC | BOX::D::CK, BOX::D::SET_NULL)
                 || !_box->set_comm_link(BOX::D::RS_232 | BOX::D::BIT9_MARK | BOX::D::SEL_SL | BOX::D::SET_DB20, BOX::D::SET_NULL, BOX::D::INVERTBYTE)
                 || !_box->set_comm_baud(5)
-                || !_box->set_comm_time(BOX::D::SETBYTETIME, jm::timer::to_ms(5))
-                || !_box->set_comm_time(BOX::D::SETWAITTIME, jm::timer::to_ms(12))
-                || !_box->set_comm_time(BOX::D::SETRECBBOUT, jm::timer::to_ms(400))
-                || !_box->set_comm_time(BOX::D::SETRECFROUT, jm::timer::to_ms(500))
-                || !_box->set_comm_time(BOX::D::SETLINKTIME, jm::timer::to_ms(500))) {
+                || !_box->set_comm_time(BOX::D::SETBYTETIME, static_cast<uint32>(jm::timer::to_ms(5)))
+                || !_box->set_comm_time(BOX::D::SETWAITTIME, static_cast<uint32>(jm::timer::to_ms(12)))
+                || !_box->set_comm_time(BOX::D::SETRECBBOUT, static_cast<uint32>(jm::timer::to_ms(400)))
+                || !_box->set_comm_time(BOX::D::SETRECFROUT, static_cast<uint32>(jm::timer::to_ms(500)))
+                || !_box->set_comm_time(BOX::D::SETLINKTIME, static_cast<uint32>(jm::timer::to_ms(500)))) {
             return error::generic_error;
         }
         jm::timer::sleep(jm::timer::to_sec(1));
@@ -124,7 +125,7 @@ public:
             return error::generic_error;
         }
         if (!_box->del_batch(_shared->buff_id)
-                || !_box->set_comm_time(BOX::D::SETWAITTIME, jm::timer::to_ms(55))) {
+                || !_box->set_comm_time(BOX::D::SETWAITTIME, static_cast<uint32>(jm::timer::to_ms(55)))) {
             return error::generic_error;
         }
 
@@ -148,21 +149,22 @@ public:
             return error::generic_error;
         }
         _l_line = l_line;
+		return error::success;
     }
 
-    size_t send_one_frame(const uint8 *data, size_t offset, size_t count) {
+    size_type send_one_frame(const uint8 *data, size_type offset, size_type count) {
         return _default->send_one_frame(data, offset, count, false);
     }
 
-    size_t send_frames(const uint8 *data, size_t offset, size_t count) {
+    size_type send_frames(const uint8 *data, size_type offset, size_type count) {
         return send_one_frame(data, offset, count);
     }
 
-    size_t read_one_frame(uint8 *data, size_t offset) {
+    size_type read_one_frame(uint8 *data, size_type offset) {
         return read_one_frame(data, offset, true);
     }
 
-    size_t read_frames(uint8 *data, size_t offset) {
+    size_type read_frames(uint8 *data, size_type offset) {
         return read_one_frame(data, offset);
     }
 
@@ -173,16 +175,16 @@ public:
             _box->check_result(jm::timer::to_ms(500));
         }
     }
-    error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {
+    error_code set_keep_link(const uint8 *data, size_type offset, size_type count) {
         _mode = _link_mode;
         uint8 buff[256];
-        size_t length = pack(data, offset, count, buff, 0);
+        size_type length = pack(data, offset, count, buff, 0);
         _mode = _msg_mode;
         return _default->set_keep_link(buff, 0, length);
     }
 private:
 
-    size_t read_one_frame(uint8 *data, size_t offset, bool is_finish) {
+    size_type read_one_frame(uint8 *data, size_type offset, bool is_finish) {
         uint8 temp[3];
         int32 length = _box->read_bytes(temp, 0, 3);
         if (length <= 0) {
@@ -244,7 +246,7 @@ private:
             return length;
 
         uint8 checksum = 0;
-        for (std::size_t i = 0; i < result.size() - 1; i++) {
+        for (size_type i = 0; i < result.size() - 1; i++) {
             checksum += data[i];
         }
 

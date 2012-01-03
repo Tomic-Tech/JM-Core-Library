@@ -31,3 +31,5 @@ _ReSharper*/
 .dep.inc
 Makefile
 nbproject
+*.vcxproj
+*.filters

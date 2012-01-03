@@ -2,12 +2,12 @@
 
 namespace jm {
 
-size_t mikuni::pack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type mikuni::pack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
     if (count <= 0)
         return 0;
 
-    size_t pos = tar_offset;
+    size_type pos = tar_offset;
     tar[pos++] = HEAD_FORMAT;
     memcpy(tar + pos, src + src_offset, count);
     pos += count;
@@ -16,8 +16,8 @@ size_t mikuni::pack(const uint8 *src, size_t src_offset, size_t count,
     return pos - tar_offset;
 }
 
-size_t mikuni::unpack(const uint8 *src, size_t src_offset, size_t count,
-        uint8 *tar, size_t tar_offset) {
+size_type mikuni::unpack(const uint8 *src, size_type src_offset, size_type count,
+        uint8 *tar, size_type tar_offset) {
     if (count <= 0)
         return 0;
 

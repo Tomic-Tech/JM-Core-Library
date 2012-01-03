@@ -17,7 +17,7 @@
 
 namespace jm {
 
-class log {
+class JMCORE_API log {
 public:
 
     enum level {
@@ -46,7 +46,7 @@ public:
 
     static log& instance();
     void write(level l, const std::string &tag, const std::string &message);
-    void write_hex(level l, const std::string &tag, const uint8 *data, size_t offset, size_t count);
+    void write_hex(level l, const std::string &tag, const uint8 *data, size_type offset, size_type count);
 private:
     log();
     void write_level(level l);

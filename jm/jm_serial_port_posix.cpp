@@ -502,7 +502,7 @@ error_code serial_port::discard_out_buffer() {
     return tcflush(_fd, TCOFLUSH);
 }
 
-size_t serial_port::bytes_available() {
+size_type serial_port::bytes_available() {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (!is_open()) {
         return 0;
@@ -515,7 +515,7 @@ size_t serial_port::bytes_available() {
         return 0;
     }
 
-    return static_cast<size_t> (bytes_queued);
+    return static_cast<size_type> (bytes_queued);
 }
 
 error_code serial_port::set_dtr(bool set) {
@@ -558,7 +558,7 @@ error_code serial_port::set_rts(bool set) {
     return ioctl(_fd, TIOCMSET, &status);
 }
 
-size_t serial_port::read(uint8 *data, size_t offset, size_t count) {
+size_type serial_port::read(uint8 *data, size_type offset, size_type count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (data == NULL)
         return 0;
@@ -573,7 +573,7 @@ size_t serial_port::read(uint8 *data, size_t offset, size_t count) {
     return static_cast<int32>(ret_val);
 }
 
-size_t serial_port::write(const uint8 *data, size_t offset, size_t count) {
+size_type serial_port::write(const uint8 *data, size_type offset, size_type count) {
     boost::recursive_mutex::scoped_lock scoped_lock(_mutex);
     if (data == NULL)
         return -1;

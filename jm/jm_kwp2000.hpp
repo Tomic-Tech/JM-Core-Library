@@ -17,7 +17,7 @@
 
 namespace jm {
 
-class kwp2000 : public kline_protocol {
+class JMCORE_API kwp2000 : public kline_protocol {
 public:
     static const int32 KWP8XHeaderLength = 3;
     static const int32 KWPCXHeaderLength = 3;
@@ -35,11 +35,11 @@ protected:
 public:
     kwp2000();
     void set_options(kwp_mode msg_mode, kwp_mode link_mode, int32 baud);
-    size_t pack(const uint8 *src, size_t src_offset, size_t count,
-            uint8 *tar, size_t tar_offset);
-    size_t unpack(const uint8 *src, size_t src_offset, size_t count,
-            uint8 *tar, size_t tar_offset);
-    virtual error_code fast_init(const uint8 *data, size_t offset, size_t count) = 0;
+    size_type pack(const uint8 *src, size_type src_offset, size_type count,
+            uint8 *tar, size_type tar_offset);
+    size_type unpack(const uint8 *src, size_type src_offset, size_type count,
+            uint8 *tar, size_type tar_offset);
+    virtual error_code fast_init(const uint8 *data, size_type offset, size_type count) = 0;
     virtual error_code fast_init(const byte_array &data);
 };
 

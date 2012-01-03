@@ -22,7 +22,7 @@
 
 namespace jm {
 
-class commbox {
+class JMCORE_API commbox {
 public:
     commbox(const commbox_port_ptr &port);
     virtual commbox_port_ptr get_port();

@@ -31,24 +31,24 @@ public:
         _protocol = protocol;
     }
     
-    size_t send_one_frame(const uint8* data, size_t offset, size_t count) {
+    size_type send_one_frame(const uint8* data, size_type offset, size_type count) {
         return _protocol->send_one_frame(data, offset, count);
     }
     
-    size_t send_frames(const uint8 *data, size_t offset, size_t count) {
+    size_type send_frames(const uint8 *data, size_type offset, size_type count) {
         return _protocol->send_frames(data, offset, count);
     }
     
-    size_t read_one_frame(uint8 *data, size_t offset) {
+    size_type read_one_frame(uint8 *data, size_type offset) {
         return _protocol->read_one_frame(data, offset);
     }
     
-    size_t read_frames(uint8 *data, size_t offset) {
+    size_type read_frames(uint8 *data, size_type offset) {
         return _protocol->read_frames(data, offset);
     }
     
-    size_t send_and_recv(const uint8 *send, size_t send_offset, size_t count,
-            uint8 *recv, size_t recv_offset) {
+    size_type send_and_recv(const uint8 *send, size_type send_offset, size_type count,
+            uint8 *recv, size_type recv_offset) {
         int32 times = v1_c168_d::REPLAYTIMES;
         while (times--) {
             if (send_frames(send, send_offset, count) > 0) {
@@ -69,7 +69,7 @@ public:
         return error::success;
     }
     
-    error_code set_keep_link(const uint8 *data, size_t offset, size_t count) {
+    error_code set_keep_link(const uint8 *data, size_type offset, size_type count) {
         return _protocol->set_keep_link(data, offset, count);  
     }
     

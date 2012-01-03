@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include "jm_timer.hpp"
 
 namespace jm {
 
@@ -59,7 +60,7 @@ void log::write(level l, const std::string &tag, const std::string &message) {
     __android_log_write(priod, tag.c_str(), message.c_str());
 #else
     write_level(l);
-    std::cout << tag << "::" << message << std::endl;
+    std::cout << time_val::get_current_time().to_iso_8601() << "--" << tag << "::" << message << std::endl;
 #endif
 }
 

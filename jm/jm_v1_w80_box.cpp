@@ -2,6 +2,7 @@
 #include "jm_serial_port.hpp"
 #include "jm_byte_array.hpp"
 #include "jm_utils.hpp"
+#include "jm_timer.hpp"
 
 namespace jm {
 namespace v1 {
@@ -47,6 +48,7 @@ bool v1_w80_box::check_send() {
     if (rb == D::RECV_OK) {
         return true;
     }
+	return false;
 }
 
 bool v1_w80_box::check_result(int64 microseconds) {
@@ -61,12 +63,12 @@ bool v1_w80_box::check_result(int64 microseconds) {
     return false;
 }
 
-bool v1_w80_box::send_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *data) {
+bool v1_w80_box::send_cmd(uint8 cmd, size_type offset, size_type count, const uint8 *data) {
     uint8 cs = cmd;
     cmd += _run_flag;
     byte_array command;
     command.push_back(cmd);
-    for (int i = 0; i < count; i++) {
+    for (size_type i = 0; i < count; i++) {
         command.push_back(data[i + offset]);
         cs += data[i + offset];
     }
@@ -85,12 +87,12 @@ bool v1_w80_box::send_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *d
     return false;
 }
 
-size_t v1_w80_box::read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds) {
+size_type v1_w80_box::read_data(uint8 *buff, size_type offset, size_type count, int64 microseconds) {
     get_port()->set_read_timeout(microseconds);
     if (get_port()->read(buff, offset, count) != count) {
         int32 avail = get_port()->bytes_available();
         if (avail > 0) {
-            if (avail <= count) {
+            if (static_cast<size_type>(avail) <= count) {
                 return get_port()->read(buff, offset, avail);
             } else {
                 return get_port()->read(buff, offset, count);
@@ -101,11 +103,11 @@ size_t v1_w80_box::read_data(uint8 *buff, size_t offset, size_t count, int64 mic
     return count;
 }
 
-size_t v1_w80_box::read_bytes(uint8 *buff, size_t offset, size_t count) {
+size_type v1_w80_box::read_bytes(uint8 *buff, size_type offset, size_type count) {
     return read_data(buff, offset, count, timer::to_ms(500));
 }
 
-uint8 v1_w80_box::get_cmd_data(uint8 *receive_buffer, size_t count) {
+uint8 v1_w80_box::get_cmd_data(uint8 *receive_buffer, size_type count) {
     uint8 len = 0;
     uint8 cs = 0;
     if ((read_bytes(receive_buffer, 0, 1) != 1)
@@ -124,7 +126,7 @@ uint8 v1_w80_box::get_cmd_data(uint8 *receive_buffer, size_t count) {
     return len;
 }
 
-bool v1_w80_box::do_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *buff) {
+bool v1_w80_box::do_cmd(uint8 cmd, size_type offset, size_type count, const uint8 *buff) {
     _start_pos = 0;
     if (cmd != D::WR_DATA && cmd != D::SEND_DATA) {
         cmd |= count; //加上长度位
@@ -173,7 +175,7 @@ bool v1_w80_box::do_cmd(uint8 cmd, size_t offset, size_t count, const uint8 *buf
     }
 }
 
-bool v1_w80_box::do_set(uint8 cmd, size_t offset, size_t count, const uint8 *buff) {
+bool v1_w80_box::do_set(uint8 cmd, size_type offset, size_type count, const uint8 *buff) {
     bool result = do_cmd(cmd, offset, count, buff);
     if (result && get_shared()->is_do_now) {
         result = check_result(timer::to_ms(150));
@@ -181,7 +183,7 @@ bool v1_w80_box::do_set(uint8 cmd, size_t offset, size_t count, const uint8 *buf
     return result;
 }
 
-uint8 v1_w80_box::get_buff_data(uint8 addr, uint8 *buff, size_t count) {
+uint8 v1_w80_box::get_buff_data(uint8 addr, uint8 *buff, size_type count) {
     uint8 temp[2];
     temp[0] = addr;
     temp[1] = count;
@@ -381,7 +383,7 @@ bool v1_w80_box::commbox_delay(uint32 time) {
     return do_set(delay_word, 0, 2, time_buff);
 }
 
-bool v1_w80_box::send_out_data(const uint8 *buffer, size_t offset, size_t count) {
+bool v1_w80_box::send_out_data(const uint8 *buffer, size_type offset, size_type count) {
     return do_set(D::SEND_DATA, offset, count, buffer);
 }
 
@@ -508,7 +510,7 @@ bool v1_w80_box::del_batch(uint8 buff_id) {
     return true;
 }
 
-bool v1_w80_box::run_batch(uint8 *buff_id, size_t count, bool is_execute_many) {
+bool v1_w80_box::run_batch(uint8 *buff_id, size_type count, bool is_execute_many) {
     int cmd;
     if (buff_id[0] == D::LINKBLOCK) {
         if (is_execute_many) {
@@ -531,7 +533,7 @@ bool v1_w80_box::reset() {
     get_port()->discard_in_buffer();
     get_port()->discard_out_buffer();
     for (int i = 0; i < D::MAXPORT_NUM; i++) {
-        _ports[i] = (byte) (0xFF);
+        _ports[i] = 0xFF;
     }
     return do_cmd(D::RESET, 0, 0, NULL);
 }

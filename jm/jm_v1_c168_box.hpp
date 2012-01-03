@@ -129,7 +129,7 @@ public:
     // 2.在指定时间内读完数据则退出
     // 3.超出指定时间则退出
     // /////////////////////////////////////////////////////////////////
-    size_t read_data(uint8 *buff, size_t offset, size_t count, int64 microseconds);
+    size_type read_data(uint8 *buff, size_type offset, size_type count, int64 microseconds);
     // for serial port
     bool serial_port_change_config();
     bool check_serial_port_change_config();
@@ -173,7 +173,7 @@ public:
     // 3.写入命令
     // 4.计算校验
     // ////////////////////////////////////////////////////////////////////
-    bool add_to_buff(uint8 command_word, size_t offset, size_t count, const uint8 *data);
+    bool add_to_buff(uint8 command_word, size_type offset, size_type count, const uint8 *data);
     // ////////////////////////////////////////////////////////////////////
     // 全局函数:bool EndBatch()
     //
@@ -257,7 +257,7 @@ public:
     // 功能: 设置执行将EchoBuff中的数值原样返回。
     // 如要立即执行，则返回执行结果，如写入缓冲区，返回下条命令的地址
     // ////////////////////////////////////////////////////////////////////
-    bool set_echo_data(uint8 *echo_buff, size_t echo_len);
+    bool set_echo_data(uint8 *echo_buff, size_type echo_len);
     // ////////////////////////////////////////////////////////////////////
     // 全局函数:
     // BYTE KeepLink(bool IsRunLink)
@@ -382,7 +382,7 @@ public:
     // 功能: 使用后，需判断是否执行结束。
     // 如要立即执行，则返回执行结果，如写入缓冲区，返回下条命令的地址
     // ////////////////////////////////////////////////////////////////////
-    bool send_out_data(const uint8 *buffer, size_t offset, size_t count);
+    bool send_out_data(const uint8 *buffer, size_type offset, size_type count);
     // ////////////////////////////////////////////////////////////////////
     // 全局通讯函数:
     // bool RunBatch(BYTE Lenght , BYTE *BuffID , bool IsExcutManyTime)
@@ -394,8 +394,8 @@ public:
     // bool IsExcutManyTime :须不断循环执行吗
     // 功能: 使用后，需判断是否执行结束。
     // ////////////////////////////////////////////////////////////////////
-    bool run_batch(uint8 *buff_id, size_t count, bool is_execute_many);
-    size_t read_bytes(uint8 *buff, size_t offset, size_t count);
+    bool run_batch(uint8 *buff_id, size_type count, bool is_execute_many);
+    size_type read_bytes(uint8 *buff, size_type offset, size_type count);
 private:
     // ///////////////////////////////////////////////////////////////////////////
     // 静态函数：bool CheckIdle()
@@ -432,12 +432,12 @@ private:
     // c.不符合命令格式和定义。
     // d.在发送转发命令时错误。
     // ///////////////////////////////////////////////////////////////////////////
-    bool commbox_do(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
-    bool send_data_to_ecu(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
-    bool send_data_to_ecu_new(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
-    bool send_data_to_ecu_old(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
-    bool commbox_command(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
-    bool do_set(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
+    bool commbox_do(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
+    bool send_data_to_ecu(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
+    bool send_data_to_ecu_new(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
+    bool send_data_to_ecu_old(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
+    bool commbox_command(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
+    bool do_set(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
     // /////////////////////////////////////////////////////////////////
     // 全局函数 GetCMDData(BYTE command,BYTE * recivebuffer)
     //
@@ -450,7 +450,7 @@ private:
     // 3.如在指定时间内未能读完数据则错误退出
     // 4.未能读到指定命令的数据错误退出
     // /////////////////////////////////////////////////////////////////
-    size_t get_cmd_data(uint8 command, uint8 *receive_buffer);
+    size_type get_cmd_data(uint8 command, uint8 *receive_buffer);
     // ////////////////////////////////////////////////////////////////////
     // 通讯串口和Commbox初始化设定
     // 并进行握手通信，以能正常通讯
@@ -504,7 +504,7 @@ private:
     // 2.打开指定串口，设置波特率为START_BAUD
     // 3.调用CheckBox()检查。
     // /////////////////////////////////////////////////////////////////
-    bool send_to_box(uint8 command_word, size_t offset, size_t count, const uint8 *buff);
+    bool send_to_box(uint8 command_word, size_type offset, size_type count, const uint8 *buff);
     void get_link_time(uint8 type, uint32 time);
     // ////////////////////////////////////////////////////////////////////
     // 全局函数:

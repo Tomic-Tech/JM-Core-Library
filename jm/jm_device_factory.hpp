@@ -18,7 +18,7 @@
 #include <jm_commbox.hpp>
 
 namespace jm {
-class device_factory {
+class JMCORE_API device_factory {
 public:
     device_factory(const commbox_port_ptr &port);
     boost::shared_ptr<commbox> create(commbox_version ver);

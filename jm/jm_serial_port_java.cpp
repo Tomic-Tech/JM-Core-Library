@@ -164,14 +164,14 @@ extern "C" {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return error::generic_error;
-        return port->set_dtr(set);
+        return port->set_dtr(set ? true : false);
     }
     
     jint Java_jm_io_SerialPort_nativeSetRts(JNIEnv *env, jclass cls, jlong handle, jboolean set) {
         serial_port *port = (serial_port*)handle;
         if (port == 0)
             return error::generic_error;
-        return port->set_rts(set);
+        return port->set_rts(set ? true : false);
     }
     
     jint Java_jm_io_SerialPort_nativeRead(JNIEnv *env, jclass cls, jlong handle, jbyteArray buff, jint offset, jint count) {
@@ -196,7 +196,7 @@ extern "C" {
     jobjectArray Java_jm_io_SerialPort_getSystemPorts(JNIEnv *env, jclass cls) {
         std::vector<std::string> vec = serial_port::get_system_ports();
         jobjectArray ret = env->NewObjectArray(vec.size(), env->FindClass("java/lang/String"), env->NewStringUTF(""));
-        for (int i = 0; i < vec.size(); i++) {
+        for (size_type i = 0; i < vec.size(); i++) {
             env->SetObjectArrayElement(ret, i, env->NewStringUTF(vec[i].c_str()));
         }
         return ret;
