@@ -48,18 +48,18 @@ bool v1_c168_box::check_idle() {
 bool v1_c168_box::send_ok(int64 microseconds) {
     uint8 receive_buffer = 0;
     get_port()->set_read_timeout(microseconds);
-	while (true) {
-		if (get_port()->read(&receive_buffer, 0, 1) != 1) {
-			get_shared()->last_error = D::TIMEOUT_ERROR;
-			return false;
-		}
-		if (receive_buffer == D::SEND_OK) {
-			return true;
-		} else if (receive_buffer >= D::UP_TIMEOUT && receive_buffer <= D::ERROR_REC) {
-			get_shared()->last_error = D::SENDDATA_ERROR;
-			return false;
-		}
-	}
+    while (true) {
+        if (get_port()->read(&receive_buffer, 0, 1) != 1) {
+            get_shared()->last_error = D::TIMEOUT_ERROR;
+            return false;
+        }
+        if (receive_buffer == D::SEND_OK) {
+            return true;
+        } else if (receive_buffer >= D::UP_TIMEOUT && receive_buffer <= D::ERROR_REC) {
+            get_shared()->last_error = D::SENDDATA_ERROR;
+            return false;
+        }
+    }
 
     get_shared()->last_error = D::SENDDATA_ERROR;
     return false;
@@ -282,11 +282,16 @@ bool v1_c168_box::check_box() {
     uint8 temp[5];
     temp[4] = 0x00;
     size_type i = 0;
-    while (i < 4) {
-        temp[i] = low_byte(rand());
-        temp[4] += temp[i];
-        i++;
-    }
+//    while (i < 4) {
+//        temp[i] = low_byte(rand());
+//        temp[4] += temp[i];
+//        i++;
+//    }
+    temp[0] = 0x5C;
+    temp[1] = 0xA1;
+    temp[2] = 0x7E;
+    temp[3] = 0x01;
+    temp[4] = temp[0] + temp[1] + temp[2] + temp[3];
     if (get_port()->write(temp, 0, 5) != 5) {
         get_shared()->last_error = D::SENDDATA_ERROR;
         return false;
@@ -389,8 +394,8 @@ bool v1_c168_box::check_serial_port_change_config() {
 }
 
 bool v1_c168_box::open_comm() {
-	set_rf(D::RESET_RF, 0);
-	set_rf(D::SETDTR_L, 0);
+    set_rf(D::RESET_RF, 0);
+    set_rf(D::SETDTR_L, 0);
     if (init_box() && check_box()) {
         _is_initialize = false;
         return true;
@@ -434,7 +439,7 @@ bool v1_c168_box::new_batch(uint8 buff_id) {
         return false;
     }
     _cmd_temp[3] = D::WR_DATA + 0x01 + _cmd_temp[2];
-    _cmd_temp[0] = _info.head_password;
+    _cmd_temp[0] += _info.head_password;
     _buffer.id = buff_id;
     get_shared()->is_do_now = false;
     return true;
@@ -444,7 +449,7 @@ bool v1_c168_box::add_to_buff(uint8 command_word, size_type offset, size_type co
     size_type i = 0;
     uint8 checksum = _cmd_temp[_cmd_temp[1] + 2];
     get_shared()->next_address = _cmd_temp[1] + count + 1;
-    
+
     if (_buffer.id == D::NULLADD) {
         // 数据块标识登记是否有申请?
         get_shared()->last_error = D::NOAPPLICATBUFF;
@@ -535,7 +540,7 @@ bool v1_c168_box::end_batch() {
             return false;
         }
     }
-    
+
     if (_buffer.id == D::LINKBLOCK) {
         _buffer.add[D::LINKBLOCK] = static_cast<uint8> (_info.cmd_buff_len - _cmd_temp[1]);
     } else {

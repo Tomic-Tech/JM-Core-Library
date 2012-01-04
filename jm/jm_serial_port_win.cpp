@@ -324,11 +324,11 @@ error_code serial_port::set_flow_control(int32 flow_contorl) {
 error_code serial_port::set_write_timeout(int64 millic_seconds) {
     boost::recursive_mutex::scoped_lock scoped_lock(_pri->_mutex);
     _pri->_write_timeout = millic_seconds;
-    
+
     if (!is_open()) {
         return error::success;
     }
-    
+
     if (millic_seconds == -1) {
         _pri->_comm_timeouts.WriteTotalTimeoutConstant = MAXDWORD;
         _pri->_comm_timeouts.WriteTotalTimeoutMultiplier = MAXDWORD;
@@ -339,7 +339,7 @@ error_code serial_port::set_write_timeout(int64 millic_seconds) {
 
     if (_pri->_is_multi_setting)
         return error::success;
-    
+
     if (!SetCommTimeouts(_pri->_handle, &(_pri->_comm_timeouts))) {
         return GetLastError();
     }
@@ -350,11 +350,11 @@ error_code serial_port::set_write_timeout(int64 millic_seconds) {
 error_code serial_port::set_read_timeout(int64 millic_seconds) {
     boost::recursive_mutex::scoped_lock scoped_lock(_pri->_mutex);
     _pri->_read_timeout = millic_seconds;
-    
+
     if (!is_open()) {
         return error::success;
     }
-    
+
     if (millic_seconds == -1) {
         _pri->_comm_timeouts.ReadIntervalTimeout = MAXDWORD;
         _pri->_comm_timeouts.ReadTotalTimeoutConstant = 0;
@@ -425,7 +425,7 @@ error_code serial_port::open() {
         _pri->_is_multi_setting = false;
         return GetLastError();
     }
-    
+
     _pri->_is_multi_setting = false;
 
     //    _pri->_comm_timeouts.ReadIntervalTimeout = MAXDWORD;
@@ -554,24 +554,24 @@ size_type serial_port::read(uint8 *data, size_type offset, size_type count) {
     if (data == NULL) {
         return 0;
     }
-    
+
     if (count <= 0) {
         return 0;
     }
-    
+
     if (!is_open()) {
         return 0;
     }
-    
+
     DWORD ret_val = -1;
-    if (!ReadFile(_pri->_handle, (void*)(data + offset), (DWORD)count, &ret_val, &_pri->_read_overlap)) {
+    if (!ReadFile(_pri->_handle, (void*) (data + offset), (DWORD) count, &ret_val, &_pri->_read_overlap)) {
         if (GetLastError() != ERROR_IO_PENDING) {
             return 0;
         }
         GetOverlappedResult(_pri->_handle, &_pri->_read_overlap, &ret_val, TRUE);
     }
-	log_inst().write_hex(log::debug, "serial port: read ", data, offset, ret_val);
-    return static_cast<size_type>(ret_val);
+    log_inst().write_hex(log::debug, "serial port: read ", data, offset, ret_val);
+    return static_cast<size_type> (ret_val);
 }
 
 size_type serial_port::write(const uint8 *data, size_type offset, size_type count) {
@@ -579,25 +579,25 @@ size_type serial_port::write(const uint8 *data, size_type offset, size_type coun
     if (data == NULL) {
         return 0;
     }
-    
+
     if (count <= 0) {
         return 0;
     }
-    
+
     if (!is_open()) {
         return 0;
     }
-    
-	log_inst().write_hex(log::debug, "serial port: write ", data, offset, count);
+
+    log_inst().write_hex(log::debug, "serial port: write ", data, offset, count);
     DWORD ret_val = -1;
-    if (!WriteFile(_pri->_handle, (const void*)(data + offset), (DWORD)count, &ret_val, &_pri->_write_overlap)) {
+    if (!WriteFile(_pri->_handle, (const void*) (data + offset), (DWORD) count, &ret_val, &_pri->_write_overlap)) {
         if (GetLastError() != ERROR_IO_PENDING) {
             return 0;
         }
         WaitForSingleObject(_pri->_write_overlap.hEvent, INFINITE);
         GetOverlappedResult(_pri->_handle, &_pri->_write_overlap, &ret_val, TRUE);
     }
-    return static_cast<size_type>(ret_val);
+    return static_cast<size_type> (ret_val);
 }
 
 std::vector<std::string> serial_port::get_system_ports() {
