@@ -282,16 +282,11 @@ bool v1_c168_box::check_box() {
     uint8 temp[5];
     temp[4] = 0x00;
     size_type i = 0;
-//    while (i < 4) {
-//        temp[i] = low_byte(rand());
-//        temp[4] += temp[i];
-//        i++;
-//    }
-    temp[0] = 0x5C;
-    temp[1] = 0xA1;
-    temp[2] = 0x7E;
-    temp[3] = 0x01;
-    temp[4] = temp[0] + temp[1] + temp[2] + temp[3];
+    while (i < 4) {
+        temp[i] = low_byte(rand());
+        temp[4] += temp[i];
+        i++;
+    }
     if (get_port()->write(temp, 0, 5) != 5) {
         get_shared()->last_error = D::SENDDATA_ERROR;
         return false;

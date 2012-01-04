@@ -43,6 +43,7 @@ public:
 
     error_code fast_init(const uint8 *data, size_type offset, size_type count) {
         uint8 value_open = 0;
+		uint8 pack_enter[256];
         if (_l_line) {
             value_open = BOX::D::PWC | BOX::D::RZFC | BOX::D::CK;
         } else {
@@ -65,7 +66,7 @@ public:
         if (!_box->new_batch(_shared->buff_id)) {
             return error::generic_error;
         }
-        uint8 pack_enter[256];
+        
         size_type length = pack(data, offset, count, pack_enter, 0);
         if (!_box->set_line_level(BOX::D::COMS, BOX::D::SET_NULL)
                 || !_box->commbox_delay(static_cast<uint32> (jm::timer::to_ms(25)))
@@ -186,7 +187,8 @@ public:
 private:
 
     size_type read_one_frame(uint8 *data, size_type offset, bool is_finish) {
-        uint8 temp[3];
+        static uint8 temp[3];
+		static uint8 result[256];
         size_type frame_length = 0;
         size_type length = _box->read_bytes(temp, 0, 3);
         if (length <= 0) {
@@ -194,7 +196,6 @@ private:
             return 0;
         }
 
-        uint8 result[256];
         if (temp[1] == _source_address) {
             if (temp[0] == 0x80) {
                 uint8 b;
