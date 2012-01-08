@@ -12,9 +12,9 @@
 #pragma once
 #endif
 
-#include <jm_types.hpp>
+#include <jm/jm_types.hpp>
 #include <boost/smart_ptr.hpp>
-#include <jm_byte_array.hpp>
+#include <jm/jm_byte_array.hpp>
 
 namespace jm {
 

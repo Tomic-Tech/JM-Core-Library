@@ -14,8 +14,8 @@
 
 #include <map>
 #include <boost/smart_ptr.hpp>
-#include <jm_commbox_version.hpp>
-#include <jm_commbox.hpp>
+#include <jm/jm_commbox_version.hpp>
+#include <jm/jm_commbox.hpp>
 
 namespace jm {
 class JMCORE_API device_factory {

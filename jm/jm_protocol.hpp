@@ -12,7 +12,7 @@
 #pragma once
 #endif
 
-#include <jm_byte_array.hpp>
+#include <jm/jm_byte_array.hpp>
 
 namespace jm {
 

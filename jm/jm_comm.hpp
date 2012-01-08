@@ -13,8 +13,8 @@
 #endif
 
 #include <boost/smart_ptr.hpp>
-#include <jm_byte_array.hpp>
-#include <jm_error.hpp>
+#include <jm/jm_byte_array.hpp>
+#include <jm/jm_error.hpp>
 
 namespace jm {
 

@@ -8,7 +8,7 @@
 #ifndef JM_V1_C168_D_HPP
 #define	JM_V1_C168_D_HPP
 
-#include <jm_types.hpp>
+#include <jm/jm_types.hpp>
 
 namespace jm {
 namespace v1 {

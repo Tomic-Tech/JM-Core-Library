@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <jm_macros.hpp>
+#include <jm/jm_macros.hpp>
 #include <iostream>
 #include <vector>
 

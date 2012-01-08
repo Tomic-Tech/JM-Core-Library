@@ -12,7 +12,7 @@
 #pragma once
 #endif
 
-#include <jm_kline_protocol.hpp>
+#include <jm/jm_kline_protocol.hpp>
 
 namespace jm {
 

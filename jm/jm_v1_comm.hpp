@@ -13,9 +13,9 @@
 #endif
 
 #include <boost/smart_ptr.hpp>
-#include <jm_comm.hpp>
-#include <jm_error.hpp>
-#include <jm_v1_box.hpp>
+#include <jm/jm_comm.hpp>
+#include <jm/jm_error.hpp>
+#include <jm/jm_v1_box.hpp>
 
 namespace jm {
 namespace v1 {

@@ -14,7 +14,7 @@
 
 #include <string>
 #include <boost/smart_ptr.hpp>
-#include <jm_types.hpp>
+#include <jm/jm_types.hpp>
 
 namespace jm {
 class JMCORE_API time_val {

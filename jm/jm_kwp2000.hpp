@@ -12,8 +12,8 @@
 #pragma once
 #endif
 
-#include <jm_kline_protocol.hpp>
-#include <jm_kwp_mode.hpp>
+#include <jm/jm_kline_protocol.hpp>
+#include <jm/jm_kwp_mode.hpp>
 
 namespace jm {
 

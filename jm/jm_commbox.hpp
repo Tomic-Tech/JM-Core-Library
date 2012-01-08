@@ -13,12 +13,12 @@
 #endif
 
 #include <boost/smart_ptr.hpp>
-#include <jm_commbox_port.hpp>
-#include <jm_comm.hpp>
-#include <jm_connector_type.hpp>
-#include <jm_protocol_type.hpp>
-#include <jm_serial_port.hpp>
-#include <jm_error.hpp>
+#include <jm/jm_commbox_port.hpp>
+#include <jm/jm_comm.hpp>
+#include <jm/jm_connector_type.hpp>
+#include <jm/jm_protocol_type.hpp>
+#include <jm/jm_serial_port.hpp>
+#include <jm/jm_error.hpp>
 
 namespace jm {
 

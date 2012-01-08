@@ -12,11 +12,11 @@
 #pragma once
 #endif
 
-#include <jm_commbox.hpp>
-#include <jm_v1_box.hpp>
-#include <jm_v1_shared.hpp>
-#include "jm_v1_c168_box.hpp"
-#include "jm_v1_w80_box.hpp"
+#include <jm/jm_commbox.hpp>
+#include <jm/jm_v1_box.hpp>
+#include <jm/jm_v1_shared.hpp>
+#include <jm/jm_v1_c168_box.hpp>
+#include <jm/jm_v1_w80_box.hpp>
 
 namespace jm {
 namespace v1 {

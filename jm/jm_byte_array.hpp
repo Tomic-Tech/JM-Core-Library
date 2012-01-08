@@ -12,7 +12,7 @@
 #pragma once
 #endif
 
-#include <jm_types.hpp>
+#include <jm/jm_types.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/thread.hpp>
 

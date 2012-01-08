@@ -14,8 +14,8 @@
 
 #include <string>
 #include <vector>
-#include <jm_types.hpp>
-#include <jm_error.hpp>
+#include <jm/jm_types.hpp>
+#include <jm/jm_error.hpp>
 
 namespace jm {
 

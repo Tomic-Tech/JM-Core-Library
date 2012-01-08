@@ -1,7 +1,7 @@
 #ifndef JM_SERIAL_PORT_PRIVATE_HPP
 #define JM_SERIAL_PORT_PRIVATE_HPP
 
-#include <jm_types.hpp>
+#include <jm/jm_types.hpp>
 
 #ifdef JM_OS_WIN
 #include <windows.h>

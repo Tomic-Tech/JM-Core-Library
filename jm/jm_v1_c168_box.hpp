@@ -12,9 +12,9 @@
 #pragma once
 #endif
 
-#include <jm_v1_box.hpp>
-#include <jm_commbox_port.hpp>
-#include <jm_v1_c168_d.hpp>
+#include <jm/jm_v1_box.hpp>
+#include <jm/jm_commbox_port.hpp>
+#include <jm/jm_v1_c168_d.hpp>
 
 namespace jm {
 namespace v1 {

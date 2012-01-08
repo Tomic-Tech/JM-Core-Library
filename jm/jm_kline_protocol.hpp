@@ -12,7 +12,7 @@
 #pragma once
 #endif
 
-#include <jm_protocol.hpp>
+#include <jm/jm_protocol.hpp>
 
 namespace jm {
 

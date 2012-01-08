@@ -13,8 +13,8 @@
 #endif
 
 #include <boost/smart_ptr.hpp>
-#include <jm_v1_box.hpp>
-#include <jm_v1_shared.hpp>
+#include <jm/jm_v1_box.hpp>
+#include <jm/jm_v1_shared.hpp>
 
 namespace jm {
 namespace v1 {
