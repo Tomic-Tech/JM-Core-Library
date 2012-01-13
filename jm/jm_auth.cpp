@@ -5,7 +5,10 @@
 #include <crypt/rsa.h>
 #include <crypt/osrng.h>
 #include <crypt/base64.h>
+#include <crypt/base32.h>
 #include <crypt/files.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 #ifdef JM_OS_WIN
 #include <jm/win32/jm_disk_info.hpp>
@@ -15,80 +18,103 @@ namespace jm {
 
 using namespace std;
 using namespace CryptoPP;
+
+#ifdef JM_OS_WIN
+typedef jm::win32::DiskInfo disk_info;
+#else
+#endif
+
+// N: 24865838231897529903043050252701387253817865876364150273686376242271804951752976717955506029226974144225261499246411474709884093909946483251447136883715118388437747029322866615464548666109496487856142037527178830201732314056967877269711283129448727523577745411248291349123769974972589413244225934373110145113902208372629815715926842645686544094355924878749994919806498882055230678098313003210581654472941328838351200093577363117474782945722225781874995522624003007178253827302337718798151562458306447138685650273197566918451172386803112726493002505376037971786101479879677584282206073380351557773490273894583472093793
+// E: 5847329
+// D: 6448696694119933705849322878430049428162598649916424661179499756954949001203128988651625277966242292705871766230910763248477291923402101172647802448688707098477970173413277265880117578030883723496748593410062128193305996166421385846151303789123845461879146968199498254096981072200201729743225830601373146764382109349999326892669327504005336124069199697096691045082172931807888469249032048586819506559915113609021112542258736369563409822625288504429743321702453794757127566924125280878483836287188789107351426428852357183920162464424826164069390372427948972123798569313462566926706945429860433093789010319911003283729
+// the encryption 64base text is:
+// 1. ID code generate with Hardware SN \n
+// 2. Commbox Customer ID CAEN/CACN/XXXXXXXXXXX \n
+// 3. First Regisiter Time \n
+// 4. Expired Update Time \n
+// 5. The database password \n
+// Only the ID Code get from client computer;
+
+auth& auth::instance() {
+	static auth inst;
+	return inst;
+}
+
+static const char *the_n = "24865838231897529903043050252701387253817865876364150273686376242271804951752976717955506029226974144225261499246411474709884093909946483251447136883715118388437747029322866615464548666109496487856142037527178830201732314056967877269711283129448727523577745411248291349123769974972589413244225934373110145113902208372629815715926842645686544094355924878749994919806498882055230678098313003210581654472941328838351200093577363117474782945722225781874995522624003007178253827302337718798151562458306447138685650273197566918451172386803112726493002505376037971786101479879677584282206073380351557773490273894583472093793";
+static const char *the_e = "5847329";
+static const char *the_d = "6448696694119933705849322878430049428162598649916424661179499756954949001203128988651625277966242292705871766230910763248477291923402101172647802448688707098477970173413277265880117578030883723496748593410062128193305996166421385846151303789123845461879146968199498254096981072200201729743225830601373146764382109349999326892669327504005336124069199697096691045082172931807888469249032048586819506559915113609021112542258736369563409822625288504429743321702453794757127566924125280878483836287188789107351426428852357183920162464424826164069390372427948972123798569313462566926706945429860433093789010319911003283729";
+auth::auth() {
+	string n;
+	string e;
+	string d;
+	for (int i = 0; i < strlen(the_n); i += 2) {
+		n += the_n[i];
+	}
+	for (int i = 0; i < strlen(the_e); i += 3) {
+		e += the_e[i];
+	}
+	for (int i = 0; i < strlen(the_d); i += 4) {
+		d += the_d[i];
+	}
+	_params.Initialize(
+		Integer("24865838231897529903043050252701387253817865876364150273686376242271804951752976717955506029226974144225261499246411474709884093909946483251447136883715118388437747029322866615464548666109496487856142037527178830201732314056967877269711283129448727523577745411248291349123769974972589413244225934373110145113902208372629815715926842645686544094355924878749994919806498882055230678098313003210581654472941328838351200093577363117474782945722225781874995522624003007178253827302337718798151562458306447138685650273197566918451172386803112726493002505376037971786101479879677584282206073380351557773490273894583472093793"),
+		Integer("5847329"),
+		Integer("6448696694119933705849322878430049428162598649916424661179499756954949001203128988651625277966242292705871766230910763248477291923402101172647802448688707098477970173413277265880117578030883723496748593410062128193305996166421385846151303789123845461879146968199498254096981072200201729743225830601373146764382109349999326892669327504005336124069199697096691045082172931807888469249032048586819506559915113609021112542258736369563409822625288504429743321702453794757127566924125280878483836287188789107351426428852357183920162464424826164069390372427948972123798569313462566926706945429860433093789010319911003283729")
+		);
+}
+
 void auth::test() {
-	AutoSeededRandomPool rng;
-	InvertibleRSAFunction params;
-	params.GenerateRandomWithKeySize(rng, 3072);
+	if (check_reg_dat_file("E:")) { // registed!
+	} else { // show id_code for user to register
+		string id_code = get_id_code();
+		cout << get_id_code() << endl;
+		string cipher;
+		std::string base64;
+		RSA::PrivateKey privateKey(_params);
+		RSA::PublicKey publicKey(_params);
+		RSAES_OAEP_SHA_Encryptor e(publicKey);
+		RSAES_OAEP_SHA_Decryptor d(privateKey);
+		AutoSeededRandomPool rng;
+		StringSource(id_code, true, new PK_EncryptorFilter(rng, e, new StringSink(cipher)));
+		StringSource(cipher, true, new PK_DecryptorFilter(rng, d, new StringSink(base64)));
+		cout << cipher << endl;
+		StringSource(cipher, true, new Base64Encoder(new StringSink(base64)));
+		cout << "Please enter the register code!" << endl;
+		cout << base64 << endl;
+		cin >> base64;
+	}
+}
 
-	const Integer& n = params.GetModulus();
-	const Integer& p = params.GetPrime1();
-	const Integer& q = params.GetPrime2();
-	const Integer& d = params.GetPrivateExponent();
-	const Integer& e = params.GetPublicExponent();
-	const Integer& dp = params.GetModPrime1PrivateExponent();
-	const Integer& dq = params.GetModPrime2PrivateExponent();
-	const Integer& u = params.GetMultiplicativeInverseOfPrime2ModPrime1();
+bool auth::check_reg_dat_file(const std::string &file_path) {
+	boost::filesystem::path p(file_path + "/demo.dat");
+	if (boost::filesystem::exists(p)) { // does p actually exist?
+		if (boost::filesystem::is_regular_file(p)) { // is a regular file?
+			return true;
+		}
+	}
+	return false;
+}
 
-	cout << "RSA Parameters:" << endl;
-	cout << " n: " << n << endl;
-	cout << " p: " << p << endl;
-	cout << " q: " << q << endl;
-	cout << " d: " << d << endl;
-	cout << " e: " << e << endl;
-	cout << " dp: " << dp << endl;
-	cout << " dq: " << dq << endl;
-	cout << " u: " << u << endl;
-	cout << endl;
-
-	RSA::PrivateKey privateKey(params);
-	RSA::PublicKey publicKey(params);
-
-	string plain = "RSA Encryption", cipher, recovered;
-	cout << plain << endl;
-
-	RSAES_OAEP_SHA_Encryptor e_(publicKey);
-
-	StringSource(plain, true, new PK_EncryptorFilter(rng, e_,
-		new StringSink(cipher)));
-
-	cout << cipher << endl;
-
-	RSAES_OAEP_SHA_Decryptor d_(privateKey);
-
-	StringSource(cipher, true, new PK_DecryptorFilter(rng, d_,
-		new StringSink(recovered)));
-	StringSource(cipher, true, new Base64Encoder(new FileSink("E:/base64-encoded.dat")));
-
-	string cipher2;
-	FileSource("E:/base64-encoded.dat", true, new Base64Decoder(new StringSink(cipher2)));
-
-	cout << cipher2 << endl;
-
-	string recovered2;
-	StringSource(cipher2, true, new PK_DecryptorFilter(rng, d_,
-		new StringSink(recovered2)));
-	
-
-	cout << recovered << endl;
-
-	cout << recovered2 << endl;
-	cout << "Recovered plain text" << endl;
-
-	fstream ss("E:/reg.dat", fstream::in | fstream::out);
-	ss << cipher;
-	ss.close();
-
-	DiskInfo& di = DiskInfo::GetDiskInfo();
+std::string auth::get_id_code() {
+	string id_code;
+	string plain;
+	disk_info &di = disk_info::GetDiskInfo();
 	long count = di.LoadDiskInfo();
 
 	for (long i = 0; i < count; i++) {
-		cout << di.SerialNumber(i) << endl;
-		cout << di.DriveType(i) << endl;
-		cout << di.ModelNumber(i) << endl;
-		cout << di.RevisionNumber(i) << endl;
-		cout << di.DriveSize(i) << endl;
-		cout << di.BufferSize(i) << endl;
+		plain += di.SerialNumber(i) += "\n";
 	}
-    return;   // Program successfully completed.
+
+	StringSource(plain, true, new Base32Encoder(new StringSink(id_code)));
+	if (id_code.size() > 16) {
+		id_code.resize(16);
+	} else if (id_code.size() < 16) {
+		size_type size = 16 - id_code.size();
+		for (int i = 0; i < size; i++) {
+			id_code.append(" ");
+		}
+	}
+	return id_code;
 }
+
 }
