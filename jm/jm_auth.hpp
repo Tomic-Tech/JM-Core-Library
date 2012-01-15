@@ -7,6 +7,7 @@
 
 #include <jm/jm_types.hpp>
 #include <string>
+#include <vector>
 #include <crypt/rsa.h>
 
 namespace jm {
@@ -14,12 +15,19 @@ namespace jm {
 class JMCORE_API auth {
 public:
 	static auth& instance();
-	void test();
+	void write_register(const std::string &reg);
+	void set_dat_path(const std::string &path);
 	std::string get_id_code();
-	bool check_reg_dat_file(const std::string &file_path);
+	std::string de_id_code();
+	std::string de_commbox_id();
+	std::string de_first_time();
+	std::string de_expire_time();
+	std::string de_db();
 private:
 	auth();
+	std::vector<std::string> decrypt();
 	CryptoPP::InvertibleRSAFunction _params;
+	std::string _dat_path;
 };
 }
 
