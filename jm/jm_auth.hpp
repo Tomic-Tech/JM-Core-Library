@@ -23,6 +23,7 @@ public:
 	std::string de_first_time();
 	std::string de_expire_time();
 	std::string de_db();
+	std::string de_lang();
 private:
 	auth();
 	std::vector<std::string> decrypt();
