@@ -181,4 +181,8 @@ string auth::de_lang() {
 	return vec[5];
 }
 
+auth& auth_inst() {
+	return auth::instance();
+}
+
 }

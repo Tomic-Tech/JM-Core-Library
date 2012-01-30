@@ -30,6 +30,9 @@ private:
 	CryptoPP::InvertibleRSAFunction _params;
 	std::string _dat_path;
 };
+
+auth& auth_inst();
+
 }
 
 #endif
