@@ -41,6 +41,29 @@ LUAMOD_API int (luaopen_debug) (lua_State *L);
 #define LUA_LOADLIBNAME	"package"
 LUAMOD_API int (luaopen_package) (lua_State *L);
 
+#define LUA_JMDBNAME "jmdb"
+LUAMOD_API int (luaopen_jmdb) (lua_State *L);
+
+#define LUA_JMBOXNAME "jmbox"
+LUAMOD_API int (luaopen_jmbox) (lua_State *L);
+
+#define LUA_JMCOMMNAME "jmcomm"
+LUAMOD_API int (luaopen_jmcomm) (lua_State *L);
+
+#define LUA_JMISO14230 "jmiso14230"
+LUAMOD_API int (luaopen_jmiso14230) (lua_State *L);
+
+#define LUA_JMISO15765NAME "jmiso15765"
+LUAMOD_API int (luaopen_jmiso15765) (lua_State *L);
+
+#define LUA_JMKWP1281NAME "jmkwp1281"
+LUAMOD_API int (luaopen_jmkwp1281) (lua_State *L);
+
+#define LUA_JMMIKUNINAME "jmmikuni"
+LUAMOD_API int (luaopen_jmmikuni) (lua_State *L);
+
+#define LUA_JMUINAME "jmui"
+LUAMOD_API int (luaopen_jmui) (lua_State *L);
 
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);

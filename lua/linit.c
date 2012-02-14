@@ -37,6 +37,15 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_BITLIBNAME, luaopen_bit32},
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_DBLIBNAME, luaopen_debug},
+  // Add by Rocky Xu for support LuaJMLib
+  {LUA_JMDBNAME, luaopen_jmdb},
+  {LUA_JMCOMMNAME, luaopen_jmcomm},
+  {LUA_JMBOXNAME, luaopen_jmbox},
+  {LUA_JMISO14230, luaopen_jmiso14230},
+  {LUA_JMISO15765NAME, luaopen_jmiso15765},
+  {LUA_JMKWP1281NAME, luaopen_jmkwp1281},
+  {LUA_JMMIKUNINAME, luaopen_jmmikuni},
+  {LUA_JMUINAME, luaopen_jmui},
   {NULL, NULL}
 };
 
