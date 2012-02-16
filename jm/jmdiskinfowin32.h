@@ -20,7 +20,7 @@ gchar* jm_disk_info_model_number_win32(size_t drive);
 gchar* jm_disk_info_serial_number_win32(size_t drive);
 gchar* jm_disk_info_revision_number_win32(size_t drive);
 const gchar* jm_disk_info_drive_type(size_t drive);
-long jm_disk_info_load_win32(void);
+size_t jm_disk_info_load_win32(void);
 
 G_END_DECLS
 

@@ -20,6 +20,7 @@ G_BEGIN_DECLS
 GLIB_VAR void jm_lib_init(const gchar *software_path);
 GLIB_VAR void jm_lib_destroy(void);
 GLIB_VAR gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gchar *db_name);
+GLIB_VAR const gchar* jm_lib_vehicles_dir(void);
 
 G_END_DECLS
 

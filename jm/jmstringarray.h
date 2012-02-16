@@ -11,11 +11,11 @@ G_BEGIN_DECLS
 
 typedef struct _JMStringArray JMStringArray;
 
-JMStringArray* jm_string_array_new(void);
-void jm_string_array_free(JMStringArray *array);
-void jm_string_array_append(JMStringArray *array, const gchar *str);
-size_t jm_string_array_size(JMStringArray *array);
-const gchar* jm_string_array_get(JMStringArray *array, size_t index);
+GLIB_VAR JMStringArray* jm_string_array_new(void);
+GLIB_VAR void jm_string_array_free(JMStringArray *array);
+GLIB_VAR void jm_string_array_append(JMStringArray *array, const gchar *str);
+GLIB_VAR size_t jm_string_array_size(JMStringArray *array);
+GLIB_VAR const gchar* jm_string_array_get(JMStringArray *array, size_t index);
 
 G_END_DECLS
 

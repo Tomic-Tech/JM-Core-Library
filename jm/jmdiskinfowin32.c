@@ -293,18 +293,19 @@ static gchar* flipAndCodeBytes(const gchar* str) {
 static gchar* ConvertToString(WORD diskdata [256], int firstIndex, int lastIndex) {
     GString *str = g_string_new("");
     int index = 0;
-    int position = 0;
-    gchar *result = NULL;
 
     //  each integer has two characters stored in it backwards
     for (index = firstIndex; index <= lastIndex; index++) {
+        gchar c;
         //  get high byte for 1st character
-        g_string_append_c(str, (char)(JM_HIGH_BYTE(diskdata[index])));
-        position++;
+        c = JM_HIGH_BYTE(diskdata[index]);
+        if (g_ascii_isalnum(c))
+            g_string_append_c(str, c);
 
         //  get low byte for 2nd character
-        g_string_append_c(str, (char)(JM_LOW_BYTE(diskdata[index])));
-        position++;
+        c = JM_LOW_BYTE(diskdata[index]);
+        if (g_ascii_isalnum(c))
+            g_string_append_c(str, c);
     }
 
     //  end the string 
@@ -314,9 +315,7 @@ static gchar* ConvertToString(WORD diskdata [256], int firstIndex, int lastIndex
     //for (index = position - 1; index > 0 && ' ' == str [index]; index--)
     //	str [index] = '\0';
 
-    result = g_strdelimit(str->str, " ", '\0');
-    g_string_free(str, TRUE);
-    return result;
+    return g_string_free(str, FALSE);
 }
 
 typedef struct _MEDIA_SERAL_NUMBER_DATA {
@@ -779,7 +778,7 @@ void jm_disk_info_destroy_win32(void) {
     g_ptr_array_free(m_list, TRUE);
 }
 
-long jm_disk_info_load_win32(void) {
+size_t jm_disk_info_load_win32(void) {
     int done = FALSE;
     gint64 id = 0;
     OSVERSIONINFO version;
@@ -814,7 +813,7 @@ long jm_disk_info_load_win32(void) {
             attempt++)
             done = ReadDrivePortsInWin9X ();
     }
-    return (long) m_list->len;
+    return (size_t) m_list->len;
 }
 
 size_t jm_disk_info_buffer_size_win32(size_t drive) {

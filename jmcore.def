@@ -4,3 +4,4 @@ EXPORTS
 luaU_dump
 luaP_opmodes
 luaP_opnames
+g_free

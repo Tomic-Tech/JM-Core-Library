@@ -21,11 +21,11 @@ struct _JMMikuni {
     gpointer user_data;
 };
 
-JMMikuni* jm_mikuni_new(void);
-void jm_mikuni_free(JMMikuni *self);
-size_t jm_mikuni_pack(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
-size_t jm_mikuni_unpack(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
-gint32 jm_mikuni_init(JMMikuni *self);
+GLIB_VAR JMMikuni* jm_mikuni_new(void);
+GLIB_VAR void jm_mikuni_free(JMMikuni *self);
+GLIB_VAR size_t jm_mikuni_pack(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
+GLIB_VAR size_t jm_mikuni_unpack(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
+GLIB_VAR gint32 jm_mikuni_init(JMMikuni *self);
 
 G_END_DECLS
 

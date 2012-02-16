@@ -11,10 +11,10 @@
 
 G_BEGIN_DECLS
 
-void jm_commbox_factory_init(void);
-void jm_commbox_factory_destroy(void);
-void jm_commbox_factory_set_commbox_version(JMCommboxVersion ver);
-JMCommbox* jm_commbox_factory_create_commbox();
+GLIB_VAR void jm_commbox_factory_init(void);
+GLIB_VAR void jm_commbox_factory_destroy(void);
+GLIB_VAR void jm_commbox_factory_set_commbox_version(JMCommboxVersion ver);
+GLIB_VAR JMCommbox* jm_commbox_factory_create_commbox();
 
 G_END_DECLS
 

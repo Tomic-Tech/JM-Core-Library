@@ -35,19 +35,19 @@ struct _JMCommbox {
 	gpointer user_data;
 };
 
-JMCommbox *jm_commbox_new(void);
-void jm_commbox_free(JMCommbox *self);
-gint32 jm_commbox_open(JMCommbox *self);
-gint32 jm_commbox_close(JMCommbox *self);
-JMComm* jm_commbox_configure(JMCommbox *self, JMProtocolType type);
-gint32 jm_commbox_set_connector(JMCommbox *self, JMConnector);
-gint32 jm_commbox_serial_port_baud(JMCommbox *self);
-guint8 jm_commbox_serial_port_databits(JMCommbox *self);
-gint32 jm_commbox_serial_port_parity(JMCommbox *self);
-gint32 jm_commbox_serial_port_stopbits(JMCommbox *self);
-gint32 jm_commbox_serial_port_flow_control(JMCommbox *self);
-gboolean jm_commbox_serial_port_change_config(JMCommbox *self);
-gboolean jm_commbox_check_serial_port_change_config(JMCommbox *self);
+GLIB_VAR JMCommbox *jm_commbox_new(void);
+GLIB_VAR void jm_commbox_free(JMCommbox *self);
+GLIB_VAR gint32 jm_commbox_open(JMCommbox *self);
+GLIB_VAR gint32 jm_commbox_close(JMCommbox *self);
+GLIB_VAR JMComm* jm_commbox_configure(JMCommbox *self, JMProtocolType type);
+GLIB_VAR gint32 jm_commbox_set_connector(JMCommbox *self, JMConnector);
+GLIB_VAR gint32 jm_commbox_serial_port_baud(JMCommbox *self);
+GLIB_VAR guint8 jm_commbox_serial_port_databits(JMCommbox *self);
+GLIB_VAR gint32 jm_commbox_serial_port_parity(JMCommbox *self);
+GLIB_VAR gint32 jm_commbox_serial_port_stopbits(JMCommbox *self);
+GLIB_VAR gint32 jm_commbox_serial_port_flow_control(JMCommbox *self);
+GLIB_VAR gboolean jm_commbox_serial_port_change_config(JMCommbox *self);
+GLIB_VAR gboolean jm_commbox_check_serial_port_change_config(JMCommbox *self);
 
 G_END_DECLS
 

@@ -1264,6 +1264,8 @@ JMV1Box* jm_v1_box_c168_new(JMV1Shared *shared) {
     obj->serial_port_databits = _jm_v1_box_c168_serial_port_databits;
     obj->serial_port_flow_control = _jm_v1_box_c168_serial_port_flow_control;
     obj->serial_port_parity = _jm_v1_box_c168_serial_port_parity;
+    obj->serial_port_baud = _jm_v1_box_c168_serial_port_baud;
+    obj->serial_port_stopbits = _jm_v1_box_c168_serial_port_stopbits;
     obj->set_comm_baud = _jm_v1_box_c168_set_comm_baud;
     obj->set_comm_time = _jm_v1_box_c168_set_comm_time;
     obj->set_comm_ctrl = _jm_v1_box_c168_set_comm_ctrl;

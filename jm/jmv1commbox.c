@@ -203,6 +203,7 @@ JMCommbox* jm_v1_commbox_new(void) {
     obj->serial_port_flow_control = _jm_v1_commbox_serial_port_flow_control;
     obj->serial_port_change_config = _jm_v1_commbox_serial_port_change_config;
     obj->check_serial_port_change_config = _jm_v1_commbox_check_serial_port_change_config;
+    obj->version = JM_COMMBOX_V1;
     obj->user_data = v1;
     v1->current_box = 0;
     v1->shared.buff_id = 0;
@@ -220,6 +221,7 @@ JMCommbox* jm_v1_commbox_new(void) {
 
     v1->w80 = jm_v1_box_w80_new(&v1->shared);
     v1->c168 = jm_v1_box_c168_new(&v1->shared);
+
 
     return obj;
 }

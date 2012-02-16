@@ -26,37 +26,37 @@ typedef struct _JMSerialPort JMSerialPort;
 #define JM_SP_FC_HARDWARE 1
 #define JM_SP_FC_SOFTWARE 2
 
-JMSerialPort *jm_serial_port_new(void);
-JMSerialPort *jm_serial_port_new_with_name(const gchar* name);
-void jm_serial_port_free(JMSerialPort *self);
-const gchar* jm_serial_port_get_port_name(JMSerialPort *self);
-gint32 jm_serial_port_set_port_name(JMSerialPort *self, const gchar *name);
-gint32 jm_serial_port_get_baudrate(JMSerialPort *self);
-gint32 jm_serial_port_set_baudrate(JMSerialPort *self, gint32 baudrate);
-guint8 jm_serial_port_get_databits(JMSerialPort *self);
-gint32 jm_serial_port_set_databits(JMSerialPort *self, guint8 databits);
-gint32 jm_serial_port_get_parity(JMSerialPort *self);
-gint32 jm_serial_port_set_parity(JMSerialPort *self, gint32 parity);
-gint32 jm_serial_port_get_stopbits(JMSerialPort *self);
-gint32 jm_serial_port_set_stopbits(JMSerialPort *self, gint32 stopbits);
-gint32 jm_serial_port_get_flow_control(JMSerialPort *self);
-gint32 jm_serial_port_set_flow_control(JMSerialPort *self, gint32 flow_control);
-size_t jm_serial_port_write(JMSerialPort *self, const guint8 *data, size_t count);
-size_t jm_serial_port_read(JMSerialPort *self, guint8 *data, size_t count);
-gint64 jm_serial_port_get_read_timeout(JMSerialPort *self);
-gint32 jm_serial_port_set_read_timeout(JMSerialPort *self, gint64 millic);
-gint64 jm_serial_port_get_write_timeout(JMSerialPort *self);
-gint32 jm_serial_port_set_write_timeout(JMSerialPort *self, gint64 millic);
-gboolean jm_serial_port_is_open(JMSerialPort *self);
-gint32 jm_serial_port_open(JMSerialPort *self);
-gint32 jm_serial_port_close(JMSerialPort *self);
-gint32 jm_serial_port_flush(JMSerialPort *self);
-gint32 jm_serial_port_discard_in_buffer(JMSerialPort *self);
-gint32 jm_serial_port_discard_out_buffer(JMSerialPort *self);
-size_t jm_serial_port_bytes_available(JMSerialPort *self);
-gint32 jm_serial_port_set_dtr(JMSerialPort *self, gboolean set);
-gint32 jm_serial_port_set_rts(JMSerialPort *self, gboolean set);
-JMStringArray* jm_serial_port_get_system_ports(void);
+GLIB_VAR JMSerialPort *jm_serial_port_new(void);
+GLIB_VAR JMSerialPort *jm_serial_port_new_with_name(const gchar* name);
+GLIB_VAR void jm_serial_port_free(JMSerialPort *self);
+GLIB_VAR const gchar* jm_serial_port_get_port_name(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_port_name(JMSerialPort *self, const gchar *name);
+GLIB_VAR gint32 jm_serial_port_get_baudrate(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_baudrate(JMSerialPort *self, gint32 baudrate);
+GLIB_VAR guint8 jm_serial_port_get_databits(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_databits(JMSerialPort *self, guint8 databits);
+GLIB_VAR gint32 jm_serial_port_get_parity(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_parity(JMSerialPort *self, gint32 parity);
+GLIB_VAR gint32 jm_serial_port_get_stopbits(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_stopbits(JMSerialPort *self, gint32 stopbits);
+GLIB_VAR gint32 jm_serial_port_get_flow_control(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_flow_control(JMSerialPort *self, gint32 flow_control);
+GLIB_VAR size_t jm_serial_port_write(JMSerialPort *self, const guint8 *data, size_t count);
+GLIB_VAR size_t jm_serial_port_read(JMSerialPort *self, guint8 *data, size_t count);
+GLIB_VAR gint64 jm_serial_port_get_read_timeout(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_read_timeout(JMSerialPort *self, gint64 millic);
+GLIB_VAR gint64 jm_serial_port_get_write_timeout(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_write_timeout(JMSerialPort *self, gint64 millic);
+GLIB_VAR gboolean jm_serial_port_is_open(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_open(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_close(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_flush(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_discard_in_buffer(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_discard_out_buffer(JMSerialPort *self);
+GLIB_VAR size_t jm_serial_port_bytes_available(JMSerialPort *self);
+GLIB_VAR gint32 jm_serial_port_set_dtr(JMSerialPort *self, gboolean set);
+GLIB_VAR gint32 jm_serial_port_set_rts(JMSerialPort *self, gboolean set);
+GLIB_VAR JMStringArray* jm_serial_port_get_system_ports(void);
 
 G_END_DECLS
 

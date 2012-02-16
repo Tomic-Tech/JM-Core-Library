@@ -50,29 +50,29 @@ struct _JMCanbus {
     gpointer user_data;
 };
 
-gint32 _jm_canbus_set_options(JMCanbus *self, 
+GLIB_VAR gint32 _jm_canbus_set_options(JMCanbus *self, 
     gint32 id, 
     JMCanbusBaud baud, 
     JMCanbusIDMode id_mode, 
     JMCanbusFilterMask mask, 
     JMCanbusFrameType frame);
-JMCanbus* jm_canbus_new(void);
-void jm_canbus_free(JMCanbus *self);
-size_t jm_canbus_pack(JMCanbus *self,
+GLIB_VAR JMCanbus* jm_canbus_new(void);
+GLIB_VAR void jm_canbus_free(JMCanbus *self);
+GLIB_VAR size_t jm_canbus_pack(JMCanbus *self,
     const guint8 *src,
     size_t count,
     guint8 *tar);
-size_t jm_canbus_unpack(JMCanbus *self,
+GLIB_VAR size_t jm_canbus_unpack(JMCanbus *self,
     const guint8 *src,
     size_t count,
     guint8 *tar);
-gint32 jm_canbus_set_lines(JMCanbus *self,
+GLIB_VAR gint32 jm_canbus_set_lines(JMCanbus *self,
     gint32 high,
     gint32 low);
-gint32 jm_canbus_set_filter(JMCanbus *self,
+GLIB_VAR gint32 jm_canbus_set_filter(JMCanbus *self,
     const gint32 *id_array,
     size_t count);
-gint32 jm_canbus_set_options(JMCanbus *self,
+GLIB_VAR gint32 jm_canbus_set_options(JMCanbus *self,
     gint32 id,
     JMCanbusBaud baud,
     JMCanbusIDMode id_mode,

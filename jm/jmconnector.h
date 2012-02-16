@@ -12,7 +12,6 @@ G_BEGIN_DECLS
 typedef enum _JMConnector JMConnector;
 
 enum _JMConnector {
-    JM_CN_UNKNOW = 0,
 	JM_CN_OBDII_16,
 	JM_CN_UNIVERSAL_3,
 	JM_CN_BENZ_38,
@@ -33,7 +32,8 @@ enum _JMConnector {
 	JM_CN_CANBUS_16,
 	JM_CN_GM_12,
 	JM_CN_KIA_20,
-	JM_CN_NISSAN_14
+	JM_CN_NISSAN_14,
+    JM_CN_UNKNOW
 };
 
 G_END_DECLS

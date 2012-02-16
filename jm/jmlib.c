@@ -8,7 +8,8 @@
 static GString *_jm_lib_software_path = NULL;
 static GString *_jm_lib_vehicle_path = NULL;
 
-static void _jm_lib_set_software_path(const gchar *software_path) {
+static void _jm_lib_set_software_path(const gchar *software_path)
+{
     size_t i;
     size_t length;
     gchar **str_array = NULL;
@@ -28,16 +29,20 @@ static void _jm_lib_set_software_path(const gchar *software_path) {
     _jm_lib_vehicle_path = g_string_append(_jm_lib_vehicle_path, "vehicles");
 }
 
-void jm_lib_init(const gchar *software_path) {
+void jm_lib_init(const gchar *software_path)
+{
+    g_thread_init(NULL);
+    _jm_lib_set_software_path(software_path);
     jm_auth_init();
+    jm_auth_set_dat_path(software_path);
     jm_db_init();
     jm_commbox_port_init();
     jm_commbox_factory_init();
     jm_ui_init();
-    _jm_lib_set_software_path(software_path);
 }
 
-void jm_lib_destroy(void) {
+void jm_lib_destroy(void)
+{
     jm_ui_destroy();
     jm_commbox_factory_destroy();
     jm_commbox_port_destroy();
@@ -45,7 +50,13 @@ void jm_lib_destroy(void) {
     jm_auth_destroy();
 }
 
-static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name) {
+const gchar* jm_lib_vehicles_dir(void)
+{
+    return _jm_lib_vehicle_path->str;
+}
+
+static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name)
+{
     GString *abs_db_path = g_string_new(_jm_lib_vehicle_path->str);
     gchar *pw = NULL;
     gboolean ret = FALSE;
@@ -146,19 +157,22 @@ static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name) {
 static lua_State *globalL = NULL;
 static const char *progname = LUA_PROGNAME;
 
-static void lstop (lua_State *L, lua_Debug *ar) {
+static void lstop (lua_State *L, lua_Debug *ar)
+{
     (void)ar;  /* unused arg. */
     lua_sethook(L, NULL, 0, 0);
     luaL_error(L, "interrupted!");
 }
 
-static void laction (int i) {
+static void laction (int i)
+{
   signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
                               terminate process (default action) */
   lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 }
 
-static void print_usage (const char *badoption) {
+static void print_usage (const char *badoption)
+{
     luai_writestringerror("%s: ", progname);
     if (badoption[1] == 'e' || badoption[1] == 'l')
         luai_writestringerror("'%s' needs argument\n", badoption);
@@ -178,13 +192,16 @@ static void print_usage (const char *badoption) {
         progname);
 }
 
-static void l_message (const char *pname, const char *msg) {
+static void l_message (const char *pname, const char *msg)
+{
     if (pname) luai_writestringerror("%s: ", pname);
     luai_writestringerror("%s\n", msg);
 }
 
-static int report (lua_State *L, int status) {
-    if (status != LUA_OK && !lua_isnil(L, -1)) {
+static int report (lua_State *L, int status)
+{
+    if (status != LUA_OK && !lua_isnil(L, -1))
+    {
         const char *msg = lua_tostring(L, -1);
         if (msg == NULL) msg = "(error object is not a string)";
         l_message(progname, msg);
@@ -196,7 +213,8 @@ static int report (lua_State *L, int status) {
 }
 
 /* the next function is called unprotected, so it must avoid errors */
-static void finalreport (lua_State *L, int status) {
+static void finalreport (lua_State *L, int status)
+{
     if (status != LUA_OK) {
         const char *msg = (lua_type(L, -1) == LUA_TSTRING) ? lua_tostring(L, -1)
             : NULL;
@@ -206,7 +224,8 @@ static void finalreport (lua_State *L, int status) {
     }
 }
 
-static int traceback (lua_State *L) {
+static int traceback (lua_State *L)
+{
     const char *msg = lua_tostring(L, 1);
     if (msg)
         luaL_traceback(L, L, msg, 1);
@@ -217,7 +236,8 @@ static int traceback (lua_State *L) {
     return 1;
 }
 
-static int docall (lua_State *L, int narg, int nres) {
+static int docall (lua_State *L, int narg, int nres)
+{
     int status;
     int base = lua_gettop(L) - narg;  /* function index */
     lua_pushcfunction(L, traceback);  /* push traceback function */
@@ -230,12 +250,14 @@ static int docall (lua_State *L, int narg, int nres) {
     return status;
 }
 
-static void print_version (void) {
+static void print_version (void)
+{
     luai_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
     luai_writeline();
 }
 
-static int getargs (lua_State *L, char **argv, int n) {
+static int getargs (lua_State *L, char **argv, int n)
+{
     int narg;
     int i;
     int argc = 0;
@@ -252,25 +274,29 @@ static int getargs (lua_State *L, char **argv, int n) {
     return narg;
 }
 
-static int dofile (lua_State *L, const char *name) {
+static int dofile (lua_State *L, const char *name)
+{
     int status = luaL_loadfile(L, name);
     if (status == LUA_OK) status = docall(L, 0, 0);
     return report(L, status);
 }
 
-static int dostring (lua_State *L, const char *s, const char *name) {
+static int dostring (lua_State *L, const char *s, const char *name)
+{
     int status = luaL_loadbuffer(L, s, strlen(s), name);
     if (status == LUA_OK) status = docall(L, 0, 0);
     return report(L, status);
 }
 
-static int dolibrary (lua_State *L, const char *name) {
+static int dolibrary (lua_State *L, const char *name)
+{
     int status;
     lua_pushglobaltable(L);
     lua_getfield(L, -1, "require");
     lua_pushstring(L, name);
     status = docall(L, 1, 1);
-    if (status == LUA_OK) {
+    if (status == LUA_OK)
+    {
         lua_setfield(L, -2, name);  /* global[name] = require return */
         lua_pop(L, 1);  /* remove global table */
     }
@@ -279,7 +305,8 @@ static int dolibrary (lua_State *L, const char *name) {
     return report(L, status);
 }
 
-static const char *get_prompt (lua_State *L, int firstline) {
+static const char *get_prompt (lua_State *L, int firstline)
+{
     const char *p;
     lua_getglobal(L, firstline ? "_PROMPT" : "_PROMPT2");
     p = lua_tostring(L, -1);
@@ -292,11 +319,14 @@ static const char *get_prompt (lua_State *L, int firstline) {
 #define EOFMARK		"<eof>"
 #define marklen		(sizeof(EOFMARK)/sizeof(char) - 1)
 
-static int incomplete (lua_State *L, int status) {
-    if (status == LUA_ERRSYNTAX) {
+static int incomplete (lua_State *L, int status)
+{
+    if (status == LUA_ERRSYNTAX)
+    {
         size_t lmsg;
         const char *msg = lua_tolstring(L, -1, &lmsg);
-        if (lmsg >= marklen && strcmp(msg + lmsg - marklen, EOFMARK) == 0) {
+        if (lmsg >= marklen && strcmp(msg + lmsg - marklen, EOFMARK) == 0)
+        {
             lua_pop(L, 1);
             return 1;
         }
@@ -304,7 +334,8 @@ static int incomplete (lua_State *L, int status) {
     return 0;  /* else... */
 }
 
-static int pushline (lua_State *L, int firstline) {
+static int pushline (lua_State *L, int firstline)
+{
     char buffer[LUA_MAXINPUT];
     char *b = buffer;
     size_t l;
@@ -322,12 +353,14 @@ static int pushline (lua_State *L, int firstline) {
     return 1;
 }
 
-static int loadline (lua_State *L) {
+static int loadline (lua_State *L)
+{
     int status;
     lua_settop(L, 0);
     if (!pushline(L, 1))
         return -1;  /* no input */
-    for (;;) {  /* repeat until gets a complete line */
+    for (;;)
+    {  /* repeat until gets a complete line */
         size_t l;
         const char *line = lua_tolstring(L, 1, &l);
         status = luaL_loadbuffer(L, line, l, "=stdin");
@@ -343,14 +376,17 @@ static int loadline (lua_State *L) {
     return status;
 }
 
-static void dotty (lua_State *L) {
+static void dotty (lua_State *L)
+{
     int status;
     const char *oldprogname = progname;
     progname = NULL;
-    while ((status = loadline(L)) != -1) {
+    while ((status = loadline(L)) != -1)
+    {
         if (status == LUA_OK) status = docall(L, 0, LUA_MULTRET);
         report(L, status);
-        if (status == LUA_OK && lua_gettop(L) > 0) {  /* any result to print? */
+        if (status == LUA_OK && lua_gettop(L) > 0)
+        {  /* any result to print? */
             luaL_checkstack(L, LUA_MINSTACK, "too many results to print");
             lua_getglobal(L, "print");
             lua_insert(L, 1);
@@ -365,7 +401,8 @@ static void dotty (lua_State *L) {
     progname = oldprogname;
 }
 
-static int handle_script (lua_State *L, char **argv, int n) {
+static int handle_script (lua_State *L, char **argv, int n)
+{
     int status;
     const char *fname;
     int narg = getargs(L, argv, n);  /* collect arguments */
@@ -393,12 +430,15 @@ static int handle_script (lua_State *L, char **argv, int n) {
 
 #define num_has		4	/* number of 'has_*' */
 
-static int collectargs (char **argv, int *args) {
+static int collectargs (char **argv, int *args)
+{
     int i;
-    for (i = 1; argv[i] != NULL; i++) {
+    for (i = 1; argv[i] != NULL; i++)
+    {
         if (argv[i][0] != '-')  /* not an option? */
             return i;
-        switch (argv[i][1]) {  /* option */
+        switch (argv[i][1])
+        {  /* option */
         case '-':
             noextrachars(argv[i]);
             return (argv[i+1] != NULL ? i+1 : 0);
@@ -417,7 +457,8 @@ static int collectargs (char **argv, int *args) {
         case 'e':
             args[has_e] = 1;  /* go through */
         case 'l':  /* both options need an argument */
-            if (argv[i][2] == '\0') {  /* no concatenated argument? */
+            if (argv[i][2] == '\0')
+            {  /* no concatenated argument? */
                 i++;  /* try next 'argv' */
                 if (argv[i] == NULL || argv[i][0] == '-')
                     return -(i - 1);  /* no next argument or it is another option */
@@ -430,9 +471,11 @@ static int collectargs (char **argv, int *args) {
     return 0;
 }
 
-static int runargs (lua_State *L, char **argv, int n) {
+static int runargs (lua_State *L, char **argv, int n)
+{
     int i;
-    for (i = 1; i < n; i++) {
+    for (i = 1; i < n; i++)
+    {
         lua_assert(argv[i][0] == '-');
         switch (argv[i][1]) {  /* option */
         case 'e': {
@@ -457,10 +500,12 @@ static int runargs (lua_State *L, char **argv, int n) {
     return 1;
 }
 
-static int handle_luainit (lua_State *L) {
+static int handle_luainit (lua_State *L)
+{
     const char *name = "=" LUA_INITVERSION;
     const char *init = getenv(name + 1);
-    if (init == NULL) {
+    if (init == NULL)
+    {
         name = "=" LUA_INIT;
         init = getenv(name + 1);  /* try alternative name */
     }
@@ -471,7 +516,8 @@ static int handle_luainit (lua_State *L) {
         return dostring(L, init, name);
 }
 
-static int pmain (lua_State *L) {
+static int pmain (lua_State *L)
+{
     int argc = (int)lua_tointeger(L, 1);
     char **argv = (char **)lua_touserdata(L, 2);
     int script;
@@ -479,12 +525,14 @@ static int pmain (lua_State *L) {
     args[has_i] = args[has_v] = args[has_e] = args[has_E] = 0;
     if (argv[0] && argv[0][0]) progname = argv[0];
     script = collectargs(argv, args);
-    if (script < 0) {  /* invalid arg? */
+    if (script < 0)
+    {  /* invalid arg? */
         print_usage(argv[-script]);
         return 0;
     }
     if (args[has_v]) print_version();
-    if (args[has_E]) {  /* option '-E'? */
+    if (args[has_E])
+    {  /* option '-E'? */
         lua_pushboolean(L, 1);  /* signal for libraries to ignore env. vars. */
         lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
     }
@@ -502,7 +550,8 @@ static int pmain (lua_State *L) {
     if (args[has_i])  /* -i option? */
         dotty(L);
     else if (script == 0 && !args[has_e] && !args[has_v]) {  /* no arguments? */
-        if (lua_stdin_is_tty()) {
+        if (lua_stdin_is_tty())
+        {
             print_version();
             dotty(L);
         }
@@ -512,21 +561,18 @@ static int pmain (lua_State *L) {
     return 1;
 }
 
-
-gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gchar *db_name) {
+static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
+{
     int status, result;
     int argc = 2;
-    gchar* argv[2];
+    gchar* argv[3];
     GString *file_path = NULL;
     lua_State *L = NULL;
 
-    if (!_jm_open_db_first(path, db_name)) {
-        return FALSE;
-    }
-
     L = luaL_newstate();
 
-    if (L == NULL) {
+    if (L == NULL)
+    {
         // cannot create state: not enough memory
         return FALSE;
     }
@@ -542,6 +588,7 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gcha
 
     argv[0] = "JMScanner";
     argv[1] = file_path->str;
+    argv[2] = NULL;
 
     // call pmain in protected mode
     lua_pushcfunction(L, &pmain);
@@ -555,6 +602,35 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gcha
     g_string_free(file_path, TRUE);
 
     return (result && status == LUA_OK ? TRUE : FALSE);
+}
+
+gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gchar *db_name)
+{
+    GString *real_name = NULL;
+    if (!_jm_open_db_first(path, db_name))
+    {
+        return FALSE;
+    }
+
+    real_name = g_string_new(name);
+    real_name = g_string_append(real_name, ".bin");
+
+    if (_jm_load_lua_script(real_name->str, path))
+    {
+        g_string_free(real_name, TRUE);
+        return TRUE;
+    }
+
+    real_name = g_string_assign(real_name, name);
+    real_name = g_string_append(real_name, ".lua");
+    if (_jm_load_lua_script(real_name->str, path))
+    {
+        g_string_free(real_name, TRUE);
+        return TRUE;
+    }
+
+    g_string_free(real_name, TRUE);
+    return FALSE;
 }
 
 #define LUA_BUILD_AS_DLL

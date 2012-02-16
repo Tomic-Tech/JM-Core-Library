@@ -23,10 +23,10 @@ struct _JMLDArray {
 #define jm_ld_array_append(array, ld) g_ptr_array_add(array->ld_array, ld)
 #define jm_ld_array_size(array) (array->ld_array->len)
 
-JMLDArray* jm_ld_array_new(void);
-void jm_ld_array_free(JMLDArray *self);
-gint32 jm_ld_array_next_enabled_index(JMLDArray *self);
-void jm_ld_array_generate_enabled_index(JMLDArray *self);
+GLIB_VAR JMLDArray* jm_ld_array_new(void);
+GLIB_VAR void jm_ld_array_free(JMLDArray *self);
+GLIB_VAR gint32 jm_ld_array_next_enabled_index(JMLDArray *self);
+GLIB_VAR void jm_ld_array_generate_enabled_index(JMLDArray *self);
 
 G_END_DECLS
 

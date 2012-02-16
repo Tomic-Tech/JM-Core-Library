@@ -128,6 +128,7 @@ size_t jm_commbox_port_write(const guint8 *data, size_t count) {
 	g_mutex_lock(_jm_out_mutex);
 	array = g_byte_array_sized_new(count);
 	array = g_byte_array_append(array, data, count);
+    g_queue_push_tail(_jm_out_deque, array);
 	g_mutex_unlock(_jm_out_mutex);
 	return count;
 }
