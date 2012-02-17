@@ -19,6 +19,11 @@ enum _JMCommboxPortType {
 
 GLIB_VAR void jm_commbox_port_init(void);
 GLIB_VAR void jm_commbox_port_destroy(void);
+// If we use SerialPort (or other need) we will need a pointer to operate.
+GLIB_VAR void jm_commbox_port_set_pointer(gpointer p);
+GLIB_VAR gpointer jm_commbox_port_get_pointer(void);
+GLIB_VAR void jm_commbox_port_set_type(JMCommboxPortType type);
+GLIB_VAR JMCommboxPortType jm_commbox_port_get_type(void);
 GLIB_VAR gint32 jm_commbox_port_set_read_timeout(gint64 microseconds);
 GLIB_VAR gint32 jm_commbox_port_set_write_timeout(gint64 microseconds);
 GLIB_VAR size_t jm_commbox_port_bytes_available(void);

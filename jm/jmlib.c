@@ -4,6 +4,7 @@
 #include "jmcommboxport.h"
 #include "jmauth.h"
 #include "jmui.h"
+#include "jmserialport.h"
 
 static GString *_jm_lib_software_path = NULL;
 static GString *_jm_lib_vehicle_path = NULL;
@@ -77,6 +78,83 @@ static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name)
     g_string_free(abs_db_path, TRUE);
 
     return ret;
+}
+
+static gboolean _jm_open_commbox_sp(void)
+{
+    JMStringArray *vec = NULL;
+    JMSerialPort *port = (JMSerialPort*)jm_commbox_port_get_pointer();
+    size_t vec_length = 0;
+    size_t i;
+    gint32 err = 0;
+    JMCommbox *box = NULL;
+    gboolean ret = TRUE;
+
+    if (port == NULL)
+        return FALSE;
+
+    vec = jm_serial_port_get_system_ports();
+    vec_length = jm_string_array_size(vec);
+    box = jm_commbox_factory_create_commbox();
+
+    for (i = 0; i < vec_length; i++)
+    {
+        jm_serial_port_set_port_name(port, jm_string_array_get(vec, i));
+        if (jm_commbox_serial_port_change_config(box))
+        {
+            jm_serial_port_set_baudrate(port, jm_commbox_serial_port_baud(box));
+            jm_serial_port_set_databits(port, jm_commbox_serial_port_databits(box));
+            jm_serial_port_set_flow_control(port, jm_commbox_serial_port_flow_control(box));
+            jm_serial_port_set_parity(port, jm_commbox_serial_port_parity(box));
+            jm_serial_port_set_stopbits(port, jm_commbox_serial_port_stopbits(box));
+            jm_serial_port_open(port);
+            jm_serial_port_set_dtr(port, TRUE);
+        }
+
+        err = jm_commbox_open(box);
+        if (err == JM_ERROR_SUCCESS)
+        {
+            if (jm_commbox_serial_port_change_config(box))
+            {
+                jm_serial_port_set_baudrate(port, jm_commbox_serial_port_baud(box));
+                if (jm_commbox_check_serial_port_change_config(box))
+                {
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        else if (err == JM_ERROR_COMMBOX_TRY_AGAIN)
+        {
+            jm_serial_port_close(port);
+            continue;
+        }
+        else
+        {
+            jm_serial_port_close(port);
+            i++;
+        }
+    }
+
+    if (i == vec_length)
+    {
+        ret = FALSE;
+    }
+
+    jm_string_array_free(vec);
+    return ret;
+}
+
+static gboolean _jm_open_commbox_second(void)
+{
+    if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
+    {
+        return _jm_open_commbox_sp();
+    }
+    return FALSE;
 }
 
 #undef LUA_BUILD_AS_DLL
@@ -607,30 +685,41 @@ static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
 gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gchar *db_name)
 {
     GString *real_name = NULL;
+    JMCommbox *box = NULL;
+    gboolean ret = TRUE;
+
     if (!_jm_open_db_first(path, db_name))
     {
         return FALSE;
     }
+
+    if (!_jm_open_commbox_second())
+    {
+        return FALSE;
+    }
+
+    box = jm_commbox_factory_create_commbox();
 
     real_name = g_string_new(name);
     real_name = g_string_append(real_name, ".bin");
 
     if (_jm_load_lua_script(real_name->str, path))
     {
-        g_string_free(real_name, TRUE);
-        return TRUE;
+        goto EXIT;
     }
 
     real_name = g_string_assign(real_name, name);
     real_name = g_string_append(real_name, ".lua");
     if (_jm_load_lua_script(real_name->str, path))
     {
-        g_string_free(real_name, TRUE);
-        return TRUE;
+        goto EXIT;
     }
 
+    ret = FALSE;
+EXIT:
+    jm_commbox_close(box);
     g_string_free(real_name, TRUE);
-    return FALSE;
+    return ret;
 }
 
 #define LUA_BUILD_AS_DLL
