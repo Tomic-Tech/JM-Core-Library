@@ -23,8 +23,6 @@ GLIB_VAR gchar *jm_db_get_trouble_code(const gchar *code);
 GLIB_VAR GByteArray *jm_db_get_command(const gchar *name);
 GLIB_VAR GByteArray *jm_db_get_command_id(gint32 id);
 GLIB_VAR JMLDArray *jm_db_get_live_data(void);
-GLIB_VAR void jm_db_load_live_data(void);
-
 G_END_DECLS
 
 #endif

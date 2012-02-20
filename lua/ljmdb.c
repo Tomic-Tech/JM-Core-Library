@@ -83,27 +83,24 @@ static int _lua_jm_db_get_command_id(lua_State *L) {
 
 static int _lua_jm_db_get_live_data(lua_State *L) {
     size_t i;
-    JMLDArray *arr = NULL;
+    size_t size;
 
-    jm_db_load_live_data();
-    arr = jm_db_get_live_data();
-
-    g_return_val_if_fail(arr != NULL, 0);
+    jm_ld_array_load();
 
     lua_newtable(L); /* creates root table for LDArray */
     
-    for (i = 0; i < jm_ld_array_size(arr); i++) {
-        JMLiveData *ld = jm_ld_array_index(arr, i);
+    size = jm_ld_array_size();
+    for (i = 0; i < size; i++) {
         lua_pushinteger(L, i + 1); /* C zero begin, lua one begin */
         lua_newtable(L); /* sub table */
         lua_pushstring(L, "shortName");
-        lua_pushstring(L, ld->short_name);
+        lua_pushstring(L, jm_ld_array_get_short_name(i));
         lua_settable(L, -3);
         lua_pushstring(L, "enable");
-        lua_pushboolean(L, ld->enabled);
+        lua_pushboolean(L, jm_ld_array_get_enabled(i));
         lua_settable(L, -3);
         lua_pushstring(L, "commandID");
-        lua_pushinteger(L, ld->command_id);
+        lua_pushinteger(L, jm_ld_array_get_command_id(i));
         lua_settable(L, -3); /* now sub table is -1 key is -2, and main table is -3 */
         lua_settable(L, -3); /* set sub table to main table */
     }
@@ -114,27 +111,22 @@ static int _lua_jm_db_get_live_data(lua_State *L) {
 }
 
 static int _lua_jm_db_ld_generate(lua_State *L) {
-    JMLDArray *arr = jm_db_get_live_data();
-
-    jm_ld_array_generate_enabled_index(arr);
+    jm_ld_array_generate_show_index();
 
     return 0;
 }
 
 static int _lua_jm_db_ld_next_index(lua_State *L) {
-    JMLDArray *arr = jm_db_get_live_data();
-
-    lua_pushinteger(L, jm_ld_array_next_enabled_index(arr));
+    lua_pushinteger(L, jm_ld_array_next_show_index());
 
     return 1;
 }
 
 static int _lua_jm_db_ld_set_enabled(lua_State *L) {
-    JMLDArray *arr = jm_db_get_live_data();
     gint32 index = luaL_checkinteger(L, 1);
     gboolean enabled = lua_toboolean(L, 2);
 
-    jm_ld_array_index(arr, index)->enabled = enabled;
+    jm_ld_array_set_enabled(index, enabled);
     return 0;
 }
 

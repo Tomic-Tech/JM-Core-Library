@@ -2,79 +2,33 @@
 #include "jmldarray.h"
 #include "jmdb.h"
 
-JNIEXPORT jlong Java_jm_core_LDArray_nativeGetLDArray(JNIEnv *env, jclass cls) {
-    jlong ret = (jlong)jm_db_get_live_data();
-    return ret;
+JNIEXPORT jstring Java_jm_core_LDArray_nativeGetShortName(JNIEnv *env, jclass cls, jint index)
+{
+    return (*env)->NewStringUTF(env, jm_ld_array_get_short_name(index));
 }
 
-JNIEXPORT jstring Java_jm_core_LDArray_nativeGetShortName(JNIEnv *env, jclass cls, jlong handle, jint index) {
-    JMLDArray *arr = (JMLDArray*)handle;
-    JMLiveData *ld = NULL;
-    if (arr == NULL) {
-        return NULL;
-    }
-
-    ld = jm_ld_array_index(arr, index);
-    if (ld == NULL) {
-        return NULL;
-    }
-    return (*env)->NewStringUTF(env, ld->short_name);
+JNIEXPORT jstring Java_jm_core_LDArray_nativeGetContent(JNIEnv *env, jclass cls, jint index)
+{
+    return (*env)->NewStringUTF(env, jm_ld_array_get_content(index));
 }
 
-JNIEXPORT jstring Java_jm_core_LDArray_nativeGetContent(JNIEnv *env, jclass cls, jlong handle, jint index) {
-    JMLDArray *arr = (JMLDArray*)handle;
-    JMLiveData *ld = NULL;
-    if (arr == NULL) {
-        return NULL;
-    }
-
-    ld = jm_ld_array_index(arr, index);
-    if (ld == NULL) {
-        return NULL;
-    }
-    return (*env)->NewStringUTF(env, ld->content);
+JNIEXPORT jstring Java_jm_core_LDArray_nativeGetUnit(JNIEnv *env, jclass cls, jint index)
+{
+    return (*env)->NewStringUTF(env, jm_ld_array_get_unit(index));
 }
 
-JNIEXPORT jstring Java_jm_core_LDArray_nativeGetUnit(JNIEnv *env, jclass cls, jlong handle, jint index) {
-    JMLDArray *arr = (JMLDArray*)handle;
-    JMLiveData *ld = NULL;
-    if (arr == NULL) {
-        return NULL;
-    }
-
-    ld = jm_ld_array_index(arr, index);
-    if (ld == NULL) {
-        return NULL;
-    }
-    return (*env)->NewStringUTF(env, ld->unit);
+JNIEXPORT jstring Java_jm_core_LDArray_nativeGetDefaultValue(JNIEnv *env, jclass cls, jint index)
+{
+    return (*env)->NewStringUTF(env, jm_ld_array_get_default_value(index));
 }
 
-JNIEXPORT jstring Java_jm_core_LDArray_nativeGetDefaultValue(JNIEnv *env, jclass cls, jlong handle, jint index) {
-    JMLDArray *arr = (JMLDArray*)handle;
-    JMLiveData *ld = NULL;
-    if (arr == NULL) {
-        return NULL;
-    }
-
-    ld = jm_ld_array_index(arr, index);
-    if (ld == NULL) {
-        return NULL;
-    }
-    return (*env)->NewStringUTF(env, ld->default_value);
+JNIEXPORT jstring Java_jm_core_LDArray_nativeGetValue(JNIEnv *env, jclass cls, jint index)
+{
+    return (*env)->NewStringUTF(env, jm_ld_array_get_value(index));
 }
 
-JNIEXPORT jboolean Java_jm_core_LDArray_nativeGetEnabled(JNIEnv *env, jclass cls, jlong handle, jint index) {
-    JMLDArray *arr = (JMLDArray*)handle;
-    JMLiveData *ld = NULL;
-    if (arr == NULL) {
-        return JNI_FALSE;
-    }
-
-    ld = jm_ld_array_index(arr, index);
-    if (ld == NULL) {
-        return JNI_FALSE;
-    }
-
-    return ld->enabled ? JNI_TRUE : JNI_FALSE;
+JNIEXPORT jboolean Java_jm_core_LDArray_nativeGetEnabled(JNIEnv *env, jclass cls, jint index)
+{
+    return jm_ld_array_get_enabled(index) ? JNI_TRUE : JNI_FALSE;
 }
 

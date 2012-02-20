@@ -16,7 +16,6 @@ static sqlite3_stmt* _jm_db_get_trouble_code_stmt = NULL;
 static sqlite3_stmt* _jm_db_get_command_stmt = NULL;
 static sqlite3_stmt* _jm_db_get_command_by_id_stmt = NULL;
 static sqlite3_stmt* _jm_db_get_live_data_stmt = NULL;
-static JMLDArray *_jm_db_ld_array = NULL;
 
 void jm_db_init(void)
 {
@@ -32,7 +31,6 @@ void jm_db_destroy(void)
     g_string_free(_jm_db_tc_catalog, TRUE);
     g_string_free(_jm_db_ld_catalog, TRUE);
     g_string_free(_jm_db_cmd_catalog, TRUE);
-    jm_ld_array_free(_jm_db_ld_array);
 }
 
 gboolean jm_db_open(const gchar* file_path, const gchar* password)
@@ -186,7 +184,7 @@ GByteArray *jm_db_get_command_id(gint32 id)
     }
     return result;
 }
-JMLDArray *_jm_db_get_live_data(void)
+JMLDArray *jm_db_get_live_data(void)
 {
     gchar *lang = jm_auth_de_lang();
     JMLDArray *ret = jm_ld_array_new();
@@ -207,25 +205,9 @@ JMLDArray *_jm_db_get_live_data(void)
                 content ? content : "",
                 unit ? unit : "",
                 default_value ? default_value : "",
-                id,
-                enabled);
+                id);
             jm_ld_array_append(ret, ld);
         }
     }
     return ret;
-}
-
-void jm_db_load_live_data(void)
-{
-    if (_jm_db_ld_array != NULL)
-    {
-        jm_ld_array_free(_jm_db_ld_array);
-    }
-
-    _jm_db_ld_array = _jm_db_get_live_data();
-}
-
-JMLDArray* jm_db_get_live_data(void)
-{
-    return _jm_db_ld_array;
 }

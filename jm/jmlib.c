@@ -39,12 +39,14 @@ void jm_lib_init(const gchar *software_path)
     jm_db_init();
     jm_commbox_port_init();
     jm_commbox_factory_init();
+    jm_ld_array_init();
     jm_ui_init();
 }
 
 void jm_lib_destroy(void)
 {
     jm_ui_destroy();
+    jm_ld_array_destroy();
     jm_commbox_factory_destroy();
     jm_commbox_port_destroy();
     jm_db_init();
