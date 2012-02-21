@@ -12,7 +12,6 @@ G_BEGIN_DECLS
 typedef enum _JMUIMsgType JMUIMsgType;
 
 enum _JMUIMsgType {
-    JM_UI_UNKNOW,
     JM_UI_MAIN_SHOW,
     JM_UI_MSG_BOX_BTN_CLR,
     JM_UI_MSG_BOX_ADD_BTN,
@@ -38,7 +37,8 @@ enum _JMUIMsgType {
     JM_UI_LD_SHOW,
     JM_UI_LD_BTN_CLR,
     JM_UI_LD_ADD_BTN,
-    JM_UI_LD_SET_VALUE
+    JM_UI_LD_SET_VALUE,
+	JM_UI_UNKNOW
 };
 
 GLIB_VAR void jm_ui_init(void);

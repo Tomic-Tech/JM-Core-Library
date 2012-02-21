@@ -2,7 +2,7 @@
 #include "jmauth.h"
 #include <sqlite/sqlite3.h>
 
-static const gchar* _jm_db_text_query = "SELECT TextContent FROM Text WHERE TextName=:textname AND Language=:language";
+static const gchar* _jm_db_text_query = "SELECT Content FROM Text WHERE Name=:textname AND Language=:language";
 static const gchar* _jm_db_trouble_code_query = "SELECT Content FROM TroubleCode WHERE Code=:codename AND Catalog=:catalog AND Language=:language";
 static const gchar* _jm_db_command_query = "SELECT Command FROM Command WHERE CommandName=:commandname AND Catalog=:catalog";
 static const gchar* _jm_db_command_by_id_query = "SELECT Command FROM Command WHERE CommandID=:id";
