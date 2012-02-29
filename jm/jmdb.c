@@ -2,11 +2,6 @@
 #include "jmauth.h"
 #include <sqlite/sqlite3.h>
 
-static const gchar* _jm_db_text_query = "SELECT Content FROM Text WHERE Name=:textname AND Language=:language";
-static const gchar* _jm_db_trouble_code_query = "SELECT Content FROM TroubleCode WHERE Code=:codename AND Catalog=:catalog AND Language=:language";
-static const gchar* _jm_db_command_query = "SELECT Command FROM Command WHERE CommandName=:commandname AND Catalog=:catalog";
-static const gchar* _jm_db_command_by_id_query = "SELECT Command FROM Command WHERE CommandID=:id";
-static const gchar* _jm_db_live_data_query = "SELECT ShortName, Content, Unit, DefaultValue, CommandID, AlgorithmID FROM LiveData WHERE Catalog=:catalog AND Language=:language";
 static GString* _jm_db_tc_catalog = NULL;
 static GString* _jm_db_ld_catalog = NULL;
 static GString* _jm_db_cmd_catalog = NULL;
@@ -45,26 +40,26 @@ gboolean jm_db_open(const gchar* file_path, const gchar* password)
 
     sqlite3_busy_timeout(_jm_db_handle, 5000);
     sqlite3_key(_jm_db_handle, password, g_utf8_strlen(password, -1));
-    if ((sqlite3_prepare_v2(_jm_db_handle, _jm_db_text_query, g_utf8_strlen(_jm_db_text_query, -1), &_jm_db_get_text_stmt, NULL) != SQLITE_OK) ||
-        (sqlite3_prepare_v2(_jm_db_handle, _jm_db_trouble_code_query, g_utf8_strlen(_jm_db_trouble_code_query, -1), &_jm_db_get_trouble_code_stmt, NULL) != SQLITE_OK) ||
-        (sqlite3_prepare_v2(_jm_db_handle, _jm_db_command_query, g_utf8_strlen(_jm_db_command_query, -1), &_jm_db_get_command_stmt, NULL) != SQLITE_OK) ||
-        (sqlite3_prepare_v2(_jm_db_handle, _jm_db_command_by_id_query, g_utf8_strlen(_jm_db_command_by_id_query, -1), &_jm_db_get_command_by_id_stmt, NULL) != SQLITE_OK) ||
-        (sqlite3_prepare_v2(_jm_db_handle, _jm_db_live_data_query, g_utf8_strlen(_jm_db_live_data_query, -1), &_jm_db_get_live_data_stmt, NULL) != SQLITE_OK))
-    {
-        sqlite3_finalize(_jm_db_get_text_stmt);
-        sqlite3_finalize(_jm_db_get_trouble_code_stmt);
-        sqlite3_finalize(_jm_db_get_command_stmt);
-        sqlite3_finalize(_jm_db_get_command_by_id_stmt);
-        sqlite3_finalize(_jm_db_get_live_data_stmt);
-        _jm_db_get_text_stmt = NULL;
-        _jm_db_get_trouble_code_stmt = NULL;
-        _jm_db_get_command_stmt = NULL;
-        _jm_db_get_command_by_id_stmt = NULL;
-        _jm_db_get_live_data_stmt = NULL;
-        sqlite3_close(_jm_db_handle);
-        _jm_db_handle = NULL;
-        return FALSE;
-    }
+    //if ((sqlite3_prepare_v2(_jm_db_handle, _jm_db_text_query, g_utf8_strlen(_jm_db_text_query, -1), &_jm_db_get_text_stmt, NULL) != SQLITE_OK) ||
+    //    (sqlite3_prepare_v2(_jm_db_handle, _jm_db_trouble_code_query, g_utf8_strlen(_jm_db_trouble_code_query, -1), &_jm_db_get_trouble_code_stmt, NULL) != SQLITE_OK) ||
+    //    (sqlite3_prepare_v2(_jm_db_handle, _jm_db_command_query, g_utf8_strlen(_jm_db_command_query, -1), &_jm_db_get_command_stmt, NULL) != SQLITE_OK) ||
+    //    (sqlite3_prepare_v2(_jm_db_handle, _jm_db_command_by_id_query, g_utf8_strlen(_jm_db_command_by_id_query, -1), &_jm_db_get_command_by_id_stmt, NULL) != SQLITE_OK) ||
+    //    (sqlite3_prepare_v2(_jm_db_handle, _jm_db_live_data_query, g_utf8_strlen(_jm_db_live_data_query, -1), &_jm_db_get_live_data_stmt, NULL) != SQLITE_OK))
+    //{
+    //    sqlite3_finalize(_jm_db_get_text_stmt);
+    //    sqlite3_finalize(_jm_db_get_trouble_code_stmt);
+    //    sqlite3_finalize(_jm_db_get_command_stmt);
+    //    sqlite3_finalize(_jm_db_get_command_by_id_stmt);
+    //    sqlite3_finalize(_jm_db_get_live_data_stmt);
+    //    _jm_db_get_text_stmt = NULL;
+    //    _jm_db_get_trouble_code_stmt = NULL;
+    //    _jm_db_get_command_stmt = NULL;
+    //    _jm_db_get_command_by_id_stmt = NULL;
+    //    _jm_db_get_live_data_stmt = NULL;
+    //    sqlite3_close(_jm_db_handle);
+    //    _jm_db_handle = NULL;
+    //    return FALSE;
+    //}
     return TRUE;
 }
 
@@ -115,29 +110,62 @@ void jm_db_set_cmd_catalog(const gchar *catalog)
 
 gchar *jm_db_get_text(const gchar *name)
 {
-    gchar* lang = jm_auth_de_lang();
     GString *result = g_string_new(name);
+    if (_jm_db_get_text_stmt == NULL)
+    {
+        gchar* lang = jm_auth_de_lang();
+        int ret = 0;
+        GString *text = g_string_new("SELECT Content FROM [Text");
+        text = g_string_append(text, lang);
+        g_free(lang);
+        text = g_string_append(text, "] WHERE Name=:name");
+        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, &_jm_db_get_text_stmt, NULL);
+        g_string_free(text, TRUE);
+        if (ret != SQLITE_OK)
+        {
+            sqlite3_finalize(_jm_db_get_text_stmt);
+            _jm_db_get_text_stmt = NULL;
+            goto END;
+        }
+    }
+
     if ((sqlite3_reset(_jm_db_get_text_stmt) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_text_stmt, 1, name, g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_text_stmt, 2, lang, g_utf8_strlen(lang, -1), SQLITE_STATIC) == SQLITE_OK) && 
+        (sqlite3_bind_text(_jm_db_get_text_stmt, 1, name, g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) &&  
         (sqlite3_step(_jm_db_get_text_stmt) == SQLITE_ROW))
     {
         const char* text = (const char*)sqlite3_column_text(_jm_db_get_text_stmt, 0);
         result = g_string_assign(result, text ? text : "");
     }
-    g_free(lang);
+
+END:
     return g_string_free(result, FALSE);
 }
 
 gchar *jm_db_get_trouble_code(const gchar *code)
 {
-    gchar* lang = jm_auth_de_lang();
     GString *result = g_string_new(code);
+
+    if (_jm_db_get_trouble_code_stmt == NULL)
+    {
+        gchar* lang = jm_auth_de_lang();
+        int ret = 0;
+        GString *text = g_string_new("SELECT Content FROM [TroubleCode");
+        text = g_string_append(text, lang);
+        text = g_string_append(text, "] WHERE Code=:code AND Catalog=:catalog");
+        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, &_jm_db_get_trouble_code_stmt, NULL);
+        g_free(lang);
+        g_string_free(text, TRUE);
+        if (ret != SQLITE_OK)
+        {
+            sqlite3_finalize(_jm_db_get_trouble_code_stmt);
+            _jm_db_get_trouble_code_stmt = NULL;
+            goto END;
+        }
+    }
 
     if ((sqlite3_reset(_jm_db_get_trouble_code_stmt) == SQLITE_OK) &&
         (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 1, code, g_utf8_strlen(code, -1), SQLITE_STATIC) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 2, _jm_db_tc_catalog->str, _jm_db_tc_catalog->len, SQLITE_STATIC) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 3, lang, g_utf8_strlen(lang, -1), SQLITE_STATIC) == SQLITE_OK))
+        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 2, _jm_db_tc_catalog->str, _jm_db_tc_catalog->len, SQLITE_STATIC) == SQLITE_OK))
     {
         int rc = sqlite3_step(_jm_db_get_trouble_code_stmt);
         if (rc == SQLITE_ROW)
@@ -150,13 +178,26 @@ gchar *jm_db_get_trouble_code(const gchar *code)
             result = g_string_assign(result, "Undefined");
         }
     }
-    g_free(lang);
+
+END:
     return g_string_free(result, FALSE);
 }
 
 GByteArray *jm_db_get_command(const gchar *name)
 {
     GByteArray *result = NULL;
+    if (_jm_db_get_command_stmt == NULL)
+    {
+        static gchar *text = "SELECT Command FROM [Command] WHERE Name=:name AND Catalog=:catalog";
+        int ret;
+        ret = sqlite3_prepare_v2(_jm_db_handle, text, g_utf8_strlen(text, -1), &_jm_db_get_command_stmt, NULL);
+        if (ret != SQLITE_OK)
+        {
+            sqlite3_finalize(_jm_db_get_command_stmt);
+            _jm_db_get_command_stmt = NULL;
+            goto END;
+        }
+    }
     if ((sqlite3_reset(_jm_db_get_command_stmt) == SQLITE_OK) && 
         (sqlite3_bind_text(_jm_db_get_command_stmt, 1, name, g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) &&
         (sqlite3_bind_text(_jm_db_get_command_stmt, 2, _jm_db_cmd_catalog->str, _jm_db_cmd_catalog->len, SQLITE_STATIC) == SQLITE_OK) && 
@@ -167,12 +208,25 @@ GByteArray *jm_db_get_command(const gchar *name)
         result = g_byte_array_sized_new(size);
         result = g_byte_array_append(result, bytes, size);
     }
+END:
     return result;
 }
 
 GByteArray *jm_db_get_command_id(gint32 id)
 {
     GByteArray *result = NULL;
+    if (_jm_db_get_command_by_id_stmt == NULL)
+    {
+        static gchar *text = "SELECT Command FROM [Command] WHERE ID=:id";
+        int ret = sqlite3_prepare_v2(_jm_db_handle, text, g_utf8_strlen(text, -1), &_jm_db_get_command_by_id_stmt, NULL);
+        if (ret != SQLITE_OK)
+        {
+            sqlite3_finalize(_jm_db_get_command_by_id_stmt);
+            _jm_db_get_command_by_id_stmt = NULL;
+            goto END;
+        }
+    }
+
     if ((sqlite3_reset(_jm_db_get_command_by_id_stmt) == SQLITE_OK) &&
         (sqlite3_bind_int(_jm_db_get_command_by_id_stmt, 1, id) == SQLITE_OK) &&
         (sqlite3_step(_jm_db_get_command_by_id_stmt) == SQLITE_ROW))
@@ -182,16 +236,34 @@ GByteArray *jm_db_get_command_id(gint32 id)
         result = g_byte_array_sized_new(size);
         result = g_byte_array_append(result, bytes, size);
     }
+
+END:
     return result;
 }
 JMLDArray *jm_db_get_live_data(void)
 {
-    gchar *lang = jm_auth_de_lang();
     JMLDArray *ret = jm_ld_array_new();
 
+    if (_jm_db_get_live_data_stmt == NULL)
+    {
+        int ret;
+        gchar *lang = jm_auth_de_lang();
+        GString *text = g_string_new("SELECT ShortName, Content, Unit, DefaultValue, CommandID, AlgorithmID FROM [LiveData");
+        text = g_string_append(text, lang);
+        text = g_string_append(text, "] WHERE Catalog=:catalog");
+        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, &_jm_db_get_live_data_stmt, NULL);
+        g_free(lang);
+        g_string_free(text, TRUE);
+        if (ret != SQLITE_OK)
+        {
+            sqlite3_finalize(_jm_db_get_live_data_stmt);
+            _jm_db_get_live_data_stmt = NULL;
+            goto END;
+        }
+    }
+
     if ((sqlite3_reset(_jm_db_get_live_data_stmt) == SQLITE_OK) &&
-        (sqlite3_bind_text(_jm_db_get_live_data_stmt, 1, _jm_db_ld_catalog->str, _jm_db_ld_catalog->len, SQLITE_STATIC) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_live_data_stmt, 2, lang, g_utf8_strlen(lang, -1), SQLITE_STATIC) == SQLITE_OK))
+        (sqlite3_bind_text(_jm_db_get_live_data_stmt, 1, _jm_db_ld_catalog->str, _jm_db_ld_catalog->len, SQLITE_STATIC) == SQLITE_OK))
     {
         while (sqlite3_step(_jm_db_get_live_data_stmt) == SQLITE_ROW)
         {
@@ -209,5 +281,7 @@ JMLDArray *jm_db_get_live_data(void)
             jm_ld_array_append(ret, ld);
         }
     }
+
+END:
     return ret;
 }

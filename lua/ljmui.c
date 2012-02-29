@@ -182,7 +182,7 @@ static const luaL_Reg _lua_jm_ui_lib[] = {
     {"listBoxItemClr", _lua_jm_ui_list_box_item_clr},
     {"listBoxShow", _lua_jm_ui_list_box_show},
     {"listBoxHide", _lua_jm_ui_list_box_hide},
-    {"listBoxClr", _lua_jm_ui_menu_item_clr},
+    {"menuItemClr", _lua_jm_ui_menu_item_clr},
     {"menuAddItem", _lua_jm_ui_menu_add_item},
     {"menuShow", _lua_jm_ui_menu_show},
     {"tcAddItem", _lua_jm_ui_tc_add_item},
