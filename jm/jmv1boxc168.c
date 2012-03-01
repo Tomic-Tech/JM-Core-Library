@@ -318,7 +318,7 @@ static gboolean _jm_v1_box_c168_do_set(JMV1Box *self, guint8 command_word, size_
     guint32 times = JM_V1_BOX_C168_REPLAYTIMES;
     g_return_val_if_fail(self != NULL, FALSE);
 
-    while (times) {
+    while (times--) {
         if (!_jm_v1_box_c168_commbox_do(self, command_word, count, buff)) {
             continue;
         }

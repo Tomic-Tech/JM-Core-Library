@@ -67,6 +67,12 @@ gboolean jm_db_close(void)
 {
     int ret;
     sqlite3_stmt *stmt = NULL;
+    _jm_db_get_text_stmt = NULL;
+    _jm_db_get_trouble_code_stmt = NULL;
+    _jm_db_get_command_stmt = NULL;
+    _jm_db_get_command_by_id_stmt = NULL;
+    _jm_db_get_live_data_stmt = NULL;
+
     if (_jm_db_handle == NULL)
     {
         return TRUE;

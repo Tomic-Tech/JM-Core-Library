@@ -20,8 +20,10 @@ static void _jm_lib_set_software_path(const gchar *software_path)
     length = g_strv_length(str_array);
 
     _jm_lib_vehicle_path = g_string_new("");
-    for (i = 0; i < (length - 1); i++) {
-        if (i != 0) {
+    for (i = 0; i < (length - 1); i++)
+    {
+        if (i != 0)
+        {
             _jm_lib_vehicle_path = g_string_append_c(_jm_lib_vehicle_path, G_DIR_SEPARATOR);
         }
         _jm_lib_vehicle_path = g_string_append(_jm_lib_vehicle_path, str_array[i]);
@@ -246,9 +248,9 @@ static void lstop (lua_State *L, lua_Debug *ar)
 
 static void laction (int i)
 {
-  signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
-                              terminate process (default action) */
-  lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+    signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
+                        terminate process (default action) */
+    lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 }
 
 static void print_usage (const char *badoption)
@@ -295,7 +297,8 @@ static int report (lua_State *L, int status)
 /* the next function is called unprotected, so it must avoid errors */
 static void finalreport (lua_State *L, int status)
 {
-    if (status != LUA_OK) {
+    if (status != LUA_OK)
+    {
         const char *msg = (lua_type(L, -1) == LUA_TSTRING) ? lua_tostring(L, -1)
             : NULL;
         if (msg == NULL) msg = "(error object is not a string)";
@@ -309,7 +312,8 @@ static int traceback (lua_State *L)
     const char *msg = lua_tostring(L, 1);
     if (msg)
         luaL_traceback(L, L, msg, 1);
-    else if (!lua_isnoneornil(L, 1)) {  /* is there an error object? */
+    else if (!lua_isnoneornil(L, 1))
+    {  /* is there an error object? */
         if (!luaL_callmeta(L, 1, "__tostring"))  /* try its 'tostring' metamethod */
             lua_pushliteral(L, "(no error message)");
     }
@@ -347,7 +351,8 @@ static int getargs (lua_State *L, char **argv, int n)
     for (i=n+1; i < argc; i++)
         lua_pushstring(L, argv[i]);
     lua_createtable(L, narg, n + 1);
-    for (i=0; i < argc; i++) {
+    for (i=0; i < argc; i++)
+    {
         lua_pushstring(L, argv[i]);
         lua_rawseti(L, -2, i - n);
     }
@@ -557,23 +562,26 @@ static int runargs (lua_State *L, char **argv, int n)
     for (i = 1; i < n; i++)
     {
         lua_assert(argv[i][0] == '-');
-        switch (argv[i][1]) {  /* option */
-        case 'e': {
-            const char *chunk = argv[i] + 2;
-            if (*chunk == '\0') chunk = argv[++i];
-            lua_assert(chunk != NULL);
-            if (dostring(L, chunk, "=(command line)") != LUA_OK)
-                return 0;
-            break;
-                  }
-        case 'l': {
-            const char *filename = argv[i] + 2;
-            if (*filename == '\0') filename = argv[++i];
-            lua_assert(filename != NULL);
-            if (dolibrary(L, filename) != LUA_OK)
-                return 0;  /* stop if file fails */
-            break;
-                  }
+        switch (argv[i][1])
+        {  /* option */
+        case 'e':
+            {
+                const char *chunk = argv[i] + 2;
+                if (*chunk == '\0') chunk = argv[++i];
+                lua_assert(chunk != NULL);
+                if (dostring(L, chunk, "=(command line)") != LUA_OK)
+                    return 0;
+                break;
+            }
+        case 'l':
+            {
+                const char *filename = argv[i] + 2;
+                if (*filename == '\0') filename = argv[++i];
+                lua_assert(filename != NULL);
+                if (dolibrary(L, filename) != LUA_OK)
+                    return 0;  /* stop if file fails */
+                break;
+            }
         default: break;
         }
     }
@@ -695,10 +703,12 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gcha
         return FALSE;
     }
 
+#if 0
     if (!_jm_open_commbox_second())
     {
         return FALSE;
     }
+#endif
 
     box = jm_commbox_factory_create_commbox();
 
