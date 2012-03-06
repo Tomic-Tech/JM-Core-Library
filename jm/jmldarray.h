@@ -14,20 +14,29 @@ typedef struct _JMLDArray JMLDArray;
 
 struct _JMLDArray {
     GPtrArray *ld_array;
+    GPtrArray *show_index_array;
+    GHashTable *show_position_array;
     GPtrArray *enabled_index_array;
     gint32 current_enabled_index;
+    size_t enabled_size;
+    size_t show_size;
 };
 
-#define jm_ld_array_append(array, ld) g_ptr_array_add(array->ld_array, ld)
-
+void jm_ld_array_append(JMLDArray *array, JMLiveData *ld);
 void jm_ld_array_init(void);
 void jm_ld_array_destroy(void);
 JMLDArray* jm_ld_array_new(void);
 void jm_ld_array_free(JMLDArray *self);
 void jm_ld_array_load(void);
 GLIB_VAR gint32 jm_ld_array_next_show_index(void);
+GLIB_VAR gint32 jm_ld_array_get_show_index(gint32 index);
+GLIB_VAR gint32 jm_ld_array_get_show_position(gint32 index);
+GLIB_VAR gint32 jm_ld_array_get_enabled_index(gint32 index);
+GLIB_VAR void jm_ld_array_generate_enabled_index(void);
 GLIB_VAR void jm_ld_array_generate_show_index(void);
 GLIB_VAR size_t jm_ld_array_size(void);
+GLIB_VAR size_t jm_ld_array_enabled_size(void);
+GLIB_VAR size_t jm_ld_array_show_size(void);
 GLIB_VAR void jm_ld_array_set_short_name(gint32 index, const gchar *short_name);
 GLIB_VAR const gchar* jm_ld_array_get_short_name(gint32 index);
 GLIB_VAR void jm_ld_array_set_content(gint32 index, const gchar *content);

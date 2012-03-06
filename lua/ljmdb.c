@@ -105,8 +105,6 @@ static int _lua_jm_db_get_live_data(lua_State *L) {
         lua_settable(L, -3); /* set sub table to main table */
     }
 
-    lua_newtable(L); /* creates root table fore enable LDArray */
-
     return 1;
 }
 
@@ -117,7 +115,7 @@ static int _lua_jm_db_ld_generate(lua_State *L) {
 }
 
 static int _lua_jm_db_ld_next_index(lua_State *L) {
-    lua_pushinteger(L, jm_ld_array_next_show_index());
+    lua_pushinteger(L, jm_ld_array_next_show_index() + 1);
 
     return 1;
 }
@@ -126,7 +124,7 @@ static int _lua_jm_db_ld_set_enabled(lua_State *L) {
     gint32 index = luaL_checkinteger(L, 1);
     gboolean enabled = lua_toboolean(L, 2);
 
-    jm_ld_array_set_enabled(index, enabled);
+    jm_ld_array_set_enabled(index - 1, enabled);
     return 0;
 }
 

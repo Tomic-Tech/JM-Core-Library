@@ -35,6 +35,8 @@ enum _JMLogLevel {
 #endif
 };
 
+void jm_log_init(void);
+void jm_log_destroy(void);
 GLIB_VAR void jm_log_write(JMLogLevel l, const gchar *tag, const gchar *msg);
 GLIB_VAR void jm_log_write_hex(JMLogLevel l, const gchar *tag, const guint8 *data, size_t count);
 

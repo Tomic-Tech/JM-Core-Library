@@ -1,3 +1,4 @@
+#include <glib/gthread.h>
 #include "jmlib.h"
 #include "jmauth.h"
 #include "jmcommboxfactory.h"
@@ -5,9 +6,11 @@
 #include "jmauth.h"
 #include "jmui.h"
 #include "jmserialport.h"
+#include "jmlog.h"
 
 static GString *_jm_lib_software_path = NULL;
 static GString *_jm_lib_vehicle_path = NULL;
+static GThread *_jm_lib_commbox_close_thread = NULL;
 
 static void _jm_lib_set_software_path(const gchar *software_path)
 {
@@ -35,6 +38,7 @@ static void _jm_lib_set_software_path(const gchar *software_path)
 void jm_lib_init(const gchar *software_path)
 {
     g_thread_init(NULL);
+    jm_log_init();
     _jm_lib_set_software_path(software_path);
     jm_auth_init();
     jm_auth_set_dat_path(software_path);
@@ -47,12 +51,14 @@ void jm_lib_init(const gchar *software_path)
 
 void jm_lib_destroy(void)
 {
+    g_thread_join(_jm_lib_commbox_close_thread);
     jm_ui_destroy();
     jm_ld_array_destroy();
     jm_commbox_factory_destroy();
     jm_commbox_port_destroy();
     jm_db_init();
     jm_auth_destroy();
+    jm_log_destroy();
 }
 
 const gchar* jm_lib_vehicles_dir(void)
@@ -692,6 +698,12 @@ static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
     return (result && status == LUA_OK ? TRUE : FALSE);
 }
 
+static gpointer _jm_commbox_close(gpointer data)
+{
+    jm_commbox_close((JMCommbox*)data);
+    return NULL;
+}
+
 gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gchar *db_name)
 {
     GString *real_name = NULL;
@@ -712,6 +724,7 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gcha
 
     box = jm_commbox_factory_create_commbox();
 
+#ifndef JM_SDK
     real_name = g_string_new(name);
     real_name = g_string_append(real_name, ".bin");
 
@@ -720,16 +733,18 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gcha
         goto EXIT;
     }
 
-    real_name = g_string_assign(real_name, name);
+#else
+    real_name = g_string_new(name);
     real_name = g_string_append(real_name, ".lua");
     if (_jm_load_lua_script(real_name->str, path))
     {
         goto EXIT;
     }
-
+#endif
     ret = FALSE;
 EXIT:
-    jm_commbox_close(box);
+    _jm_lib_commbox_close_thread = g_thread_create(_jm_commbox_close, box, TRUE, NULL);
+    //jm_commbox_close(box);
     g_string_free(real_name, TRUE);
     return ret;
 }

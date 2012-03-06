@@ -242,6 +242,17 @@ void jm_ui_menu_show(void)
     g_mutex_unlock(_jm_ui_mutex);
 }
 
+void jm_ui_tc_item_clr(void)
+{
+    JMUIMessage *msg = NULL;
+    g_mutex_lock(_jm_ui_mutex);
+    msg = g_malloc(sizeof(JMUIMessage));
+    msg->type = JM_UI_TC_ITEM_CLR;
+    msg->message = NULL;
+    g_queue_push_tail(_jm_ui_msg_queue, msg);
+    g_mutex_unlock(_jm_ui_mutex);
+}
+
 void jm_ui_tc_add_item(const gchar *code, const gchar *text)
 {
     GString *str = g_string_new("");
@@ -359,18 +370,21 @@ gchar* jm_ui_get_btn_clicked(gboolean is_blocked)
         ret = g_string_free(_jm_ui_btn_clicked, FALSE);
         _jm_ui_btn_clicked = NULL;
         g_mutex_unlock(_jm_ui_btn_mutex);
+        g_thread_yield();
         return ret;
     }
     else
     {
         GTimeVal time_val;
         g_get_current_time(&time_val);
-        g_time_val_add(&time_val, 1000);
+        g_time_val_add(&time_val, 3000);
         g_mutex_lock(_jm_ui_btn_mutex);
         g_cond_timed_wait(_jm_ui_btn_cond, _jm_ui_btn_mutex, &time_val);
         if (_jm_ui_btn_clicked == NULL)
         {
             g_mutex_unlock(_jm_ui_btn_mutex);
+            g_usleep(3000);
+            g_thread_yield();
             return NULL;
         }
         else
@@ -378,9 +392,13 @@ gchar* jm_ui_get_btn_clicked(gboolean is_blocked)
             ret = g_string_free(_jm_ui_btn_clicked, FALSE);
             _jm_ui_btn_clicked = NULL;
             g_mutex_unlock(_jm_ui_btn_mutex);
+            g_usleep(3000);
+            g_thread_yield();
             return ret;
         }
     }
+    g_usleep(3000);
+    g_thread_yield();
     return NULL;
 }
 

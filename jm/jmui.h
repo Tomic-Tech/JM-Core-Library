@@ -68,6 +68,7 @@ GLIB_VAR void jm_ui_list_box_hide(void);
 GLIB_VAR void jm_ui_menu_item_clr(void);
 GLIB_VAR void jm_ui_menu_add_item(const gchar *text);
 GLIB_VAR void jm_ui_menu_show(void);
+GLIB_VAR void jm_ui_tc_item_clr(void);
 GLIB_VAR void jm_ui_tc_add_item(const gchar *code, const gchar *text);
 GLIB_VAR void jm_ui_tc_add_btn(const gchar *text);
 GLIB_VAR void jm_ui_tc_btn_clr(void);

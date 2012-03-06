@@ -16,7 +16,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMCommbox JMCommbox;
 
-struct _JMCommbox {
+struct _JMCommbox
+{
 	gint32 (*open)(JMCommbox *);
 	gint32 (*close)(JMCommbox *);
 	JMComm* (*configure)(JMCommbox *, JMProtocolType);
