@@ -13,7 +13,8 @@ typedef struct _JMMikuni JMMikuni;
 
 #define JM_MIKUNI_HEAD_FORMAT 0x48
 
-struct _JMMikuni {
+struct _JMMikuni
+{
     size_t (*pack)(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
     size_t (*unpack)(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
     gint32 (*init)(JMMikuni *self);

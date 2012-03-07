@@ -12,7 +12,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMCommboxPortType JMCommboxPortType;
 
-enum _JMCommboxPortType {
+enum _JMCommboxPortType
+{
     JM_COMMBOX_PORT_SERIAL_PORT,
     JM_COMMBOX_PORT_UNKNOW
 };

@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMLiveData JMLiveData;
 
-struct _JMLiveData {
+struct _JMLiveData
+{
     GString *short_name;
     GString *content;
     GString *unit;

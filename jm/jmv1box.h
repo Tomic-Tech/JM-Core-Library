@@ -19,7 +19,8 @@ typedef struct _JMV1Box JMV1Box;
 
 #define JM_V1_BOX_C(box, name) ((box)->box_type == JM_V1_BOX_C168 ? JM_V1_BOX_C168_##name : JM_V1_BOX_W80_##name)
 
-struct _JMV1Box {
+struct _JMV1Box
+{
     gboolean (*open_comm)(JMV1Box *self);
     gboolean (*close_comm)(JMV1Box *self);
     size_t (*read_bytes)(JMV1Box *self, guint8 *buff, size_t count);

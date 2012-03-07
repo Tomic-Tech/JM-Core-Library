@@ -20,7 +20,8 @@ gint32 _jm_canbus_set_options(JMCanbus *self,
     return JM_ERROR_SUCCESS;
 }
 
-static size_t _jm_canbus_pack(JMCanbus *self, const guint8 *src, size_t count, guint8 *tar)
+static size_t _jm_canbus_pack(JMCanbus *self, const guint8 *src, 
+    size_t count, guint8 *tar)
 {
     g_return_val_if_fail(self != NULL, 0);
 
@@ -64,7 +65,8 @@ static size_t _jm_canbus_pack(JMCanbus *self, const guint8 *src, size_t count, g
     return 0;
 }
 
-static size_t _jm_canbus_unpack(JMCanbus *self, const guint8 *src, size_t count, guint8 *tar)
+static size_t _jm_canbus_unpack(JMCanbus *self, const guint8 *src, 
+    size_t count, guint8 *tar)
 {
     guint32 mode;
     size_t length = 0;
@@ -140,14 +142,16 @@ void jm_canbus_free(JMCanbus *self)
     g_free(self);
 }
 
-size_t jm_canbus_pack(JMCanbus *self, const guint8 *src, size_t count, guint8 *tar)
+size_t jm_canbus_pack(JMCanbus *self, const guint8 *src, size_t count, 
+    guint8 *tar)
 {
     g_return_val_if_fail(self != NULL, 0);
     g_return_val_if_fail(self->pack != NULL, 0);
     return self->pack(self, src, count, tar);
 }
 
-size_t jm_canbus_unpack(JMCanbus *self, const guint8 *src, size_t count, guint8 *tar)
+size_t jm_canbus_unpack(JMCanbus *self, const guint8 *src, size_t count, 
+    guint8 *tar)
 {
     g_return_val_if_fail(self != NULL, 0);
     g_return_val_if_fail(self->unpack != NULL, 0);
@@ -161,7 +165,8 @@ gint32 jm_canbus_set_lines(JMCanbus *self, gint32 high, gint32 low)
     return self->set_lines(self, high, low);
 }
 
-gint32 jm_canbus_set_filter(JMCanbus *self, const gint32 *id_array, size_t count)
+gint32 jm_canbus_set_filter(JMCanbus *self, const gint32 *id_array, 
+    size_t count)
 {
     g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
     g_return_val_if_fail(self->set_filter != NULL, JM_ERROR_GENERIC);

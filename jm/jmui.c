@@ -167,7 +167,7 @@ void jm_ui_list_box_add_item(const gchar *caption, const gchar *item)
     GString *str = g_string_new("");
     JMUIMessage *msg = NULL;
     g_string_append_printf(str, "%s|%s", caption, item);
-    
+
     g_mutex_lock(_jm_ui_mutex);
     msg = g_malloc(sizeof(JMUIMessage));
     msg->type = JM_UI_LIST_BOX_ADD_ITEM;

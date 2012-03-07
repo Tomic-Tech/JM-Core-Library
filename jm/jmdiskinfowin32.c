@@ -32,7 +32,8 @@ static GPtrArray *m_list;
 
 //  GETVERSIONOUTPARAMS contains the data returned from the 
 //  Get Driver Version function.
-typedef struct _GETVERSIONOUTPARAMS {
+typedef struct _GETVERSIONOUTPARAMS
+{
     BYTE bVersion;      // Binary driver version.
     BYTE bRevision;     // Binary driver revision.
     BYTE bReserved;     // Not used.
@@ -52,7 +53,8 @@ typedef struct _GETVERSIONOUTPARAMS {
 
 // The following struct defines the interesting part of the IDENTIFY
 // buffer:
-typedef struct _IDSECTOR {
+typedef struct _IDSECTOR
+{
     USHORT  wGenConfig;
     USHORT  wNumCyls;
     USHORT  wReserved;
@@ -89,7 +91,8 @@ typedef struct _IDSECTOR {
 // IDENTIFY data (from ATAPI driver source)
 //
 
-typedef struct _IDENTIFY_DATA {
+typedef struct _IDENTIFY_DATA
+{
     USHORT GeneralConfiguration;            // 00 00
     USHORT NumberOfCylinders;               // 02  1
     USHORT Reserved1;                       // 04  2
@@ -143,7 +146,8 @@ typedef struct _IDENTIFY_DATA {
 
 #pragma pack()
 
-typedef struct _SRB_IO_CONTROL {
+typedef struct _SRB_IO_CONTROL
+{
     ULONG HeaderLength;
     UCHAR Signature[8];
     ULONG Timeout;
@@ -161,41 +165,47 @@ typedef struct _SRB_IO_CONTROL {
 // bIDCmd = IDE_ATA_IDENTIFY or IDE_ATAPI_IDENTIFY
 static BOOL DoIDENTIFY(HANDLE hPhysicalDriveIOCTL, PSENDCMDINPARAMS pSCIP,
     PSENDCMDOUTPARAMS pSCOP, BYTE bIDCmd, BYTE bDriveNum,
-    PDWORD lpcbBytesReturned) {
-        // Set up data structures for IDENTIFY command.
-        pSCIP -> cBufferSize = IDENTIFY_BUFFER_SIZE;
-        pSCIP -> irDriveRegs.bFeaturesReg = 0;
-        pSCIP -> irDriveRegs.bSectorCountReg = 1;
-        pSCIP -> irDriveRegs.bSectorNumberReg = 1;
-        pSCIP -> irDriveRegs.bCylLowReg = 0;
-        pSCIP -> irDriveRegs.bCylHighReg = 0;
+    PDWORD lpcbBytesReturned)
+{
+    // Set up data structures for IDENTIFY command.
+    pSCIP -> cBufferSize = IDENTIFY_BUFFER_SIZE;
+    pSCIP -> irDriveRegs.bFeaturesReg = 0;
+    pSCIP -> irDriveRegs.bSectorCountReg = 1;
+    pSCIP -> irDriveRegs.bSectorNumberReg = 1;
+    pSCIP -> irDriveRegs.bCylLowReg = 0;
+    pSCIP -> irDriveRegs.bCylHighReg = 0;
 
-        // Compute the drive number.
-        pSCIP -> irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4);
+    // Compute the drive number.
+    pSCIP -> irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4);
 
-        // The command can either be IDE identify or ATAPI identify.
-        pSCIP -> irDriveRegs.bCommandReg = bIDCmd;
-        pSCIP -> bDriveNumber = bDriveNum;
-        pSCIP -> cBufferSize = IDENTIFY_BUFFER_SIZE;
+    // The command can either be IDE identify or ATAPI identify.
+    pSCIP -> irDriveRegs.bCommandReg = bIDCmd;
+    pSCIP -> bDriveNumber = bDriveNum;
+    pSCIP -> cBufferSize = IDENTIFY_BUFFER_SIZE;
 
-        return ( DeviceIoControl (hPhysicalDriveIOCTL, DFP_RECEIVE_DRIVE_DATA,
-            (LPVOID) pSCIP,
-            sizeof(SENDCMDINPARAMS) - 1,
-            (LPVOID) pSCOP,
-            sizeof(SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE - 1,
-            lpcbBytesReturned, NULL) );
+    return ( DeviceIoControl (hPhysicalDriveIOCTL, DFP_RECEIVE_DRIVE_DATA,
+        (LPVOID) pSCIP,
+        sizeof(SENDCMDINPARAMS) - 1,
+        (LPVOID) pSCOP,
+        sizeof(SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE - 1,
+        lpcbBytesReturned, NULL) );
 }
 
-static BOOL AddIfNew(USHORT *pIdSector) {
+static BOOL AddIfNew(USHORT *pIdSector)
+{
     BOOL bAdd = TRUE;
     UINT i;
-    for(i = 0; i < m_list->len; i++) {
-        if(memcmp(pIdSector, g_ptr_array_index(m_list, i),256 * sizeof(WORD)) == 0) {
+    for(i = 0; i < m_list->len; i++)
+    {
+        if(memcmp(pIdSector, g_ptr_array_index(m_list, i), 
+            256 * sizeof(WORD)) == 0)
+        {
             bAdd = FALSE;
             break;
         }
     }
-    if(bAdd) {
+    if(bAdd)
+    {
         WORD* diskdata = (WORD*)g_malloc(256 * sizeof(WORD));
         memcpy(diskdata, pIdSector, 256 * sizeof(WORD));
         g_ptr_array_add(m_list, diskdata);
@@ -247,19 +257,24 @@ static BOOL AddIfNew(USHORT *pIdSector) {
 //  function to decode the serial numbers of IDE hard drives
 //  using the IOCTL_STORAGE_QUERY_PROPERTY command 
 
-static gchar* flipAndCodeBytes(const gchar* str) {
+static gchar* flipAndCodeBytes(const gchar* str)
+{
     GString *flipped = g_string_new("");
     int num = g_utf8_strlen(str, -1);
     int i;
     int j;
     int k;
-    
-    for (i = 0; i < num; i += 4) {
-        for (j = 1; j >= 0; j--) {
+
+    for (i = 0; i < num; i += 4)
+    {
+        for (j = 1; j >= 0; j--)
+        {
             int sum = 0;
-            for (k = 0; k < 2; k++) {
+            for (k = 0; k < 2; k++)
+            {
                 sum *= 16;
-                switch (str[i + j * 2 + k]) {
+                switch (str[i + j * 2 + k])
+                {
                 case '0': sum += 0; break;
                 case '1': sum += 1; break;
                 case '2': sum += 2; break;
@@ -278,7 +293,8 @@ static gchar* flipAndCodeBytes(const gchar* str) {
                 case 'f': sum += 15; break;
                 }
             }
-            if (sum > 0) {
+            if (sum > 0)
+            {
                 char sub[2];
                 sub[0] = (char)sum;
                 sub[1] = 0;
@@ -290,12 +306,15 @@ static gchar* flipAndCodeBytes(const gchar* str) {
     return g_string_free(flipped, FALSE);
 }
 
-static gchar* ConvertToString(WORD diskdata [256], int firstIndex, int lastIndex) {
+static gchar* ConvertToString(WORD diskdata [256], int firstIndex, 
+    int lastIndex)
+{
     GString *str = g_string_new("");
     int index = 0;
 
     //  each integer has two characters stored in it backwards
-    for (index = firstIndex; index <= lastIndex; index++) {
+    for (index = firstIndex; index <= lastIndex; index++)
+    {
         gchar c;
         //  get high byte for 1st character
         c = JM_HIGH_BYTE(diskdata[index]);
@@ -318,18 +337,21 @@ static gchar* ConvertToString(WORD diskdata [256], int firstIndex, int lastIndex
     return g_string_free(str, FALSE);
 }
 
-typedef struct _MEDIA_SERAL_NUMBER_DATA {
+typedef struct _MEDIA_SERAL_NUMBER_DATA
+{
     ULONG  SerialNumberLength; 
     ULONG  Result;
     ULONG  Reserved[2];
     UCHAR  SerialNumberData[1];
 } MEDIA_SERIAL_NUMBER_DATA, *PMEDIA_SERIAL_NUMBER_DATA;
 
-static int ReadPhysicalDriveInNTUsingSmart(void) {
+static int ReadPhysicalDriveInNTUsingSmart(void)
+{
     int done = FALSE;
     int drive = 0;
 
-    for (drive = 0; drive < MAX_IDE_DRIVES; drive++) {
+    for (drive = 0; drive < MAX_IDE_DRIVES; drive++)
+    {
         HANDLE hPhysicalDriveIOCTL = 0;
 
         //  Try to get a handle to PhysicalDrive IOCTL, report failure
@@ -344,45 +366,54 @@ static int ReadPhysicalDriveInNTUsingSmart(void) {
             FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 
             NULL, OPEN_EXISTING, 0, NULL);
 
-        if (hPhysicalDriveIOCTL == INVALID_HANDLE_VALUE) {
+        if (hPhysicalDriveIOCTL == INVALID_HANDLE_VALUE)
+        {
 
-        } else {
+        }
+        else
+        {
             GETVERSIONINPARAMS GetVersionParams;
             DWORD cbBytesReturned = 0;
 
             // Get the version, etc of PhysicalDrive IOCTL
-            memset ((void*) & GetVersionParams, 0, sizeof(GetVersionParams));
+            memset ((void*) & GetVersionParams, 0, 
+                sizeof(GetVersionParams));
 
             if (  DeviceIoControl (hPhysicalDriveIOCTL, SMART_GET_VERSION,
                 NULL, 
                 0,
                 &GetVersionParams, sizeof (GETVERSIONINPARAMS),
-                &cbBytesReturned, NULL) ) {         
-                    // Allocate the command buffer
-                    ULONG CommandSize = sizeof(SENDCMDINPARAMS) + IDENTIFY_BUFFER_SIZE;
-                    PSENDCMDINPARAMS Command = (PSENDCMDINPARAMS) malloc (CommandSize);
-                    DWORD BytesReturned = 0;
-                    // Retrieve the IDENTIFY data
-                    // Prepare the command
+                &cbBytesReturned, NULL) )
+            {         
+                // Allocate the command buffer
+                ULONG CommandSize = sizeof(SENDCMDINPARAMS) + 
+                    IDENTIFY_BUFFER_SIZE;
+                PSENDCMDINPARAMS Command = 
+                    (PSENDCMDINPARAMS) malloc (CommandSize);
+                DWORD BytesReturned = 0;
+                // Retrieve the IDENTIFY data
+                // Prepare the command
 #define ID_CMD          0xEC            // Returns ID sector for ATA
-                    Command -> irDriveRegs.bCommandReg = ID_CMD;
-                    if ( DeviceIoControl (hPhysicalDriveIOCTL, 
-                        SMART_RCV_DRIVE_DATA, Command, sizeof(SENDCMDINPARAMS),
-                        Command, CommandSize,
-                        &BytesReturned, NULL) ) {
-                            // Print the IDENTIFY data
-                            DWORD diskdata [256];
-                            USHORT *pIdSector = (USHORT *)
-                                (PIDENTIFY_DATA) ((PSENDCMDOUTPARAMS) Command) -> bBuffer;
+                Command -> irDriveRegs.bCommandReg = ID_CMD;
+                if ( DeviceIoControl (hPhysicalDriveIOCTL, 
+                    SMART_RCV_DRIVE_DATA, Command, sizeof(SENDCMDINPARAMS),
+                    Command, CommandSize,
+                    &BytesReturned, NULL) )
+                {
+                    // Print the IDENTIFY data
+                    DWORD diskdata [256];
+                    USHORT *pIdSector = 
+                        (USHORT *)(PIDENTIFY_DATA)
+                        ((PSENDCMDOUTPARAMS)Command)->bBuffer;
 
 
-                            AddIfNew(pIdSector);
+                    AddIfNew(pIdSector);
 
-                            done = TRUE;
-                    }
-                    // Done
-                    CloseHandle (hPhysicalDriveIOCTL);
-                    free (Command);
+                    done = TRUE;
+                }
+                // Done
+                CloseHandle (hPhysicalDriveIOCTL);
+                free (Command);
             }
         }
     }
@@ -390,11 +421,13 @@ static int ReadPhysicalDriveInNTUsingSmart(void) {
     return done;
 }
 
-static int ReadPhysicalDriveInNTWithAdminRights(void) {
+static int ReadPhysicalDriveInNTWithAdminRights(void)
+{
     int done = FALSE;
     int drive = 0;
     BYTE IdOutCmd [sizeof (SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE - 1];
-    for (drive = 0; drive < MAX_IDE_DRIVES; drive++) {
+    for (drive = 0; drive < MAX_IDE_DRIVES; drive++)
+    {
         HANDLE hPhysicalDriveIOCTL = 0;
 
         //  Try to get a handle to PhysicalDrive IOCTL, report failure
@@ -409,7 +442,8 @@ static int ReadPhysicalDriveInNTWithAdminRights(void) {
             FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
             OPEN_EXISTING, 0, NULL);
 
-        if (hPhysicalDriveIOCTL != INVALID_HANDLE_VALUE) {
+        if (hPhysicalDriveIOCTL != INVALID_HANDLE_VALUE)
+        {
             GETVERSIONOUTPARAMS VersionParams;
             DWORD               cbBytesReturned = 0;
 
@@ -421,38 +455,41 @@ static int ReadPhysicalDriveInNTWithAdminRights(void) {
                 0,
                 &VersionParams,
                 sizeof(VersionParams),
-                &cbBytesReturned, NULL) ) {         
+                &cbBytesReturned, NULL) )
+            {
 
 
-                    // If there is a IDE device at number "i" issue commands
-                    // to the device
-                    if (VersionParams.bIDEDeviceMap > 0) {
-                        BYTE             bIDCmd = 0;   // IDE or ATAPI IDENTIFY cmd
-                        SENDCMDINPARAMS  scip;
+                // If there is a IDE device at number "i" issue commands
+                // to the device
+                if (VersionParams.bIDEDeviceMap > 0)
+                {
+                    BYTE             bIDCmd = 0;   // IDE or ATAPI IDENTIFY cmd
+                    SENDCMDINPARAMS  scip;
 
-                        // Now, get the ID sector for all IDE devices in the system.
-                        // If the device is ATAPI use the IDE_ATAPI_IDENTIFY command,
-                        // otherwise use the IDE_ATA_IDENTIFY command
-                        bIDCmd = (VersionParams.bIDEDeviceMap >> drive & 0x10) ? \
+                    // Now, get the ID sector for all IDE devices in the system.
+                    // If the device is ATAPI use the IDE_ATAPI_IDENTIFY command,
+                    // otherwise use the IDE_ATA_IDENTIFY command
+                    bIDCmd = (VersionParams.bIDEDeviceMap >> drive & 0x10) ? \
 IDE_ATAPI_IDENTIFY : IDE_ATA_IDENTIFY;
 
-                        memset (&scip, 0, sizeof(scip));
-                        memset (IdOutCmd, 0, sizeof(IdOutCmd));
+                    memset (&scip, 0, sizeof(scip));
+                    memset (IdOutCmd, 0, sizeof(IdOutCmd));
 
-                        if ( DoIDENTIFY (hPhysicalDriveIOCTL, 
-                            &scip, 
-                            (PSENDCMDOUTPARAMS)&IdOutCmd, 
-                            (BYTE) bIDCmd,
-                            (BYTE) drive,
-                            &cbBytesReturned)) {
+                    if ( DoIDENTIFY (hPhysicalDriveIOCTL, 
+                        &scip, 
+                        (PSENDCMDOUTPARAMS)&IdOutCmd, 
+                        (BYTE) bIDCmd,
+                        (BYTE) drive,
+                        &cbBytesReturned))
+                    {
 
 
-                                USHORT *pIdSector = (USHORT *)
-                                    ((PSENDCMDOUTPARAMS) IdOutCmd) -> bBuffer;
-                                AddIfNew(pIdSector);	  
-                                done = TRUE;
-                        }
+                        USHORT *pIdSector = (USHORT *)
+                            ((PSENDCMDOUTPARAMS) IdOutCmd) -> bBuffer;
+                        AddIfNew(pIdSector);	  
+                        done = TRUE;
                     }
+                }
             }
 
             CloseHandle (hPhysicalDriveIOCTL);
@@ -462,11 +499,13 @@ IDE_ATAPI_IDENTIFY : IDE_ATA_IDENTIFY;
     return done;
 }
 
-static int ReadPhysicalDriveInNTWithZeroRights(void) {
+static int ReadPhysicalDriveInNTWithZeroRights(void)
+{
     BOOL done = FALSE;
     int drive = 0;
 
-    for (drive = 0; drive < MAX_IDE_DRIVES; drive++) {
+    for (drive = 0; drive < MAX_IDE_DRIVES; drive++)
+    {
         HANDLE hPhysicalDriveIOCTL = 0;
 
         //  Try to get a handle to PhysicalDrive IOCTL, report failure
@@ -481,7 +520,8 @@ static int ReadPhysicalDriveInNTWithZeroRights(void) {
             OPEN_EXISTING, 0, NULL);
 
 
-        if (hPhysicalDriveIOCTL != INVALID_HANDLE_VALUE) {
+        if (hPhysicalDriveIOCTL != INVALID_HANDLE_VALUE)
+        {
             STORAGE_PROPERTY_QUERY query;
             DWORD cbBytesReturned = 0;
             char buffer [10000];
@@ -492,31 +532,42 @@ static int ReadPhysicalDriveInNTWithZeroRights(void) {
 
             memset (buffer, 0, sizeof (buffer));
 
-            if ( DeviceIoControl (hPhysicalDriveIOCTL, IOCTL_STORAGE_QUERY_PROPERTY,
+            if ( DeviceIoControl (hPhysicalDriveIOCTL, 
+                IOCTL_STORAGE_QUERY_PROPERTY,
                 & query,
                 sizeof (query),
                 & buffer,
                 sizeof (buffer),
-                & cbBytesReturned, NULL) ) {
-                    STORAGE_DEVICE_DESCRIPTOR * descrip = (STORAGE_DEVICE_DESCRIPTOR *) & buffer;
-                    gchar *serialNumber = flipAndCodeBytes(&buffer[descrip->SerialNumberOffset]);
-                    g_free(serialNumber);
-            } else {
+                & cbBytesReturned, NULL) )
+            {
+                STORAGE_DEVICE_DESCRIPTOR * descrip = 
+                    (STORAGE_DEVICE_DESCRIPTOR *) & buffer;
+                gchar *serialNumber = flipAndCodeBytes(
+                    &buffer[descrip->SerialNumberOffset]);
+                g_free(serialNumber);
+            }
+            else
+            {
                 DWORD err = GetLastError ();
             }
 
             memset (buffer, 0, sizeof (buffer));
 
-            if ( DeviceIoControl (hPhysicalDriveIOCTL, IOCTL_STORAGE_GET_MEDIA_SERIAL_NUMBER,
+            if ( DeviceIoControl (hPhysicalDriveIOCTL, 
+                IOCTL_STORAGE_GET_MEDIA_SERIAL_NUMBER,
                 NULL,
                 0,
                 & buffer,
                 sizeof (buffer),
-                & cbBytesReturned, NULL) ) {
-                    MEDIA_SERIAL_NUMBER_DATA * mediaSerialNumber = 
-                        (MEDIA_SERIAL_NUMBER_DATA *) & buffer;
-                    gchar *serialNumber = (char*)mediaSerialNumber->SerialNumberData;
-            } else {
+                & cbBytesReturned, NULL) )
+            {
+                MEDIA_SERIAL_NUMBER_DATA * mediaSerialNumber = 
+                    (MEDIA_SERIAL_NUMBER_DATA *) & buffer;
+                gchar *serialNumber = 
+                    (char*)mediaSerialNumber->SerialNumberData;
+            }
+            else
+            {
                 DWORD err = GetLastError ();
             }
 
@@ -530,14 +581,16 @@ static int ReadPhysicalDriveInNTWithZeroRights(void) {
 //  ---------------------------------------------------
 
 // (* Output Bbuffer for the VxD (rt_IdeDinfo record) *)
-typedef struct _rt_IdeDInfo_ {
+typedef struct _rt_IdeDInfo_
+{
     BYTE IDEExists[4];
     BYTE DiskExists[8];
     WORD DisksRawInfo[8*256];
 } rt_IdeDInfo, *pt_IdeDInfo;
 
 // (* IdeDinfo "data fields" *)
-typedef struct _rt_DiskInfo_ {
+typedef struct _rt_DiskInfo_
+{
     BOOL DiskExists;
     BOOL ATAdevice;
     BOOL RemovableDevice;
@@ -556,102 +609,112 @@ typedef struct _rt_DiskInfo_ {
 
 //  ---------------------------------------------------
 
-static BOOL ReadDrivePortsInWin9X(void) {
-	BOOL done = FALSE;
+static BOOL ReadDrivePortsInWin9X(void)
+{
+    BOOL done = FALSE;
 
-	HANDLE VxDHandle = 0;
-	pt_IdeDInfo pOutBufVxD = 0;
-	DWORD lpBytesReturned = 0;
+    HANDLE VxDHandle = 0;
+    pt_IdeDInfo pOutBufVxD = 0;
+    DWORD lpBytesReturned = 0;
 
     unsigned long int i;
 
-	//  set the thread priority high so that we get exclusive access to the disk
-	BOOL status =
-		// SetThreadPriority (GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-		SetPriorityClass (GetCurrentProcess (), REALTIME_PRIORITY_CLASS);
-	// SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+    //  set the thread priority high so that we get exclusive access to the disk
+    BOOL status =
+        // SetThreadPriority (GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+        SetPriorityClass (GetCurrentProcess (), REALTIME_PRIORITY_CLASS);
+    // SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
 
-	// 1. Make an output buffer for the VxD
-	rt_IdeDInfo info;
-	pOutBufVxD = &info;
+    // 1. Make an output buffer for the VxD
+    rt_IdeDInfo info;
+    pOutBufVxD = &info;
 
-	// *****************
-	// KLUDGE WARNING!!!
-	// HAVE to zero out the buffer space for the IDE information!
-	// If this is NOT done then garbage could be in the memory
-	// locations indicating if a disk exists or not.
-	ZeroMemory (&info, sizeof(info));
+    // *****************
+    // KLUDGE WARNING!!!
+    // HAVE to zero out the buffer space for the IDE information!
+    // If this is NOT done then garbage could be in the memory
+    // locations indicating if a disk exists or not.
+    ZeroMemory (&info, sizeof(info));
 
-	// 1. Try to load the VxD
-	//  must use the short file name path to open a VXD file
-	//char StartupDirectory [2048];
-	//char shortFileNamePath [2048];
-	//char *p = NULL;
-	//char vxd [2048];
-	//  get the directory that the exe was started from
-	//GetModuleFileName (hInst, (LPSTR) StartupDirectory, sizeof (StartupDirectory));
-	//  cut the exe name from string
-	//p = &(StartupDirectory [strlen (StartupDirectory) - 1]);
-	//while (p >= StartupDirectory && *p && '\\' != *p) p--;
-	//*p = '\0';   
-	//GetShortPathName (StartupDirectory, shortFileNamePath, 2048);
-	//sprintf (vxd, "\\\\.\\%s\\IDE21201.VXD", shortFileNamePath);
-	//VxDHandle = CreateFile (vxd, 0, 0, 0,
-	//               0, FILE_FLAG_DELETE_ON_CLOSE, 0);   
-	VxDHandle = CreateFile ("\\\\.\\IDE21201.VXD", 0, 0, 0,
-		0, FILE_FLAG_DELETE_ON_CLOSE, 0);
+    // 1. Try to load the VxD
+    //  must use the short file name path to open a VXD file
+    //char StartupDirectory [2048];
+    //char shortFileNamePath [2048];
+    //char *p = NULL;
+    //char vxd [2048];
+    //  get the directory that the exe was started from
+    //GetModuleFileName (hInst, (LPSTR) StartupDirectory, sizeof (StartupDirectory));
+    //  cut the exe name from string
+    //p = &(StartupDirectory [strlen (StartupDirectory) - 1]);
+    //while (p >= StartupDirectory && *p && '\\' != *p) p--;
+    //*p = '\0';   
+    //GetShortPathName (StartupDirectory, shortFileNamePath, 2048);
+    //sprintf (vxd, "\\\\.\\%s\\IDE21201.VXD", shortFileNamePath);
+    //VxDHandle = CreateFile (vxd, 0, 0, 0,
+    //               0, FILE_FLAG_DELETE_ON_CLOSE, 0);   
+    VxDHandle = CreateFile ("\\\\.\\IDE21201.VXD", 0, 0, 0,
+        0, FILE_FLAG_DELETE_ON_CLOSE, 0);
 
-	if (VxDHandle != INVALID_HANDLE_VALUE) {
-		// 2. Run VxD function
-		DeviceIoControl (VxDHandle, m_cVxDFunctionIdesDInfo,
-			0, 0, pOutBufVxD, sizeof(pt_IdeDInfo), &lpBytesReturned, 0);
+    if (VxDHandle != INVALID_HANDLE_VALUE)
+    {
+        // 2. Run VxD function
+        DeviceIoControl (VxDHandle, m_cVxDFunctionIdesDInfo,
+            0, 0, pOutBufVxD, sizeof(pt_IdeDInfo), &lpBytesReturned, 0);
 
-		// 3. Unload VxD
-		CloseHandle (VxDHandle);
-	} else
-		//::MessageBox (NULL, "ERROR: Could not open IDE21201.VXD file", 
-		//	TITLE, MB_ICONSTOP);
-		return FALSE;
+        // 3. Unload VxD
+        CloseHandle (VxDHandle);
+    } 
+    else
+        //::MessageBox (NULL, "ERROR: Could not open IDE21201.VXD file", 
+        //	TITLE, MB_ICONSTOP);
+        return FALSE;
 
 
-	// 4. Translate and store 
-	for (i=0; i<8; i++) {
-		if((pOutBufVxD->DiskExists[i]) && (pOutBufVxD->IDEExists[i/2])) {
+    // 4. Translate and store 
+    for (i=0; i<8; i++)
+    {
+        if((pOutBufVxD->DiskExists[i]) && (pOutBufVxD->IDEExists[i/2]))
+        {
             size_t j;
             BOOL bAdd;
             WORD* diskdata = (WORD*)g_malloc(sizeof(WORD) * 256);
-			for (j = 0; j < 256; j++) 
-				diskdata [j] = pOutBufVxD -> DisksRawInfo [i * 256 + j];
+            for (j = 0; j < 256; j++) 
+                diskdata [j] = pOutBufVxD -> DisksRawInfo [i * 256 + j];
 
-			// process the information for this buffer
-			bAdd = TRUE;
-			for(j =0; j< m_list->len;j++) {
-				if(memcmp(diskdata,g_ptr_array_index(m_list, j),256 * sizeof(WORD)) == 0) {
-					bAdd = FALSE;
-					break;
-				}
-			}
-			if(bAdd)
+            // process the information for this buffer
+            bAdd = TRUE;
+            for(j =0; j< m_list->len;j++)
+            {
+                if(memcmp(diskdata,g_ptr_array_index(m_list, j),
+                    256 * sizeof(WORD)) == 0)
+                {
+                    bAdd = FALSE;
+                    break;
+                }
+            }
+            if(bAdd)
                 g_ptr_array_add(m_list, diskdata);
-			else
-				g_free(diskdata);
-			done = TRUE;
-		}
-	}
+            else
+                g_free(diskdata);
+            done = TRUE;
+        }
+    }
 
-	//  reset the thread priority back to normal
-	SetPriorityClass (GetCurrentProcess (), NORMAL_PRIORITY_CLASS);
+    //  reset the thread priority back to normal
+    SetPriorityClass (GetCurrentProcess (), NORMAL_PRIORITY_CLASS);
 
-	return done;
+    return done;
 }
 
 #define  SENDIDLENGTH  sizeof (SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE
 
-static BOOL ReadIdeDriveAsScsiDriveInNT(void) {
+static BOOL ReadIdeDriveAsScsiDriveInNT(void)
+{
     BOOL done = FALSE;
     int controller = 0;
 
-    for (controller = 0; controller < 16; controller++) {
+    for (controller = 0; controller < 16; controller++)
+    {
         HANDLE hScsiDriveIOCTL = 0;
         TCHAR   driveName [256];
 
@@ -666,10 +729,12 @@ static BOOL ReadIdeDriveAsScsiDriveInNT(void) {
             OPEN_EXISTING, 0, NULL);
 
 
-        if (hScsiDriveIOCTL != INVALID_HANDLE_VALUE) {
+        if (hScsiDriveIOCTL != INVALID_HANDLE_VALUE)
+        {
             int drive = 0;
 
-            for (drive = 0; drive < 2; drive++) {
+            for (drive = 0; drive < 2; drive++)
+            {
                 char buffer [sizeof (SRB_IO_CONTROL) + SENDIDLENGTH];
                 SRB_IO_CONTROL *p = (SRB_IO_CONTROL *) buffer;
                 SENDCMDINPARAMS *pin =
@@ -692,32 +757,34 @@ static BOOL ReadIdeDriveAsScsiDriveInNT(void) {
                     sizeof (SENDCMDINPARAMS) - 1,
                     buffer,
                     sizeof (SRB_IO_CONTROL) + SENDIDLENGTH,
-                    &dummy, NULL)) {
-                        SENDCMDOUTPARAMS *pOut =
-                            (SENDCMDOUTPARAMS *) (buffer + sizeof (SRB_IO_CONTROL));
-                        IDSECTOR *pId = (IDSECTOR *) (pOut -> bBuffer);
-                        if (pId -> sModelNumber [0]) {
+                    &dummy, NULL))
+                {
+                    SENDCMDOUTPARAMS *pOut =
+                        (SENDCMDOUTPARAMS *) (buffer + 
+                        sizeof (SRB_IO_CONTROL));
+                    IDSECTOR *pId = (IDSECTOR *) (pOut -> bBuffer);
+                    if (pId -> sModelNumber [0]) {
 
-                            USHORT *pIdSector = (USHORT *) pId;
-                            AddIfNew(pIdSector);	
-                            //BOOL bAdd = TRUE;
-                            //  for(UINT i =0; i< m_list.size();i++)
-                            //  {
-                            //   if(memcmp(pIdSector,m_list[i],256 * sizeof(WORD)) == 0)
-                            //   {
-                            //	   bAdd = false;
-                            //	   break;
-                            //   }
-                            //  }
-                            //  if(bAdd)
-                            //  {
-                            //    WORD* diskdata = new WORD[256];
-                            //	 ::memcpy(diskdata,pIdSector,256*sizeof(WORD));
-                            //	 m_list.push_back(diskdata);
-                            //  }
+                        USHORT *pIdSector = (USHORT *) pId;
+                        AddIfNew(pIdSector);	
+                        //BOOL bAdd = TRUE;
+                        //  for(UINT i =0; i< m_list.size();i++)
+                        //  {
+                        //   if(memcmp(pIdSector,m_list[i],256 * sizeof(WORD)) == 0)
+                        //   {
+                        //	   bAdd = false;
+                        //	   break;
+                        //   }
+                        //  }
+                        //  if(bAdd)
+                        //  {
+                        //    WORD* diskdata = new WORD[256];
+                        //	 ::memcpy(diskdata,pIdSector,256*sizeof(WORD));
+                        //	 m_list.push_back(diskdata);
+                        //  }
 
-                            done = TRUE;
-                        }
+                        done = TRUE;
+                    }
                 }
             }
             CloseHandle (hScsiDriveIOCTL);
@@ -727,41 +794,55 @@ static BOOL ReadIdeDriveAsScsiDriveInNT(void) {
     return done;
 }
 
-void jm_disk_info_init_win32(void) {
+void jm_disk_info_init_win32(void)
+{
     memset(HardDriveSerialNumber, 0, sizeof(HardDriveSerialNumber));
     m_list = g_ptr_array_new();
 }
 
-gchar* jm_disk_info_model_number_win32(size_t drive) {
-    return ConvertToString(g_ptr_array_index(m_list, drive), 27, 46);
+gchar* jm_disk_info_model_number_win32(size_t drive)
+{
+    return ConvertToString((PWORD)g_ptr_array_index(m_list, drive), 27, 46);
 }
 
-gchar* jm_disk_info_serial_number_win32(size_t drive) {
-    return ConvertToString(g_ptr_array_index(m_list, drive), 10, 19);
+gchar* jm_disk_info_serial_number_win32(size_t drive)
+{
+    return ConvertToString((PWORD)g_ptr_array_index(m_list, drive), 10, 19);
 }
 
-gchar* jm_disk_info_revision_number_win32(size_t drive) {
-    return ConvertToString(g_ptr_array_index(m_list, drive), 23, 26);
+gchar* jm_disk_info_revision_number_win32(size_t drive)
+{
+    return ConvertToString((PWORD)g_ptr_array_index(m_list, drive), 23, 26);
 }
 
-const gchar* jm_disk_info_drive_type(size_t drive) {
-    if (((WORD*)g_ptr_array_index(m_list, drive))[0] & 0x0080) {
+const gchar* jm_disk_info_drive_type(size_t drive)
+{
+    if (((WORD*)g_ptr_array_index(m_list, drive))[0] & 0x0080)
+    {
         return "Removable";
-    } else if (((WORD*)g_ptr_array_index(m_list, drive))[0] & 0x0040) {
+    }
+    else if (((WORD*)g_ptr_array_index(m_list, drive))[0] & 0x0040)
+    {
         return "Fixed";
     }
     return "Unknown";
 }
 
-guint64 jm_disk_info_drive_size_win32(size_t drive) {
+guint64 jm_disk_info_drive_size_win32(size_t drive)
+{
     guint64 bytes = 0, sectors = 0;
-    if (((WORD*)g_ptr_array_index(m_list, drive))[83] & 0x400) {
-        sectors = ((WORD*)g_ptr_array_index(m_list, drive))[103] * 65536I64 * 65536I64 * 65536I64 + 
+    if (((WORD*)g_ptr_array_index(m_list, drive))[83] & 0x400)
+    {
+        sectors = 
+            ((WORD*)g_ptr_array_index(m_list, drive))[103] * 65536I64 * 65536I64 * 65536I64 + 
             ((WORD*)g_ptr_array_index(m_list, drive))[102] * 65536I64 * 65536I64 + 
             ((WORD*)g_ptr_array_index(m_list, drive))[101] * 65536I64 + 
             ((WORD*)g_ptr_array_index(m_list, drive))[100];
-    } else {
-        sectors = ((WORD*)g_ptr_array_index(m_list, drive))[61] * 65536 +
+    }
+    else
+    {
+        sectors = 
+            ((WORD*)g_ptr_array_index(m_list, drive))[61] * 65536 +
             ((WORD*)g_ptr_array_index(m_list, drive))[60];
     }
     //  there are 512 bytes in a sector
@@ -769,16 +850,19 @@ guint64 jm_disk_info_drive_size_win32(size_t drive) {
     return bytes;
 }
 
-void jm_disk_info_destroy_win32(void) {
+void jm_disk_info_destroy_win32(void)
+{
     size_t i;
-    for (i = 0; i < m_list->len; i++) {
+    for (i = 0; i < m_list->len; i++)
+    {
         g_free(g_ptr_array_index(m_list, i));
     }
 
     g_ptr_array_free(m_list, TRUE);
 }
 
-size_t jm_disk_info_load_win32(void) {
+size_t jm_disk_info_load_win32(void)
+{
     int done = FALSE;
     gint64 id = 0;
     OSVERSIONINFO version;
@@ -803,7 +887,9 @@ size_t jm_disk_info_load_win32(void) {
         //done = ReadPhysicalDriveInNTWithZeroRights ();
         done = ReadPhysicalDriveInNTUsingSmart();
 
-    } else {
+    }
+    else
+    {
         //  this works under Win9X and calls a VXD
         int attempt = 0;
 
@@ -816,7 +902,8 @@ size_t jm_disk_info_load_win32(void) {
     return (size_t) m_list->len;
 }
 
-size_t jm_disk_info_buffer_size_win32(size_t drive) {
+size_t jm_disk_info_buffer_size_win32(size_t drive)
+{
     return ((WORD*)g_ptr_array_index(m_list, drive))[21] * 512;
 }
 

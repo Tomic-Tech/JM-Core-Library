@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMProtocolType JMProtocolType;
 
-enum _JMProtocolType {
+enum _JMProtocolType
+{
 	JM_PRC_J1850VPW,
 	JM_PRC_J1850PWM,
 	JM_PRC_ISO9141_2,

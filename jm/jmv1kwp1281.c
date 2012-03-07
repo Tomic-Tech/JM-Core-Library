@@ -4,14 +4,16 @@
 
 typedef struct _JMV1KWP1281 JMV1KWP1281;
 
-struct _JMV1KWP1281 {
+struct _JMV1KWP1281
+{
     JMV1Box *box;
     guint8 buff_id_addr[2]; // 0 == buffID, 1 == buffAddr
     guint8 k_line;
     guint8 l_line;
 };
 
-void _jm_v1_kwp1281_finish_execute(JMKWP1281 *self, gboolean is_finish) {
+void _jm_v1_kwp1281_finish_execute(JMKWP1281 *self, gboolean is_finish)
+{
     JMV1KWP1281 *v1 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -21,13 +23,15 @@ void _jm_v1_kwp1281_finish_execute(JMKWP1281 *self, gboolean is_finish) {
     box = v1->box;
     shared = box->shared;
 
-    if (is_finish) {
+    if (is_finish)
+    {
         box->del_batch(box, shared->buff_id);
         box->check_result(box, JM_TIMER_TO_MS(500));
     }
 }
 
-gint32 _jm_v1_kwp1281_addr_init(JMKWP1281 *self, guint8 addr_code) {
+gint32 _jm_v1_kwp1281_addr_init(JMKWP1281 *self, guint8 addr_code)
+{
     gboolean dl0;
     guint8 temp[256];
     size_t length;
@@ -49,10 +53,15 @@ gint32 _jm_v1_kwp1281_addr_init(JMKWP1281 *self, guint8 addr_code) {
     box->stop_now(box, TRUE);
     box->check_result(box, JM_TIMER_TO_MS(50));
 
-    dl0 = (v1->l_line == JM_V1_BOX_C(box, SK_NO) && v1->k_line == JM_V1_BOX_C(box, RK_NO))? TRUE : FALSE;
-    value_open = JM_V1_BOX_C(box, PWC) | JM_V1_BOX_C(box, REFC) | JM_V1_BOX_C(box, RZFC) | (dl0? JM_V1_BOX_C(box, DLC0) : JM_V1_BOX_C(box, CK));
+    dl0 = (v1->l_line == JM_V1_BOX_C(box, SK_NO) && 
+        v1->k_line == JM_V1_BOX_C(box, RK_NO))? TRUE : FALSE;
+    value_open = JM_V1_BOX_C(box, PWC) | JM_V1_BOX_C(box, REFC) | 
+        JM_V1_BOX_C(box, RZFC) | 
+        (dl0? JM_V1_BOX_C(box, DLC0) : JM_V1_BOX_C(box, CK));
     value_close = JM_V1_BOX_C(box, SET_NULL);
-    ctrl_word1 = JM_V1_BOX_C(box, RS_232) | JM_V1_BOX_C(box, BIT9_MARK) | (dl0 ? JM_V1_BOX_C(box, SEL_DL0) : JM_V1_BOX_C(box, SEL_SL)) | JM_V1_BOX_C(box, SET_DB20);
+    ctrl_word1 = JM_V1_BOX_C(box, RS_232) | JM_V1_BOX_C(box, BIT9_MARK) | 
+        (dl0 ? JM_V1_BOX_C(box, SEL_DL0) : JM_V1_BOX_C(box, SEL_SL)) | 
+        JM_V1_BOX_C(box, SET_DB20);
     ctrl_word2 = 0xFF;
     ctrl_word3 = JM_V1_BOX_C(box, INVERTBYTE) | 1;
 
@@ -64,13 +73,15 @@ gint32 _jm_v1_kwp1281_addr_init(JMKWP1281 *self, guint8 addr_code) {
         !box->set_comm_time(box, JM_V1_BOX_C(box, SETWAITTIME), JM_TIMER_TO_MS(25)) ||
         !box->set_comm_time(box, JM_V1_BOX_C(box, SETRECBBOUT), JM_TIMER_TO_MS(610)) ||
         !box->set_comm_time(box, JM_V1_BOX_C(box, SETRECFROUT), JM_TIMER_TO_MS(610)) ||
-        !box->set_comm_time(box, JM_V1_BOX_C(box, SETLINKTIME), JM_TIMER_TO_MS(710))) {
+        !box->set_comm_time(box, JM_V1_BOX_C(box, SETLINKTIME), JM_TIMER_TO_MS(710)))
+    {
             return JM_ERROR_GENERIC;
     }
 
     g_usleep(JM_TIMER_TO_MS(1));
 
-    if (!box->new_batch(box, shared->buff_id)) {
+    if (!box->new_batch(box, shared->buff_id))
+    {
         return JM_ERROR_GENERIC;
     }
 
@@ -85,31 +96,37 @@ gint32 _jm_v1_kwp1281_addr_init(JMKWP1281 *self, guint8 addr_code) {
         !box->run_receive(box, JM_V1_BOX_C(box, REC_FR)) ||
         !box->turn_over_one_by_one(box) ||
         !box->run_receive(box, JM_V1_BOX_C(box, REC_LEN_1)) ||
-        !box->end_batch(box)) {
+        !box->end_batch(box))
+    {
             box->del_batch(box, shared->buff_id);
             return JM_ERROR_GENERIC;
     }
-    if (!box->run_batch(box, &shared->buff_id, 1,  FALSE)) {
+    if (!box->run_batch(box, &shared->buff_id, 1,  FALSE))
+    {
         box->del_batch(box, shared->buff_id);
         return JM_ERROR_GENERIC;
     }
 
-    if (box->read_data(box, temp, 2, JM_TIMER_TO_MS(3500)) != 2) {
+    if (box->read_data(box, temp, 2, JM_TIMER_TO_MS(3500)) != 2)
+    {
         box->del_batch(box, shared->buff_id);
         return JM_ERROR_GENERIC;
     }
 
     length = jm_v1_kwp1281_read_one_frame(self, temp);
-    if (length <= 0) {
+    if (length <= 0)
+    {
         return JM_ERROR_GENERIC;
     }
 
-    if (!box->check_result(box, JM_TIMER_TO_MS(500))) {
+    if (!box->check_result(box, JM_TIMER_TO_MS(500)))
+    {
         box->del_batch(box, shared->buff_id);
         return JM_ERROR_GENERIC;
     }
 
-    if (!box->del_batch(box, shared->buff_id)) {
+    if (!box->del_batch(box, shared->buff_id))
+    {
         return JM_ERROR_GENERIC;
     }
 
@@ -118,7 +135,9 @@ gint32 _jm_v1_kwp1281_addr_init(JMKWP1281 *self, guint8 addr_code) {
     return JM_ERROR_SUCCESS;
 }
 
-gint32 _jm_v1_kwp1281_set_lines(JMKWP1281 *self, gint32 com_line, gboolean l_line) {
+gint32 _jm_v1_kwp1281_set_lines(JMKWP1281 *self, gint32 com_line, 
+    gboolean l_line)
+{
     JMV1KWP1281 *v1 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -129,24 +148,35 @@ gint32 _jm_v1_kwp1281_set_lines(JMKWP1281 *self, gint32 com_line, gboolean l_lin
     shared = box->shared;
 
     if (shared->connector == JM_CN_AUDI_4 ||
-        shared->connector == JM_CN_OBDII_16) {
-            if (com_line != 0) {
+        shared->connector == JM_CN_OBDII_16)
+    {
+            if (com_line != 0)
+            {
                 v1->k_line = JM_V1_BOX_C(box, RK1);
-            } else {
+            }
+            else
+            {
                 v1->k_line = JM_V1_BOX_C(box, RK_NO);
             }
-            if (l_line) {
+            if (l_line)
+            {
                 v1->l_line = JM_V1_BOX_C(box, SK2);
-            } else {
+            }
+            else
+            {
                 v1->l_line = JM_V1_BOX_C(box, SK_NO);
             }
-    } else {
+    }
+    else
+    {
         return JM_ERROR_GENERIC;
     }
     return JM_ERROR_SUCCESS;
 }
 
-static size_t _jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data, size_t count, gboolean need_recv) {
+static size_t _jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, 
+    const guint8 *data, size_t count, gboolean need_recv)
+{
     JMV1KWP1281 *v1 = NULL;
     JMV1Shared *shared = NULL;
     JMV1Box *box = NULL;
@@ -161,17 +191,20 @@ static size_t _jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data,
 
     shared->buff_id = 0;
 
-    if (!box->new_batch(box, shared->buff_id)) {
+    if (!box->new_batch(box, shared->buff_id))
+    {
         return 0;
     }
 
     length = jm_kwp1281_pack(self, data, count, send_buff);
 
-    if (length <= 0) {
+    if (length <= 0)
+    {
         return 0;
     }
 
-    if (need_recv) {
+    if (need_recv)
+    {
         if (!box->turn_over_one_by_one(box) ||
             !box->send_out_data(box, send_buff, length) ||
             !box->update_buff(box, JM_V1_BOX_C(box, INC_DATA), v1->buff_id_addr) ||
@@ -185,12 +218,16 @@ static size_t _jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data,
             !box->turn_over_one_by_one(box) ||
             !box->run_receive(box, JM_V1_BOX_C(box, REC_LEN_1)) ||
             !box->end_batch(box) ||
-            !box->run_batch(box, &shared->buff_id, 1, FALSE)) {
+            !box->run_batch(box, &shared->buff_id, 1, FALSE))
+        {
                 box->del_batch(box, shared->buff_id);
                 return 0;
         }
-        g_usleep((length * shared->req_byte_to_byte + shared->req_wait_time) / 1000);
-    } else {
+        g_usleep((length * shared->req_byte_to_byte + 
+            shared->req_wait_time) / 1000);
+    }
+    else
+    {
         if (!box->turn_over_one_by_one(box) ||
             !box->send_out_data(box, send_buff, length) ||
             !box->update_buff(box, JM_V1_BOX_C(box, INC_DATA), v1->buff_id_addr) ||
@@ -200,18 +237,21 @@ static size_t _jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data,
             !box->run_receive(box, JM_V1_BOX_C(box, REC_LEN_1)) ||
             !box->update_buff(box, JM_V1_BOX_C(box, INC_DATA), v1->buff_id_addr) ||
             !box->end_batch(box) ||
-            !box->run_batch(box, &shared->buff_id, 1, FALSE)) {
+            !box->run_batch(box, &shared->buff_id, 1, FALSE))
+        {
                 box->del_batch(box, shared->buff_id);
                 return 0;
         }
     }
-    if (box->read_bytes(box, send_buff, length - 1) != (length - 1)) {
+    if (box->read_bytes(box, send_buff, length - 1) != (length - 1))
+    {
         return 0;
     }
     return count;
 }
 
-JMKWP1281* jm_v1_kwp1281_new(JMV1Box *box) {
+JMKWP1281* jm_v1_kwp1281_new(JMV1Box *box)
+{
     JMKWP1281 *obj = jm_kwp1281_new();
     JMV1KWP1281 *v1 = (JMV1KWP1281*)g_malloc(sizeof(JMV1KWP1281));
 
@@ -226,7 +266,8 @@ JMKWP1281* jm_v1_kwp1281_new(JMV1Box *box) {
     return obj;
 }
 
-void jm_v1_kwp1281_free(JMKWP1281 *self) {
+void jm_v1_kwp1281_free(JMKWP1281 *self)
+{
     JMV1KWP1281 *v1 = NULL;
 
     g_return_if_fail(self != NULL);
@@ -237,15 +278,21 @@ void jm_v1_kwp1281_free(JMKWP1281 *self) {
     jm_kwp1281_free(self);
 }
 
-size_t jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data, size_t count) {
+size_t jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data, 
+    size_t count)
+{
     return _jm_v1_kwp1281_send_one_frame(self, data, count, FALSE);
 }
 
-size_t jm_v1_kwp1281_send_frames(JMKWP1281 *self, const guint8 *data, size_t count) {
+size_t jm_v1_kwp1281_send_frames(JMKWP1281 *self, const guint8 *data, 
+    size_t count)
+{
     return jm_v1_kwp1281_send_one_frame(self, data, count);
 }
 
-static size_t _jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data, gboolean is_finish) {
+static size_t _jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data, 
+    gboolean is_finish)
+{
     size_t pos = 0;
     size_t len;
     guint8 temp[256];
@@ -257,14 +304,16 @@ static size_t _jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data, gbool
     v1 = (JMV1KWP1281*)self->user_data;
     box = v1->box;
 
-    if (box->read_bytes(box, temp, 1) != 1) {
+    if (box->read_bytes(box, temp, 1) != 1)
+    {
         return 0;
     }
 
     pos++;
     len = temp[0];
 
-    if (box->read_bytes(box, temp + pos, len) != len) {
+    if (box->read_bytes(box, temp + pos, len) != len)
+    {
         return 0;
     }
 
@@ -274,23 +323,30 @@ static size_t _jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data, gbool
     return jm_kwp1281_unpack(self, temp, pos, data);
 }
 
-size_t jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data) {
+size_t jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data)
+{
     return _jm_v1_kwp1281_read_one_frame(self, data, TRUE);
 }
 
-size_t jm_v1_kwp1281_read_frames(JMKWP1281 *self, guint8 *data) {
+size_t jm_v1_kwp1281_read_frames(JMKWP1281 *self, guint8 *data)
+{
     return jm_v1_kwp1281_read_one_frame(self, data);
 }
 
-size_t jm_v1_kwp1281_send_and_recv(JMKWP1281 *self, const guint8 *send, size_t count, guint8 *recv) {
+size_t jm_v1_kwp1281_send_and_recv(JMKWP1281 *self, const guint8 *send, 
+    size_t count, guint8 *recv)
+{
     size_t length = jm_v1_kwp1281_send_one_frame(self, send, count);
-    if (length != count) {
+    if (length != count)
+    {
         return 0;
     }
     return jm_v1_kwp1281_read_one_frame(self, recv);
 }
 
-gint32 jm_v1_kwp1281_set_keep_link(JMKWP1281 *self, const guint8 *data, size_t count) {
+gint32 jm_v1_kwp1281_set_keep_link(JMKWP1281 *self, const guint8 *data, 
+    size_t count)
+{
     JMV1KWP1281 *v1 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -305,12 +361,14 @@ gint32 jm_v1_kwp1281_set_keep_link(JMKWP1281 *self, const guint8 *data, size_t c
     shared = box->shared;
 
     v1->buff_id_addr[0] = JM_V1_BOX_C(box, LINKBLOCK);
-    if (box->new_batch(box, JM_V1_BOX_C(box, LINKBLOCK))) {
+    if (box->new_batch(box, JM_V1_BOX_C(box, LINKBLOCK)))
+    {
         return JM_ERROR_GENERIC;
     }
 
     if (!box->turn_over_one_by_one(box) ||
-        !box->send_out_data(box, data, data[0])) {
+        !box->send_out_data(box, data, data[0]))
+    {
             return JM_ERROR_GENERIC;
     }
 
@@ -324,7 +382,8 @@ gint32 jm_v1_kwp1281_set_keep_link(JMKWP1281 *self, const guint8 *data, size_t c
         !box->turn_over_one_by_one(box) ||
         !box->run_receive(box, JM_V1_BOX_C(box, REC_LEN_1)) ||
         !((add2 = box->update_buff(box, JM_V1_BOX_C(box, INC_DATA), v1->buff_id_addr)) == 0) ||
-        !box->end_batch(box)) {
+        !box->end_batch(box))
+    {
             return JM_ERROR_GENERIC;
     }
 
@@ -332,17 +391,20 @@ gint32 jm_v1_kwp1281_set_keep_link(JMKWP1281 *self, const guint8 *data, size_t c
     temp_buff[1] = add1;
     temp_buff[2] = v1->buff_id_addr[1];
 
-    if (!box->get_abs_add(box, JM_V1_BOX_C(box, LINKBLOCK), temp_buff[2])) {
+    if (!box->get_abs_add(box, JM_V1_BOX_C(box, LINKBLOCK), temp_buff[2]))
+    {
         return JM_ERROR_GENERIC;
     }
 
-    if (!box->update_buff(box, JM_V1_BOX_C(box, UPDATE_1BYTE), temp_buff)) {
+    if (!box->update_buff(box, JM_V1_BOX_C(box, UPDATE_1BYTE), temp_buff))
+    {
         return JM_ERROR_GENERIC;
     }
 
     temp_buff[1] = add2;
 
-    if (!box->update_buff(box, JM_V1_BOX_C(box, UPDATE_1BYTE), temp_buff)) {
+    if (!box->update_buff(box, JM_V1_BOX_C(box, UPDATE_1BYTE), temp_buff))
+    {
         return JM_ERROR_GENERIC;
     }
 

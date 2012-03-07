@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMKWPMode JMKWPMode;
 
-enum _JMKWPMode {
+enum _JMKWPMode
+{
     JM_KWP8X = 0,
     JM_KWP80 = 1,
     JM_KWPXX = 2,

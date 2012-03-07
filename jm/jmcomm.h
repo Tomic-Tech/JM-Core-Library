@@ -13,7 +13,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMComm JMComm;
 
-struct _JMComm {
+struct _JMComm
+{
 	gpointer (*get_protocol)(JMComm *);
 	size_t (*send_one_frame)(JMComm *, const guint8 *data, size_t count);
 	size_t (*send_frames)(JMComm *, const guint8 *data, size_t count);

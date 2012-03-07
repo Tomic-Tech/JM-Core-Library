@@ -15,7 +15,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMCanbus JMCanbus;
 
-struct _JMCanbus {
+struct _JMCanbus
+{
     size_t (*pack)(JMCanbus *self,
         const guint8 *src,
         size_t count,

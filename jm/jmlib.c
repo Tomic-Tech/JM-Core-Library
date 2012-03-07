@@ -27,12 +27,16 @@ static void _jm_lib_set_software_path(const gchar *software_path)
     {
         if (i != 0)
         {
-            _jm_lib_vehicle_path = g_string_append_c(_jm_lib_vehicle_path, G_DIR_SEPARATOR);
+            _jm_lib_vehicle_path = g_string_append_c(_jm_lib_vehicle_path, 
+                G_DIR_SEPARATOR);
         }
-        _jm_lib_vehicle_path = g_string_append(_jm_lib_vehicle_path, str_array[i]);
+        _jm_lib_vehicle_path = g_string_append(_jm_lib_vehicle_path, 
+            str_array[i]);
     }
-    _jm_lib_vehicle_path = g_string_append_c(_jm_lib_vehicle_path, G_DIR_SEPARATOR);
-    _jm_lib_vehicle_path = g_string_append(_jm_lib_vehicle_path, "vehicles");
+    _jm_lib_vehicle_path = g_string_append_c(_jm_lib_vehicle_path, 
+        G_DIR_SEPARATOR);
+    _jm_lib_vehicle_path = g_string_append(_jm_lib_vehicle_path, 
+        "vehicles");
 }
 
 void jm_lib_init(const gchar *software_path)
@@ -112,11 +116,16 @@ static gboolean _jm_open_commbox_sp(void)
         jm_serial_port_set_port_name(port, jm_string_array_get(vec, i));
         if (jm_commbox_serial_port_change_config(box))
         {
-            jm_serial_port_set_baudrate(port, jm_commbox_serial_port_baud(box));
-            jm_serial_port_set_databits(port, jm_commbox_serial_port_databits(box));
-            jm_serial_port_set_flow_control(port, jm_commbox_serial_port_flow_control(box));
-            jm_serial_port_set_parity(port, jm_commbox_serial_port_parity(box));
-            jm_serial_port_set_stopbits(port, jm_commbox_serial_port_stopbits(box));
+            jm_serial_port_set_baudrate(port, 
+                jm_commbox_serial_port_baud(box));
+            jm_serial_port_set_databits(port, 
+                jm_commbox_serial_port_databits(box));
+            jm_serial_port_set_flow_control(port, 
+                jm_commbox_serial_port_flow_control(box));
+            jm_serial_port_set_parity(port, 
+                jm_commbox_serial_port_parity(box));
+            jm_serial_port_set_stopbits(port, 
+                jm_commbox_serial_port_stopbits(box));
             jm_serial_port_open(port);
             jm_serial_port_set_dtr(port, TRUE);
         }
@@ -126,7 +135,8 @@ static gboolean _jm_open_commbox_sp(void)
         {
             if (jm_commbox_serial_port_change_config(box))
             {
-                jm_serial_port_set_baudrate(port, jm_commbox_serial_port_baud(box));
+                jm_serial_port_set_baudrate(port, 
+                    jm_commbox_serial_port_baud(box));
                 if (jm_commbox_check_serial_port_change_config(box))
                 {
                     break;
@@ -256,7 +266,8 @@ static void laction (int i)
 {
     signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
                         terminate process (default action) */
-    lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+    lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 
+        1);
 }
 
 static void print_usage (const char *badoption)
@@ -305,8 +316,8 @@ static void finalreport (lua_State *L, int status)
 {
     if (status != LUA_OK)
     {
-        const char *msg = (lua_type(L, -1) == LUA_TSTRING) ? lua_tostring(L, -1)
-            : NULL;
+        const char *msg = 
+            (lua_type(L, -1) == LUA_TSTRING) ? lua_tostring(L, -1) : NULL;
         if (msg == NULL) msg = "(error object is not a string)";
         l_message(progname, msg);
         lua_pop(L, 1);
@@ -704,7 +715,8 @@ static gpointer _jm_commbox_close(gpointer data)
     return NULL;
 }
 
-gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gchar *db_name)
+gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, 
+    const gchar *db_name)
 {
     GString *real_name = NULL;
     JMCommbox *box = NULL;
@@ -743,7 +755,8 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path, const gcha
 #endif
     ret = FALSE;
 EXIT:
-    _jm_lib_commbox_close_thread = g_thread_create(_jm_commbox_close, box, TRUE, NULL);
+    _jm_lib_commbox_close_thread = g_thread_create(_jm_commbox_close, box, 
+        TRUE, NULL);
     //jm_commbox_close(box);
     g_string_free(real_name, TRUE);
     return ret;

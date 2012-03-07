@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMCanbusFilterMask JMCanbusFilterMask;
 
-enum _JMCanbusFilterMask {
+enum _JMCanbusFilterMask
+{
     JM_CANBUS_FILTER_MASK_ENABLE = 0x0F,
     JM_CANBUS_FILTER_MASK_DISABLE = 0x00
 };

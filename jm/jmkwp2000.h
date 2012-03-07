@@ -20,7 +20,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMKWP2000 JMKWP2000;
 
-struct _JMKWP2000 {
+struct _JMKWP2000
+{
 
     size_t (*pack)(JMKWP2000 *self, const guint8 *src, size_t count, guint8 *tar);
     size_t (*unpack)(JMKWP2000 *self, const guint8 *src, size_t count, guint8 *tar);

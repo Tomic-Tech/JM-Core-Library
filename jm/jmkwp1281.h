@@ -13,7 +13,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMKWP1281 JMKWP1281;
 
-struct _JMKWP1281 {
+struct _JMKWP1281
+{
     size_t (*pack)(JMKWP1281* self, const guint8 *src, size_t count, guint8 *tar);
     size_t (*unpack)(JMKWP1281* self, const guint8 *src, size_t count, guint8 *tar);
     gint32 (*addr_init)(JMKWP1281 *self, guint8 addr_code);

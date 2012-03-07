@@ -6,7 +6,8 @@
 #include "jmv1default.h"
 #include "jmerror.h"
 
-static const guint8 JM_V1_ISO15765_SJA_BTR_CODETABLE[30] = {
+static const guint8 JM_V1_ISO15765_SJA_BTR_CODETABLE[30] =
+{
     0xBF, 0xFF, // 5KBPS
     0xEF, 0xFF, // 10KBPS
     0xD7, 0xFF, // 20KBPS
@@ -68,14 +69,17 @@ static const guint8 JM_V1_ISO15765_SJA_BTR_CODETABLE[30] = {
 
 typedef struct _JMV1ISO15765 JMV1ISO15765;
 
-struct _JMV1ISO15765 {
+struct _JMV1ISO15765
+{
     JMV1Box *box;
 };
 
-void _jm_v1_iso15765_finish_execute(JMCanbus *self, gboolean is_finish) {
+void _jm_v1_iso15765_finish_execute(JMCanbus *self, gboolean is_finish)
+{
     g_return_if_fail(self != NULL);
 
-    if (is_finish) {
+    if (is_finish)
+    {
         JMV1Box * box = ((JMV1ISO15765*)self->user_data)->box;
         box->stop_now(box, TRUE);
         box->del_batch(box, box->shared->buff_id);
@@ -83,7 +87,8 @@ void _jm_v1_iso15765_finish_execute(JMCanbus *self, gboolean is_finish) {
     }
 }
 
-gint32 _jm_v1_iso15765_set_lines(JMCanbus *self, gint32 high, gint32 low) {
+gint32 _jm_v1_iso15765_set_lines(JMCanbus *self, gint32 high, gint32 low)
+{
     g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
     self->high = high;
@@ -92,7 +97,9 @@ gint32 _jm_v1_iso15765_set_lines(JMCanbus *self, gint32 high, gint32 low) {
     return JM_ERROR_SUCCESS;
 }
 
-gint32 _jm_v1_iso15765_set_filter(JMCanbus *self, const gint32 *id_array, size_t count) {
+gint32 _jm_v1_iso15765_set_filter(JMCanbus *self, const gint32 *id_array, 
+    size_t count)
+{
     size_t i;
     g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
     g_ptr_array_set_size(self->id_array, 0);
@@ -108,16 +115,20 @@ gint32 _jm_v1_iso15765_set_options(JMCanbus *self,
     JMCanbusBaud baud, 
     JMCanbusIDMode id_mode, 
     JMCanbusFilterMask mask, 
-    JMCanbusFrameType frame) {
-        if (_jm_canbus_set_options(self, id, baud, id_mode, mask, frame)) {
-            if (self->id_mode == JM_CANBUS_ID_MODE_STD)
-                self->target_id = (self->target_id << 5) & 0x0000FFFF;
-            return JM_ERROR_SUCCESS;
-        }
-        return JM_ERROR_GENERIC;
+    JMCanbusFrameType frame)
+{
+    if (_jm_canbus_set_options(self, id, baud, id_mode, mask, frame))
+    {
+        if (self->id_mode == JM_CANBUS_ID_MODE_STD)
+            self->target_id = (self->target_id << 5) & 0x0000FFFF;
+        return JM_ERROR_SUCCESS;
+    }
+    return JM_ERROR_GENERIC;
 }
 
-static size_t _jm_v1_iso15765_send_cmd(JMCanbus *self, const guint8 *data, size_t count) {
+static size_t _jm_v1_iso15765_send_cmd(JMCanbus *self, const guint8 *data, 
+    size_t count)
+{
     JMV1ISO15765 *v1 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -129,23 +140,26 @@ static size_t _jm_v1_iso15765_send_cmd(JMCanbus *self, const guint8 *data, size_
     shared = box->shared;
 
     shared->buff_id = 0;
-    if (!box->new_batch(box, shared->buff_id)) {
+    if (!box->new_batch(box, shared->buff_id))
+    {
         return 0;
     }
 
     if (!box->send_out_data(box, data, count) ||
         !box->run_receive(box, JM_V1_BOX_C(box, RECEIVE)) ||
         !box->end_batch(box) ||
-        !box->run_batch(box, &shared->buff_id, 1, FALSE)) {
-            box->del_batch(box, shared->buff_id);
-            return 0;
+        !box->run_batch(box, &shared->buff_id, 1, FALSE))
+    {
+        box->del_batch(box, shared->buff_id);
+        return 0;
     }
 
     g_usleep(count * shared->req_byte_to_byte + shared->req_wait_time);
     return count;
 }
 
-static size_t _jm_v1_iso15765_read_cmd(JMCanbus *self, guint8 *buff) {
+static size_t _jm_v1_iso15765_read_cmd(JMCanbus *self, guint8 *buff)
+{
     JMV1ISO15765 *v1 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -157,14 +171,16 @@ static size_t _jm_v1_iso15765_read_cmd(JMCanbus *self, guint8 *buff) {
     box = v1->box;
     shared = box->shared;
 
-    if (box->read_bytes(box, buff, 3) != 3) {
+    if (box->read_bytes(box, buff, 3) != 3)
+    {
         _jm_v1_iso15765_finish_execute(self, TRUE);
         return 0;
     }
 
     length = buff[0] & 0x0F;
 
-    switch(buff[0] & 0xC0) {
+    switch(buff[0] & 0xC0)
+    {
     case (JM_CANBUS_ID_MODE_STD | JM_CANBUS_FRAME_TYPE_DATA):
     case (JM_CANBUS_ID_MODE_STD | JM_CANBUS_FRAME_TYPE_REMOTE):
         length += JM_V1_ISO15765_STD_FRAMEID_LENGTH;
@@ -180,11 +196,15 @@ static size_t _jm_v1_iso15765_read_cmd(JMCanbus *self, guint8 *buff) {
     }
 
     length -= 2;
-    if (length > 0) {
-        if (box->read_bytes(box, buff + 3, length) != length) {
+    if (length > 0)
+    {
+        if (box->read_bytes(box, buff + 3, length) != length)
+        {
             _jm_v1_iso15765_finish_execute(self, TRUE);
             return length + 3;
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }
@@ -192,7 +212,9 @@ static size_t _jm_v1_iso15765_read_cmd(JMCanbus *self, guint8 *buff) {
     return length + 3;
 }
 
-static gboolean _jm_v1_iso15765_do_cmd(JMCanbus *self, guint8 cmd, guint8 inf) {
+static gboolean _jm_v1_iso15765_do_cmd(JMCanbus *self, guint8 cmd, 
+    guint8 inf)
+{
     JMV1ISO15765 *v1 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -200,16 +222,19 @@ static gboolean _jm_v1_iso15765_do_cmd(JMCanbus *self, guint8 cmd, guint8 inf) {
     size_t length;
 
     g_return_val_if_fail(self != NULL, FALSE);
-    if (_jm_v1_iso15765_send_cmd(self, buff, 5) != 5) {
+    if (_jm_v1_iso15765_send_cmd(self, buff, 5) != 5)
+    {
         return FALSE;
     }
     length = _jm_v1_iso15765_read_cmd(self, buff);
-    
-    if (length <= 0) {
+
+    if (length <= 0)
+    {
         return FALSE;
     }
 
-    if (buff[4] != JM_V1_ISO15765_SJA_OK) {
+    if (buff[4] != JM_V1_ISO15765_SJA_OK)
+    {
         return FALSE;
     }
 
@@ -222,12 +247,14 @@ static gboolean _jm_v1_iso15765_do_cmd(JMCanbus *self, guint8 cmd, guint8 inf) {
 #define _jm_v1_iso15765_set_chan(self, chan) _jm_v1_iso15765_do_cmd(self, JM_V1_ISO15765_SET_CANCHAN, chan)
 #define _jm_v1_iso15765_end_set(self) _jm_v1_iso15765_do_cmd(self, JM_V1_ISO15765_SET_CANEND, 0)
 
-static gboolean _jm_v1_iso15765_set_baud(JMCanbus *self, JMCanbusBaud baud) {
+static gboolean _jm_v1_iso15765_set_baud(JMCanbus *self, JMCanbusBaud baud)
+{
     guint8 buff[256] = {0x20 | 5, 0x55, 0xAA, JM_V1_ISO15765_SET_CANBAUD};
 
     g_return_val_if_fail(self != NULL, FALSE);
 
-    switch(baud) {
+    switch(baud)
+    {
     case JM_CANBUS_B1000K:
         buff[4] = JM_V1_ISO15765_SJA_BTR_CODETABLE[28];
         buff[5] = JM_V1_ISO15765_SJA_BTR_CODETABLE[29];
@@ -293,62 +320,79 @@ static gboolean _jm_v1_iso15765_set_baud(JMCanbus *self, JMCanbusBaud baud) {
         break;
     }
 
-    if (_jm_v1_iso15765_send_cmd(self, buff, 6) != 6) {
+    if (_jm_v1_iso15765_send_cmd(self, buff, 6) != 6)
+    {
         return FALSE;
     }
 
-    if (!_jm_v1_iso15765_read_cmd(self, buff) <= 0) {
+    if (!_jm_v1_iso15765_read_cmd(self, buff) <= 0)
+    {
         return FALSE;
     }
 
-    if (buff[4] != JM_V1_ISO15765_SJA_OK) {
+    if (buff[4] != JM_V1_ISO15765_SJA_OK)
+    {
         return FALSE;
     }
-    
+
     return TRUE;
 }
 
-static gboolean _jm_v1_iso15765_set_acr(JMCanbus *self, guint8 acr, guint8 acr0, guint8 acr1, guint8 acr2, guint8 acr3) {
-    guint8 buff[256] = {0x20 | 6, 0x55, 0xAA, JM_V1_ISO15765_SET_CANACR, acr, acr0, acr1, acr2, acr3};
+static gboolean _jm_v1_iso15765_set_acr(JMCanbus *self, guint8 acr, 
+    guint8 acr0, guint8 acr1, guint8 acr2, guint8 acr3)
+{
+    guint8 buff[256] = {0x20 | 6, 0x55, 0xAA, JM_V1_ISO15765_SET_CANACR, 
+        acr, acr0, acr1, acr2, acr3};
 
     g_return_val_if_fail(self != NULL, FALSE);
 
-    if (_jm_v1_iso15765_send_cmd(self, buff, 9) != 9) {
+    if (_jm_v1_iso15765_send_cmd(self, buff, 9) != 9)
+    {
         return FALSE;
     }
 
-    if (_jm_v1_iso15765_read_cmd(self, buff) <= 0) {
+    if (_jm_v1_iso15765_read_cmd(self, buff) <= 0)
+    {
         return FALSE;
     }
 
-    if (buff[4] != JM_V1_ISO15765_SJA_OK) {
+    if (buff[4] != JM_V1_ISO15765_SJA_OK)
+    {
         return FALSE;
     }
 
     return TRUE;
 }
 
-static gboolean _jm_v1_iso15765_set_amr(JMCanbus *self, guint8 amr, guint8 amr0, guint8 amr1, guint8 amr2, guint8 amr3) {
-    guint8 buff[256] = {0x20 | 6, 0x55, 0xAA, JM_V1_ISO15765_SET_CANAMR, amr, amr0, amr1, amr2, amr3};
+static gboolean _jm_v1_iso15765_set_amr(JMCanbus *self, guint8 amr, 
+    guint8 amr0, guint8 amr1, guint8 amr2, guint8 amr3)
+{
+    guint8 buff[256] = {0x20 | 6, 0x55, 0xAA, JM_V1_ISO15765_SET_CANAMR, 
+        amr, amr0, amr1, amr2, amr3};
 
     g_return_val_if_fail(self != NULL, FALSE);
 
-    if (_jm_v1_iso15765_send_cmd(self, buff, 9) != 9) {
+    if (_jm_v1_iso15765_send_cmd(self, buff, 9) != 9)
+    {
         return FALSE;
     }
 
-    if (_jm_v1_iso15765_read_cmd(self, buff) <= 0) {
+    if (_jm_v1_iso15765_read_cmd(self, buff) <= 0)
+    {
         return FALSE;
     }
 
-    if (buff[4] != JM_V1_ISO15765_SJA_OK) {
+    if (buff[4] != JM_V1_ISO15765_SJA_OK)
+    {
         return FALSE;
     }
 
     return TRUE;
 }
 
-static size_t _jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *buff, gboolean is_finish) {
+static size_t _jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *buff, 
+    gboolean is_finish)
+{
     static size_t length;
     static size_t mode;
 
@@ -362,15 +406,17 @@ static size_t _jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *buff, gbool
     box = v1->box;
     shared = box->shared;
 
-    if (box->read_bytes(box, buff, 3) != 3) {
+    if (box->read_bytes(box, buff, 3) != 3)
+    {
         _jm_v1_iso15765_finish_execute(self, TRUE);
         return 0;
     }
 
     length = buff[0] & 0x0F;
     mode = buff[0] & (JM_CANBUS_ID_MODE_EXT | JM_CANBUS_FRAME_TYPE_REMOTE);
-    
-    switch(mode) {
+
+    switch(mode)
+    {
     case JM_CANBUS_ID_MODE_STD | JM_CANBUS_FRAME_TYPE_DATA:
     case JM_CANBUS_ID_MODE_STD | JM_CANBUS_FRAME_TYPE_REMOTE:
         length += JM_V1_ISO15765_STD_FRAMEID_LENGTH;
@@ -386,11 +432,15 @@ static size_t _jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *buff, gbool
     }
 
     length -= 2;
-    if (length <= 0) {
+    if (length <= 0)
+    {
         _jm_v1_iso15765_finish_execute(self, TRUE);
         return 0;
-    } else {
-        if (box->read_bytes(box, buff + 3, length) != length) {
+    }
+    else
+    {
+        if (box->read_bytes(box, buff + 3, length) != length)
+        {
             _jm_v1_iso15765_finish_execute(self, TRUE);
             return 0;
         }
@@ -400,7 +450,8 @@ static size_t _jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *buff, gbool
     return 0;
 }
 
-JMCanbus* jm_v1_iso15765_new(JMV1Box *box) {
+JMCanbus* jm_v1_iso15765_new(JMV1Box *box)
+{
     JMCanbus *obj = jm_canbus_new();
     JMV1ISO15765 *v1 = (JMV1ISO15765*) g_malloc(sizeof(JMV1ISO15765));
 
@@ -413,7 +464,8 @@ JMCanbus* jm_v1_iso15765_new(JMV1Box *box) {
     return obj;
 }
 
-void jm_v1_iso15765_free(JMCanbus *self) {
+void jm_v1_iso15765_free(JMCanbus *self)
+{
     JMV1ISO15765 *v1 = NULL;
     g_return_if_fail(self != NULL);
     v1 = (JMV1ISO15765*)self->user_data;
@@ -422,7 +474,8 @@ void jm_v1_iso15765_free(JMCanbus *self) {
     jm_canbus_free(self);
 }
 
-gboolean jm_v1_iso15765_prepare(JMCanbus *self) {
+gboolean jm_v1_iso15765_prepare(JMCanbus *self)
+{
     guint32 local_id = 0;
     JMV1ISO15765 *v1 = NULL;
     JMV1Box *box = NULL;
@@ -434,7 +487,8 @@ gboolean jm_v1_iso15765_prepare(JMCanbus *self) {
     box = v1->box;
     shared = box->shared;
 
-    ctrl_word1 = JM_V1_BOX_C(box, RS_232) | JM_V1_BOX_C(box, BIT9_MARK) | JM_V1_BOX_C(box, SEL_SL) | JM_V1_BOX_C(box, UN_DB20);
+    ctrl_word1 = JM_V1_BOX_C(box, RS_232) | JM_V1_BOX_C(box, BIT9_MARK) | 
+        JM_V1_BOX_C(box, SEL_SL) | JM_V1_BOX_C(box, UN_DB20);
 
     if (!box->set_comm_ctrl(box, JM_V1_BOX_C(box, RZFC), JM_V1_BOX_C(box, SET_NULL)) ||
         !box->set_comm_line(box, JM_V1_BOX_C(box, SK5), JM_V1_BOX_C(box, SK7)) ||
@@ -444,8 +498,9 @@ gboolean jm_v1_iso15765_prepare(JMCanbus *self) {
         !box->set_comm_time(box, JM_V1_BOX_C(box, SETWAITTIME), JM_TIMER_TO_MS(55)) ||
         !box->set_comm_time(box, JM_V1_BOX_C(box, SETRECBBOUT), JM_TIMER_TO_MS(100)) ||
         !box->set_comm_time(box, JM_V1_BOX_C(box, SETRECFROUT), JM_TIMER_TO_MS(200)) ||
-        !box->set_comm_time(box, JM_V1_BOX_C(box, SETLINKTIME), JM_TIMER_TO_MS(500))) {
-            return FALSE;
+        !box->set_comm_time(box, JM_V1_BOX_C(box, SETLINKTIME), JM_TIMER_TO_MS(500)))
+    {
+        return FALSE;
     }
     local_id = GPOINTER_TO_UINT(g_ptr_array_index(self->id_array, 0));
 
@@ -457,13 +512,16 @@ gboolean jm_v1_iso15765_prepare(JMCanbus *self) {
         !_jm_v1_iso15765_set_mode(self, 0x55) ||
         !_jm_v1_iso15765_set_prior(self, 0xFF) ||
         !_jm_v1_iso15765_set_chan(self, JM_V1_ISO15765_ACF1_FT1_CHAN) ||
-        !_jm_v1_iso15765_end_set(self)) {
-            return FALSE;
+        !_jm_v1_iso15765_end_set(self))
+    {
+        return FALSE;
     }
     return TRUE;
 }
 
-static size_t _jm_v1_iso15765_send_one_frame(JMCanbus *self, const guint8 *data, size_t count, gboolean is_finish) {
+static size_t _jm_v1_iso15765_send_one_frame(JMCanbus *self, const 
+    guint8 *data, size_t count, gboolean is_finish)
+{
     JMV1ISO15765 *iso15765 = NULL;
     JMV1Box *box = NULL;
     JMV1Shared *shared = NULL;
@@ -473,27 +531,36 @@ static size_t _jm_v1_iso15765_send_one_frame(JMCanbus *self, const guint8 *data,
     box = iso15765->box;
     shared = box->shared;
 
-    JM_V1_DEFAULT_SEND_ONE_FRAME(shared, box, self, data, count, is_finish, iso15765);
+    JM_V1_DEFAULT_SEND_ONE_FRAME(shared, box, self, data, count, is_finish, 
+        iso15765);
 }
 
-size_t jm_v1_iso15765_send_one_frame(JMCanbus *self, const guint8 *data, size_t count) {
+size_t jm_v1_iso15765_send_one_frame(JMCanbus *self, const guint8 *data, 
+    size_t count)
+{
     return _jm_v1_iso15765_send_one_frame(self, data, count, FALSE);
 }
 
-size_t jm_v1_iso15765_send_frames(JMCanbus *self, const guint8 *data, size_t count) {
+size_t jm_v1_iso15765_send_frames(JMCanbus *self, const guint8 *data, 
+    size_t count)
+{
     g_return_val_if_fail(self != NULL, 0);
 
-    if (count <= 0 || count > 0x0FFF) {
+    if (count <= 0 || count > 0x0FFF)
+    {
         return 0;
     }
 
-    if (count < 8) {
+    if (count < 8)
+    {
         guint8 temp[8] = {0};
 
         temp[0] = JM_LOW_BYTE(count);
         memcpy(temp + 1, data, count);
         return _jm_v1_iso15765_send_one_frame(self, temp, count, TRUE);
-    } else {
+    }
+    else
+    {
         size_t frame_count = (count + 1) / 7;
         size_t last_data = (count + 1) % 7;
         size_t pos = 0;
@@ -503,32 +570,42 @@ size_t jm_v1_iso15765_send_frames(JMCanbus *self, const guint8 *data, size_t cou
         if (last_data != 0)
             frame_count++;
 
-        for(; frame_index < frame_count; ++frame_index) {
-            if (0 == frame_index) {
+        for(; frame_index < frame_count; ++frame_index)
+        {
+            if (0 == frame_index)
+            {
                 guint8 temp[16];
                 temp[0] = (0x10 | JM_HIGH_BYTE(JM_LOW_WORD(count)));
                 temp[1] = JM_LOW_BYTE(JM_LOW_WORD(count));
                 memcpy(temp + 2, data + pos, 6);
                 pos += 6;
-                if (_jm_v1_iso15765_send_one_frame(self, temp, 8, TRUE) != 8) {
+                if (_jm_v1_iso15765_send_one_frame(self, temp, 8, TRUE) != 
+                    8)
+                {
                     return 0;
                 }
                 if (jm_v1_iso15765_read_one_frame(self, temp) <= 0)
                     return 0;
-            } else if (frame_index == (frame_count - 1)) {
+            }
+            else if (frame_index == (frame_count - 1))
+            {
                 guint8 temp[8] = {0};
                 temp[0] = seq;
 
                 memcpy(temp + 1, data + pos, count - pos);
-                if (_jm_v1_iso15765_send_one_frame(self, temp, count - pos + 1, TRUE) != (count - pos + 1))
+                if (_jm_v1_iso15765_send_one_frame(self, temp, 
+                    count - pos + 1, TRUE) != (count - pos + 1))
                     return 0;
                 return count;
-            } else {
+            }
+            else
+            {
                 guint8 temp[8];
                 temp[0] = seq;
                 memcpy(temp + 1, data + pos, 7);
                 pos += 7;
-                if (_jm_v1_iso15765_send_one_frame(self, temp, 8, FALSE) != 8)
+                if (_jm_v1_iso15765_send_one_frame(self, temp, 8, FALSE) != 
+                    8)
                     return 0;
 
                 if (seq == 0x2F)
@@ -541,11 +618,13 @@ size_t jm_v1_iso15765_send_frames(JMCanbus *self, const guint8 *data, size_t cou
     return 0;
 }
 
-size_t jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *data) {
+size_t jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *data)
+{
     return _jm_v1_iso15765_read_one_frame(self, data, TRUE);
 }
 
-size_t jm_v1_iso15765_read_frames(JMCanbus *self, guint8 *data) {
+size_t jm_v1_iso15765_read_frames(JMCanbus *self, guint8 *data)
+{
     JMV1ISO15765 *v1 = NULL;
     JMV1Box *box = NULL;
     guint8 first_frame[16];
@@ -557,13 +636,15 @@ size_t jm_v1_iso15765_read_frames(JMCanbus *self, guint8 *data) {
 
     length = _jm_v1_iso15765_read_one_frame(self, first_frame, FALSE);
 
-    if (first_frame[0] == 0x30) {
+    if (first_frame[0] == 0x30)
+    {
         _jm_v1_iso15765_finish_execute(self, TRUE);
         memcpy(data, first_frame, length);
         return length;
     }
 
-    if ((first_frame[0] & 0x10) == 0x10) {
+    if ((first_frame[0] & 0x10) == 0x10)
+    {
         // Multi-Frame
         static size_t user_data_count;
         static size_t rest_frame_count;
@@ -576,38 +657,53 @@ size_t jm_v1_iso15765_read_frames(JMCanbus *self, guint8 *data) {
 
         _jm_v1_iso15765_finish_execute(self, TRUE);
 
-        if (_jm_v1_iso15765_send_one_frame(self, self->flow_control, 8, TRUE) != 8) {
+        if (_jm_v1_iso15765_send_one_frame(self, self->flow_control, 8, 
+            TRUE) != 8)
+        {
             return 0;
         }
 
         pos = 0;
-        user_data_count = ((first_frame[0] & 0x0F) << 8) | (first_frame[1] & 0xFF);
-        rest_frame_count = ((user_data_count - 6) / 7) + (((user_data_count - 6) % 7) ? 1 : 0);
+        user_data_count = ((first_frame[0] & 0x0F) << 8) | 
+            (first_frame[1] & 0xFF);
+        rest_frame_count = ((user_data_count - 6) / 7) + 
+            (((user_data_count - 6) % 7) ? 1 : 0);
         memcpy(data, first_frame + 2, length - 2);
         pos += length - 2;
 
-        if (self->id_mode == JM_CANBUS_ID_MODE_STD) {
+        if (self->id_mode == JM_CANBUS_ID_MODE_STD)
+        {
             data_length = JM_V1_ISO15765_STD_FRAMEID_LENGTH + 8;
-        } else {
+        }
+        else
+        {
             data_length = JM_V1_ISO15765_EXT_FRAMEID_LENGTH + 8;
         }
 
         rest_data_count = data_length * rest_frame_count;
 
-        if (box->read_bytes(box, rest_frames, rest_data_count) != rest_data_count) {
+        if (box->read_bytes(box, rest_frames, rest_data_count) != 
+            rest_data_count)
+        {
             _jm_v1_iso15765_finish_execute(self, TRUE);
             return 0;
         }
 
         _jm_v1_iso15765_finish_execute(self, TRUE);
-        for (i = 0; i < rest_frame_count; i++) {
-            length = jm_canbus_unpack(self, rest_frames + (i * data_length), data_length, unpacked_buff);
+        for (i = 0; i < rest_frame_count; i++)
+        {
+            length = jm_canbus_unpack(self, rest_frames + 
+                (i * data_length), data_length, unpacked_buff);
             memcpy(data + pos, unpacked_buff, length);
             pos += length;
         }
-    } else {
-        while (first_frame[1] == 0x7F && first_frame[3] == 0x78) {
-            length = _jm_v1_iso15765_read_one_frame(self, first_frame, FALSE);
+    }
+    else
+    {
+        while (first_frame[1] == 0x7F && first_frame[3] == 0x78)
+        {
+            length = _jm_v1_iso15765_read_one_frame(self, first_frame, 
+                FALSE);
         }
         _jm_v1_iso15765_finish_execute(self, TRUE);
         memcpy(data, first_frame + 1, length - 1);
@@ -616,7 +712,9 @@ size_t jm_v1_iso15765_read_frames(JMCanbus *self, guint8 *data) {
     return 0;
 }
 
-gint32 jm_v1_iso15765_set_keep_link(JMCanbus *self, const guint8 *data, size_t count) {
+gint32 jm_v1_iso15765_set_keep_link(JMCanbus *self, const guint8 *data, 
+    size_t count)
+{
     static guint8 buff[256];
     static size_t length;
     JMV1Box *box = NULL;

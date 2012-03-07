@@ -12,7 +12,8 @@ G_BEGIN_DECLS
 
 typedef struct _JMV1Shared JMV1Shared;
 
-struct _JMV1Shared {
+struct _JMV1Shared 
+{
     JMConnector connector;
     guint32 last_error; /* 提供错误查询 */
     gboolean is_db_20;

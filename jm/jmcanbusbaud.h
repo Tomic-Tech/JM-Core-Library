@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMCanbusBaud JMCanbusBaud;
 
-enum _JMCanbusBaud {
+enum _JMCanbusBaud
+{
     JM_CANBUS_B1000K = 1000000,
     JM_CANBUS_B800K = 800000,
     JM_CANBUS_B666K = 666000,

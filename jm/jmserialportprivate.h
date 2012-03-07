@@ -30,7 +30,8 @@
 #include <cstring>
 #endif
 
-struct _JMSerialPort {
+struct _JMSerialPort
+{
 	// Data
 	gchar* port_name;
 	gint64 read_timeout;

@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMConnector JMConnector;
 
-enum _JMConnector {
+enum _JMConnector
+{
 	JM_CN_OBDII_16,
 	JM_CN_UNIVERSAL_3,
 	JM_CN_BENZ_38,

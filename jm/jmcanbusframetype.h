@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMCanbusFrameType JMCanbusFrameType;
 
-enum _JMCanbusFrameType {
+enum _JMCanbusFrameType
+{
     JM_CANBUS_FRAME_TYPE_DATA = 0x00,
     JM_CANBUS_FRAME_TYPE_REMOTE = 0x40
 };

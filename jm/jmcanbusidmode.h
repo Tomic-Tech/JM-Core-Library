@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMCanbusIDMode JMCanbusIDMode;
 
-enum _JMCanbusIDMode {
+enum _JMCanbusIDMode
+{
     JM_CANBUS_ID_MODE_STD = 0x00,
     JM_CANBUS_ID_MODE_EXT = 0x80
 };

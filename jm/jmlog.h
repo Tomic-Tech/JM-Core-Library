@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 
 typedef enum _JMLogLevel JMLogLevel;
 
-enum _JMLogLevel {
+enum _JMLogLevel
+{
 #ifdef G_PLATFORM_ANDROID
 	JM_LOG_UNKNOW = ANDROID_LOG_UNKNOWN,
 	JM_LOG_DEFAULT = ANDROID_LOG_DEFAULT,

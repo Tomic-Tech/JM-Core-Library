@@ -32,7 +32,8 @@ gboolean jm_db_open(const gchar* file_path, const gchar* password)
 {
     jm_db_close();
 
-    if (sqlite3_open_v2(file_path, &_jm_db_handle, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(file_path, &_jm_db_handle, 
+        SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
     {
         _jm_db_handle = NULL;
         return FALSE;
@@ -125,7 +126,8 @@ gchar *jm_db_get_text(const gchar *name)
         text = g_string_append(text, lang);
         g_free(lang);
         text = g_string_append(text, "] WHERE Name=:name");
-        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, &_jm_db_get_text_stmt, NULL);
+        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, 
+            &_jm_db_get_text_stmt, NULL);
         g_string_free(text, TRUE);
         if (ret != SQLITE_OK)
         {
@@ -136,10 +138,12 @@ gchar *jm_db_get_text(const gchar *name)
     }
 
     if ((sqlite3_reset(_jm_db_get_text_stmt) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_text_stmt, 1, name, g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) &&  
+        (sqlite3_bind_text(_jm_db_get_text_stmt, 1, name, 
+        g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) &&  
         (sqlite3_step(_jm_db_get_text_stmt) == SQLITE_ROW))
     {
-        const char* text = (const char*)sqlite3_column_text(_jm_db_get_text_stmt, 0);
+        const char* text = 
+            (const char*)sqlite3_column_text(_jm_db_get_text_stmt, 0);
         result = g_string_assign(result, text ? text : "");
     }
 
@@ -157,8 +161,10 @@ gchar *jm_db_get_trouble_code(const gchar *code)
         int ret = 0;
         GString *text = g_string_new("SELECT Content FROM [TroubleCode");
         text = g_string_append(text, lang);
-        text = g_string_append(text, "] WHERE Code=:code AND Catalog=:catalog");
-        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, &_jm_db_get_trouble_code_stmt, NULL);
+        text = g_string_append(text, 
+            "] WHERE Code=:code AND Catalog=:catalog");
+        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, 
+            &_jm_db_get_trouble_code_stmt, NULL);
         g_free(lang);
         g_string_free(text, TRUE);
         if (ret != SQLITE_OK)
@@ -170,13 +176,18 @@ gchar *jm_db_get_trouble_code(const gchar *code)
     }
 
     if ((sqlite3_reset(_jm_db_get_trouble_code_stmt) == SQLITE_OK) &&
-        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 1, code, g_utf8_strlen(code, -1), SQLITE_STATIC) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 2, _jm_db_tc_catalog->str, _jm_db_tc_catalog->len, SQLITE_STATIC) == SQLITE_OK))
+        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 1, code, 
+        g_utf8_strlen(code, -1), SQLITE_STATIC) == SQLITE_OK) && 
+        (sqlite3_bind_text(_jm_db_get_trouble_code_stmt, 2, 
+        _jm_db_tc_catalog->str, _jm_db_tc_catalog->len, SQLITE_STATIC) == 
+        SQLITE_OK))
     {
         int rc = sqlite3_step(_jm_db_get_trouble_code_stmt);
         if (rc == SQLITE_ROW)
         {
-            const char* text = (const char*)sqlite3_column_text(_jm_db_get_trouble_code_stmt, 0);
+            const char* text = 
+                (const char*)sqlite3_column_text(
+                _jm_db_get_trouble_code_stmt, 0);
             result = g_string_assign(result, text ? text : "Undefined");
         }
         else if (rc == SQLITE_DONE)
@@ -194,9 +205,12 @@ GByteArray *jm_db_get_command(const gchar *name)
     GByteArray *result = NULL;
     if (_jm_db_get_command_stmt == NULL)
     {
-        static gchar *text = "SELECT Command FROM [Command] WHERE Name=:name AND Catalog=:catalog";
+        static gchar *text = 
+            "SELECT Command FROM [Command] WHERE Name=:name AND "
+            "Catalog=:catalog";
         int ret;
-        ret = sqlite3_prepare_v2(_jm_db_handle, text, g_utf8_strlen(text, -1), &_jm_db_get_command_stmt, NULL);
+        ret = sqlite3_prepare_v2(_jm_db_handle, text, 
+            g_utf8_strlen(text, -1), &_jm_db_get_command_stmt, NULL);
         if (ret != SQLITE_OK)
         {
             sqlite3_finalize(_jm_db_get_command_stmt);
@@ -205,11 +219,14 @@ GByteArray *jm_db_get_command(const gchar *name)
         }
     }
     if ((sqlite3_reset(_jm_db_get_command_stmt) == SQLITE_OK) && 
-        (sqlite3_bind_text(_jm_db_get_command_stmt, 1, name, g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) &&
-        (sqlite3_bind_text(_jm_db_get_command_stmt, 2, _jm_db_cmd_catalog->str, _jm_db_cmd_catalog->len, SQLITE_STATIC) == SQLITE_OK) && 
-        (sqlite3_step(_jm_db_get_command_stmt) == SQLITE_ROW))
+        (sqlite3_bind_text(_jm_db_get_command_stmt, 1, name, 
+        g_utf8_strlen(name, -1), SQLITE_STATIC) == SQLITE_OK) &&
+        (sqlite3_bind_text(_jm_db_get_command_stmt, 2, 
+        _jm_db_cmd_catalog->str, _jm_db_cmd_catalog->len, SQLITE_STATIC) == 
+        SQLITE_OK) && (sqlite3_step(_jm_db_get_command_stmt) == SQLITE_ROW))
     {
-        const guint8* bytes = (const guint8*) sqlite3_column_blob(_jm_db_get_command_stmt, 0);
+        const guint8* bytes = 
+            (const guint8*) sqlite3_column_blob(_jm_db_get_command_stmt, 0);
         gint32 size = sqlite3_column_bytes(_jm_db_get_command_stmt, 0);
         result = g_byte_array_sized_new(size);
         result = g_byte_array_append(result, bytes, size);
@@ -224,7 +241,8 @@ GByteArray *jm_db_get_command_by_id(gint32 id)
     if (_jm_db_get_command_by_id_stmt == NULL)
     {
         static gchar *text = "SELECT Command FROM [Command] WHERE ID=:id";
-        int ret = sqlite3_prepare_v2(_jm_db_handle, text, g_utf8_strlen(text, -1), &_jm_db_get_command_by_id_stmt, NULL);
+        int ret = sqlite3_prepare_v2(_jm_db_handle, text, 
+            g_utf8_strlen(text, -1), &_jm_db_get_command_by_id_stmt, NULL);
         if (ret != SQLITE_OK)
         {
             sqlite3_finalize(_jm_db_get_command_by_id_stmt);
@@ -234,11 +252,15 @@ GByteArray *jm_db_get_command_by_id(gint32 id)
     }
 
     if ((sqlite3_reset(_jm_db_get_command_by_id_stmt) == SQLITE_OK) &&
-        (sqlite3_bind_int(_jm_db_get_command_by_id_stmt, 1, id) == SQLITE_OK) &&
-        (sqlite3_step(_jm_db_get_command_by_id_stmt) == SQLITE_ROW))
+        (sqlite3_bind_int(_jm_db_get_command_by_id_stmt, 1, id) 
+        == SQLITE_OK) && (sqlite3_step(_jm_db_get_command_by_id_stmt) == 
+        SQLITE_ROW))
     {
-        const guint8 *bytes = (const guint8*) sqlite3_column_blob(_jm_db_get_command_by_id_stmt, 0);
-        gint32 size = sqlite3_column_bytes(_jm_db_get_command_by_id_stmt, 0);
+        const guint8 *bytes = 
+            (const guint8*) sqlite3_column_blob(
+            _jm_db_get_command_by_id_stmt, 0);
+        gint32 size = sqlite3_column_bytes(_jm_db_get_command_by_id_stmt, 
+            0);
         result = g_byte_array_sized_new(size);
         result = g_byte_array_append(result, bytes, size);
     }
@@ -254,10 +276,12 @@ JMLDArray *jm_db_get_live_data(void)
     {
         int ret;
         gchar *lang = jm_auth_decrypt_lang();
-        GString *text = g_string_new("SELECT ShortName, Content, Unit, DefaultValue, CommandID, AlgorithmID FROM [LiveData");
+        GString *text = g_string_new("SELECT ShortName, Content, Unit, "
+            "DefaultValue, CommandID, AlgorithmID FROM [LiveData");
         text = g_string_append(text, lang);
         text = g_string_append(text, "] WHERE Catalog=:catalog");
-        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, &_jm_db_get_live_data_stmt, NULL);
+        ret = sqlite3_prepare_v2(_jm_db_handle, text->str, text->len, 
+            &_jm_db_get_live_data_stmt, NULL);
         g_free(lang);
         g_string_free(text, TRUE);
         if (ret != SQLITE_OK)
@@ -269,14 +293,24 @@ JMLDArray *jm_db_get_live_data(void)
     }
 
     if ((sqlite3_reset(_jm_db_get_live_data_stmt) == SQLITE_OK) &&
-        (sqlite3_bind_text(_jm_db_get_live_data_stmt, 1, _jm_db_ld_catalog->str, _jm_db_ld_catalog->len, SQLITE_STATIC) == SQLITE_OK))
+        (sqlite3_bind_text(_jm_db_get_live_data_stmt, 1, 
+        _jm_db_ld_catalog->str, _jm_db_ld_catalog->len, SQLITE_STATIC) == 
+        SQLITE_OK))
     {
         while (sqlite3_step(_jm_db_get_live_data_stmt) == SQLITE_ROW)
         {
-            const char *short_name = (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 0);
-            const char *content = (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 1);
-            const char *unit = (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 2);
-            const char *default_value = (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 3);
+            const char *short_name = 
+                (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 
+                0);
+            const char *content = 
+                (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 
+                1);
+            const char *unit = 
+                (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 
+                2);
+            const char *default_value = 
+                (const char*)sqlite3_column_text(_jm_db_get_live_data_stmt, 
+                3);
             gint32 id = sqlite3_column_int(_jm_db_get_live_data_stmt, 4);
             gboolean enabled = TRUE;
             JMLiveData *ld = jm_live_data_new(short_name ? short_name : "",

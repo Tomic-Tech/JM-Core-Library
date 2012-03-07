@@ -33,7 +33,8 @@ JMLDArray* jm_ld_array_new(void)
     lda->current_enabled_index = -1;
     lda->show_index_array = g_ptr_array_new();
     lda->enabled_index_array = g_ptr_array_new();
-    lda->show_position_array = g_hash_table_new(g_direct_hash, g_direct_equal);
+    lda->show_position_array = g_hash_table_new(g_direct_hash, 
+        g_direct_equal);
     lda->enabled_size = 0;
     lda->show_size = 0;
 
@@ -85,7 +86,8 @@ gint32 jm_ld_array_next_showed_index(void)
     }
 
     size = _jm_ld_array->show_index_array->len;
-    ret = GPOINTER_TO_INT(g_ptr_array_index(_jm_ld_array->show_index_array, _jm_ld_array->current_enabled_index));
+    ret = GPOINTER_TO_INT(g_ptr_array_index(_jm_ld_array->show_index_array, 
+        _jm_ld_array->current_enabled_index));
     _jm_ld_array->current_enabled_index++;
     if ((size_t)_jm_ld_array->current_enabled_index > (size - 1))
         _jm_ld_array->current_enabled_index = 0;
@@ -101,7 +103,8 @@ gint32 jm_ld_array_get_enabled_index(gint32 index)
 
     g_mutex_lock(_jm_ld_array_mutex);
 
-    ret = GPOINTER_TO_INT(g_ptr_array_index(_jm_ld_array->enabled_index_array, index));
+    ret = GPOINTER_TO_INT(g_ptr_array_index(
+        _jm_ld_array->enabled_index_array, index));
 
     g_mutex_unlock(_jm_ld_array_mutex);
 
@@ -116,7 +119,8 @@ gint32 jm_ld_array_query_showed_position(gint32 index)
 
     g_mutex_lock(_jm_ld_array_mutex);
 
-    ret = GPOINTER_TO_INT(g_hash_table_lookup(_jm_ld_array->show_position_array, GINT_TO_POINTER(index)));
+    ret = GPOINTER_TO_INT(g_hash_table_lookup(
+        _jm_ld_array->show_position_array, GINT_TO_POINTER(index)));
 
     g_mutex_unlock(_jm_ld_array_mutex);
 
@@ -131,7 +135,8 @@ gint32 jm_ld_array_get_showed_index(gint32 index)
 
     g_mutex_lock(_jm_ld_array_mutex);
 
-    ret = GPOINTER_TO_INT(g_ptr_array_index(_jm_ld_array->show_index_array, index));
+    ret = GPOINTER_TO_INT(g_ptr_array_index(_jm_ld_array->show_index_array, 
+        index));
 
     g_mutex_unlock(_jm_ld_array_mutex);
 
@@ -178,12 +183,15 @@ void jm_ld_array_deploy_showed_index(void)
         JMLiveData *ld = _jm_ld_array_index(_jm_ld_array, i);
         if (ld->enabled && ld->show)
         {
-            g_ptr_array_add(_jm_ld_array->show_index_array, GINT_TO_POINTER(i));
-            g_hash_table_insert(_jm_ld_array->show_position_array, GINT_TO_POINTER(i), GINT_TO_POINTER(j++));
+            g_ptr_array_add(_jm_ld_array->show_index_array, 
+                GINT_TO_POINTER(i));
+            g_hash_table_insert(_jm_ld_array->show_position_array, 
+                GINT_TO_POINTER(i), GINT_TO_POINTER(j++));
         }
     }
 
-    _jm_ld_array->current_enabled_index = GPOINTER_TO_INT(g_ptr_array_index(_jm_ld_array->show_index_array, 0));
+    _jm_ld_array->current_enabled_index = GPOINTER_TO_INT(
+        g_ptr_array_index(_jm_ld_array->show_index_array, 0));
     g_mutex_unlock(_jm_ld_array_mutex);
 }
 

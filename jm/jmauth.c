@@ -95,7 +95,8 @@ void jm_auth_set_dat_path(const gchar *path)
 
 void jm_auth_save_reg(const gchar *reg)
 {
-    GIOChannel *io = g_io_channel_new_file(_jm_auth_dat_path->str, "w", NULL);
+    GIOChannel *io = g_io_channel_new_file(_jm_auth_dat_path->str, "w", 
+        NULL);
     gsize bytes_written = 0;
 
     if (io == NULL)
@@ -103,7 +104,8 @@ void jm_auth_save_reg(const gchar *reg)
         return;
     }
 
-    g_io_channel_write_chars(io, reg, g_utf8_strlen(reg, -1), &bytes_written, NULL);
+    g_io_channel_write_chars(io, reg, g_utf8_strlen(reg, -1), 
+        &bytes_written, NULL);
     g_io_channel_shutdown(io, TRUE, NULL);
     g_io_channel_unref(io);
 }
@@ -144,7 +146,8 @@ static gchar** _jm_auth_decrypt(void)
     recovered = (gchar *)g_malloc(flen);
     memset(recovered, 0, flen);
 
-    ret = RSA_private_decrypt(length, cipher, recovered, _jm_auth_rsa, RSA_PKCS1_OAEP_PADDING);
+    ret = RSA_private_decrypt(length, cipher, recovered, _jm_auth_rsa, 
+        RSA_PKCS1_OAEP_PADDING);
     if (ret < 0)
     {
         goto RETURN;
