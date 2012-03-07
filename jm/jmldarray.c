@@ -60,7 +60,7 @@ void jm_ld_array_append(JMLDArray *array, JMLiveData *ld)
     g_ptr_array_add(array->ld_array, ld);
 }
 
-void jm_ld_array_load(void)
+void jm_ld_array_update_global_array(void)
 {
     g_mutex_lock(_jm_ld_array_mutex);
     if (_jm_ld_array != NULL)
@@ -71,7 +71,7 @@ void jm_ld_array_load(void)
     g_mutex_unlock(_jm_ld_array_mutex);
 }
 
-gint32 jm_ld_array_next_show_index(void)
+gint32 jm_ld_array_next_showed_index(void)
 {
     gint32 ret = 0;
     size_t size;
@@ -108,7 +108,7 @@ gint32 jm_ld_array_get_enabled_index(gint32 index)
     return ret;
 }
 
-gint32 jm_ld_array_get_show_position(gint32 index)
+gint32 jm_ld_array_query_showed_position(gint32 index)
 {
     gint32 ret;
     g_return_val_if_fail(_jm_ld_array != NULL, -1);
@@ -123,7 +123,7 @@ gint32 jm_ld_array_get_show_position(gint32 index)
     return ret;
 }
 
-gint32 jm_ld_array_get_show_index(gint32 index)
+gint32 jm_ld_array_get_showed_index(gint32 index)
 {
     gint32 ret;
     g_return_val_if_fail(_jm_ld_array != NULL, -1);
@@ -138,7 +138,7 @@ gint32 jm_ld_array_get_show_index(gint32 index)
     return ret;
 }
 
-void jm_ld_array_generate_enabled_index(void)
+void jm_ld_array_deploy_enabled_index(void)
 {
     size_t i;
     size_t size;
@@ -160,7 +160,7 @@ void jm_ld_array_generate_enabled_index(void)
     g_mutex_unlock(_jm_ld_array_mutex);
 }
 
-void jm_ld_array_generate_show_index(void)
+void jm_ld_array_deploy_showed_index(void)
 {
     size_t i;
     size_t j = 0;
@@ -206,7 +206,7 @@ size_t jm_ld_array_enabled_size(void)
     return _jm_ld_array->enabled_size;
 }
 
-size_t jm_ld_array_show_size(void)
+size_t jm_ld_array_showed_size(void)
 {
     return _jm_ld_array->show_size;
 }
@@ -418,7 +418,7 @@ gboolean jm_ld_array_get_enabled(gint32 index)
     return enabled;
 }
 
-void jm_ld_array_set_show(gint32 index, gboolean show)
+void jm_ld_array_set_showed(gint32 index, gboolean show)
 {
     JMLiveData *ld = NULL;
     g_return_if_fail(_jm_ld_array != NULL);
@@ -446,7 +446,7 @@ void jm_ld_array_set_show(gint32 index, gboolean show)
     g_mutex_unlock(_jm_ld_array_mutex);
 }
 
-gboolean jm_ld_array_get_show(gint32 index)
+gboolean jm_ld_array_get_showed(gint32 index)
 {
     JMLiveData *ld = NULL;
     gboolean show = FALSE;

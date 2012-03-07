@@ -119,7 +119,7 @@ gchar *jm_db_get_text(const gchar *name)
     GString *result = g_string_new(name);
     if (_jm_db_get_text_stmt == NULL)
     {
-        gchar* lang = jm_auth_de_lang();
+        gchar* lang = jm_auth_decrypt_lang();
         int ret = 0;
         GString *text = g_string_new("SELECT Content FROM [Text");
         text = g_string_append(text, lang);
@@ -153,7 +153,7 @@ gchar *jm_db_get_trouble_code(const gchar *code)
 
     if (_jm_db_get_trouble_code_stmt == NULL)
     {
-        gchar* lang = jm_auth_de_lang();
+        gchar* lang = jm_auth_decrypt_lang();
         int ret = 0;
         GString *text = g_string_new("SELECT Content FROM [TroubleCode");
         text = g_string_append(text, lang);
@@ -218,7 +218,7 @@ END:
     return result;
 }
 
-GByteArray *jm_db_get_command_id(gint32 id)
+GByteArray *jm_db_get_command_by_id(gint32 id)
 {
     GByteArray *result = NULL;
     if (_jm_db_get_command_by_id_stmt == NULL)
@@ -253,7 +253,7 @@ JMLDArray *jm_db_get_live_data(void)
     if (_jm_db_get_live_data_stmt == NULL)
     {
         int ret;
-        gchar *lang = jm_auth_de_lang();
+        gchar *lang = jm_auth_decrypt_lang();
         GString *text = g_string_new("SELECT ShortName, Content, Unit, DefaultValue, CommandID, AlgorithmID FROM [LiveData");
         text = g_string_append(text, lang);
         text = g_string_append(text, "] WHERE Catalog=:catalog");

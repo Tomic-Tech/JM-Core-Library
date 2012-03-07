@@ -93,7 +93,7 @@ void jm_auth_set_dat_path(const gchar *path)
     _jm_auth_dat_path = g_string_append(_jm_auth_dat_path, "demo.dat");
 }
 
-void jm_auth_write_register(const gchar *reg)
+void jm_auth_save_reg(const gchar *reg)
 {
     GIOChannel *io = g_io_channel_new_file(_jm_auth_dat_path->str, "w", NULL);
     gsize bytes_written = 0;
@@ -190,7 +190,7 @@ RETURN:
     return result;
 }
 
-gchar* jm_auth_get_id_code(void)
+gchar* jm_auth_query_id_code(void)
 {
     GString *id_code = NULL;
     GString *plain = g_string_new("");
@@ -218,7 +218,7 @@ gchar* jm_auth_get_id_code(void)
     return g_string_free(id_code, FALSE);
 }
 
-gchar* jm_auth_de(size_t index)
+gchar* jm_auth_decrypt(size_t index)
 {
     gchar ** vec = _jm_auth_decrypt();
     GString *str = NULL;
@@ -235,7 +235,7 @@ gchar* jm_auth_de(size_t index)
     return g_string_free(str, FALSE);
 }
 
-gboolean jm_auth_unreg(void)
+gboolean jm_auth_check_reg(void)
 {
     gchar **vec = _jm_auth_decrypt();
     gboolean ret = vec != NULL ? FALSE : TRUE;

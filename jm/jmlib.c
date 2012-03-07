@@ -80,7 +80,7 @@ static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name)
         db_name, 
         ".db");
 
-    pw = jm_auth_de_db();
+    pw = jm_auth_decrypt_db_pw();
 
     ret = jm_db_open(abs_db_path->str, pw);
 
