@@ -268,7 +268,7 @@ GByteArray *jm_db_get_command_by_id(gint32 id)
 END:
     return result;
 }
-JMLDArray *jm_db_get_live_data(void)
+JMLDArray *jm_db_get_live_data(gboolean showed)
 {
     JMLDArray *ret = jm_ld_array_new();
 
@@ -317,7 +317,8 @@ JMLDArray *jm_db_get_live_data(void)
                 content ? content : "",
                 unit ? unit : "",
                 default_value ? default_value : "",
-                id);
+                id,
+                showed);
             jm_ld_array_append(ret, ld);
         }
     }

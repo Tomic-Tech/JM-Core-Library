@@ -28,7 +28,7 @@ void jm_ld_array_destroy(void);
 JMLDArray* jm_ld_array_new(void);
 void jm_ld_array_append(JMLDArray *array, JMLiveData *ld);
 void jm_ld_array_free(JMLDArray *self);
-void jm_ld_array_update_global_array(void);
+void jm_ld_array_update_global_array(gboolean showed);
 GLIB_VAR gint32 jm_ld_array_next_showed_index(void);
 GLIB_VAR gint32 jm_ld_array_get_showed_index(gint32 index);
 GLIB_VAR gint32 jm_ld_array_query_showed_position(gint32 index);

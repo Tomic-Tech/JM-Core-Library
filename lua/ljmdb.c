@@ -103,8 +103,9 @@ static int _lua_jm_db_get_live_data(lua_State *L)
 {
     size_t i;
     size_t size;
+    gboolean showed = lua_toboolean(L, 1);
 
-    jm_ld_array_update_global_array();
+    jm_ld_array_update_global_array(showed);
 
     lua_newtable(L); /* creates root table for LDArray */
     

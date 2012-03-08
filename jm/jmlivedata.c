@@ -4,7 +4,8 @@ JMLiveData* jm_live_data_new(const gchar *short_name,
     const gchar* content, 
     const gchar *unit, 
     const gchar *default_value, 
-    gint32 command_id)
+    gint32 command_id,
+    gboolean showed)
 {
     JMLiveData *ld = (JMLiveData*)g_malloc(sizeof(JMLiveData));
 
@@ -20,7 +21,8 @@ JMLiveData* jm_live_data_new(const gchar *short_name,
 
     ld->command_id = command_id;
     ld->enabled = TRUE;
-    ld->show = FALSE;
+    ld->show = showed;
+    return ld;
 }
 
 void jm_live_data_free(JMLiveData *self)

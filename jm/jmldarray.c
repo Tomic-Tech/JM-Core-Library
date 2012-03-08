@@ -61,13 +61,13 @@ void jm_ld_array_append(JMLDArray *array, JMLiveData *ld)
     g_ptr_array_add(array->ld_array, ld);
 }
 
-void jm_ld_array_update_global_array(void)
+void jm_ld_array_update_global_array(gboolean showed)
 {
     g_mutex_lock(_jm_ld_array_mutex);
     if (_jm_ld_array != NULL)
         jm_ld_array_free(_jm_ld_array);
 
-    _jm_ld_array = jm_db_get_live_data();
+    _jm_ld_array = jm_db_get_live_data(showed);
 
     g_mutex_unlock(_jm_ld_array_mutex);
 }

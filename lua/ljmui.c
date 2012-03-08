@@ -171,11 +171,10 @@ static int _lua_jm_ui_ld_add_btn(lua_State *L)
 
 static int _lua_jm_ui_ld_set_value(lua_State *L)
 {
-    size_t ld_size = jm_ld_array_showed_size();
     gint32 index = luaL_checkinteger(L, 1);
     const gchar *value = (const gchar*)luaL_checkstring(L, 2);
     jm_ui_ld_set_value(index - 1, value);
-    g_usleep(3000 / ld_size);
+    //g_usleep(1000);
     return 0;
 }
 

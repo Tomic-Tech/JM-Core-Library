@@ -27,7 +27,8 @@ JMLiveData *jm_live_data_new(const gchar *short_name,
     const gchar* content, 
     const gchar *unit, 
     const gchar *default_value, 
-    gint32 command_id);
+    gint32 command_id,
+    gboolean showed);
 void jm_live_data_free(JMLiveData *self);
 
 G_END_DECLS
