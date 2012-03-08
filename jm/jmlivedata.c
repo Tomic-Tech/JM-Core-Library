@@ -20,7 +20,7 @@ JMLiveData* jm_live_data_new(const gchar *short_name,
 
     ld->command_id = command_id;
     ld->enabled = TRUE;
-    ld->show = TRUE;
+    ld->show = FALSE;
 }
 
 void jm_live_data_free(JMLiveData *self)

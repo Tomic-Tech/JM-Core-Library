@@ -1,4 +1,5 @@
 #include "jmui.h"
+#include "jmlog.h"
 
 static GQueue *_jm_ui_msg_queue;
 static GMutex *_jm_ui_mutex;
@@ -57,6 +58,15 @@ JMUIMessage* jm_ui_pop_msg(void)
     }
     g_mutex_unlock(_jm_ui_mutex);
     return msg;
+}
+
+size_t jm_ui_msg_count(void)
+{
+    size_t ret;
+    g_mutex_lock(_jm_ui_mutex);
+    ret = _jm_ui_msg_queue->length;
+    g_mutex_unlock(_jm_ui_mutex);
+    return ret;
 }
 
 void jm_ui_main_show(void)
@@ -362,44 +372,31 @@ void jm_ui_ld_set_value(gint32 index, const gchar *value)
 gchar* jm_ui_get_btn_clicked(gboolean is_blocked)
 {
     gchar *ret = NULL;
+    g_mutex_lock(_jm_ui_btn_mutex);
     if (is_blocked)
     {
-        g_mutex_lock(_jm_ui_btn_mutex);
         while (_jm_ui_btn_clicked == NULL)
             g_cond_wait(_jm_ui_btn_cond, _jm_ui_btn_mutex);
         ret = g_string_free(_jm_ui_btn_clicked, FALSE);
         _jm_ui_btn_clicked = NULL;
-        g_mutex_unlock(_jm_ui_btn_mutex);
-        g_thread_yield();
-        return ret;
     }
     else
     {
         GTimeVal time_val;
         g_get_current_time(&time_val);
-        g_time_val_add(&time_val, 3000);
-        g_mutex_lock(_jm_ui_btn_mutex);
+        g_time_val_add(&time_val, 1000);
         g_cond_timed_wait(_jm_ui_btn_cond, _jm_ui_btn_mutex, &time_val);
         if (_jm_ui_btn_clicked == NULL)
         {
-            g_mutex_unlock(_jm_ui_btn_mutex);
-            g_usleep(3000);
-            g_thread_yield();
-            return NULL;
         }
         else
         {
             ret = g_string_free(_jm_ui_btn_clicked, FALSE);
             _jm_ui_btn_clicked = NULL;
-            g_mutex_unlock(_jm_ui_btn_mutex);
-            g_usleep(3000);
-            g_thread_yield();
-            return ret;
         }
     }
-    g_usleep(3000);
-    g_thread_yield();
-    return NULL;
+    g_mutex_unlock(_jm_ui_btn_mutex);
+    return ret;
 }
 
 void jm_ui_set_btn_clicked(const gchar *text)
@@ -449,3 +446,4 @@ void jm_ui_set_menu_selected(const gchar *text)
     }
     g_mutex_unlock(_jm_ui_menu_mutex);
 }
+

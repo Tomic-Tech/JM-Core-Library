@@ -83,6 +83,7 @@ GLIB_VAR void jm_ui_set_btn_clicked(const gchar *text);
 GLIB_VAR gchar* jm_ui_get_menu_selected(void);
 GLIB_VAR void jm_ui_set_menu_selected(const gchar *text);
 GLIB_VAR JMUIMessage* jm_ui_pop_msg(void);
+GLIB_VAR size_t jm_ui_msg_count(void);
 
 G_END_DECLS
 

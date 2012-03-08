@@ -1,4 +1,5 @@
 #include <jm/jmui.h>
+#include <jm/jmldarray.h>
 
 #define LUA_LIB
 
@@ -170,9 +171,11 @@ static int _lua_jm_ui_ld_add_btn(lua_State *L)
 
 static int _lua_jm_ui_ld_set_value(lua_State *L)
 {
+    size_t ld_size = jm_ld_array_showed_size();
     gint32 index = luaL_checkinteger(L, 1);
     const gchar *value = (const gchar*)luaL_checkstring(L, 2);
     jm_ui_ld_set_value(index - 1, value);
+    g_usleep(3000 / ld_size);
     return 0;
 }
 
