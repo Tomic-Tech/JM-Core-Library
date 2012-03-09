@@ -11,7 +11,6 @@
 G_BEGIN_DECLS
 
 JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box);
-void jm_v1_comm_free(JMComm *self);
 
 G_END_DECLS
 

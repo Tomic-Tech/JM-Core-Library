@@ -39,6 +39,7 @@ JMMikuni* jm_mikuni_new(void)
 
     obj->pack = _jm_mikuni_pack;
     obj->unpack = _jm_mikuni_unpack;
+    obj->free = NULL;
     obj->user_data = NULL;
 
     return obj;
@@ -47,6 +48,9 @@ JMMikuni* jm_mikuni_new(void)
 void jm_mikuni_free(JMMikuni *self)
 {
     g_return_if_fail(self != NULL);
+
+    if (self->free != NULL)
+        self->free(self->user_data);
 
     g_free(self);
 }

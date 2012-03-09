@@ -17,6 +17,9 @@ void jm_v1_box_free(JMV1Box *self)
 {
     g_return_if_fail(self != NULL);
 
+    if (self->free != NULL)
+        self->free(self->user_data);
+
     g_free(self);
 }
 

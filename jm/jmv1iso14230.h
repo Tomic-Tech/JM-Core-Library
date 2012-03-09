@@ -11,7 +11,6 @@
 G_BEGIN_DECLS
 
 JMKWP2000* jm_v1_iso14230_new(JMV1Box *box);
-void jm_v1_iso14230_free(JMKWP2000 *self);
 size_t jm_v1_iso14230_send_one_frame(JMKWP2000 *self, const guint8 *data, size_t count);
 size_t jm_v1_iso14230_send_frames(JMKWP2000 *self, const guint8 *data, size_t count);
 size_t jm_v1_iso14230_read_one_frame(JMKWP2000 *self, guint8 *data);

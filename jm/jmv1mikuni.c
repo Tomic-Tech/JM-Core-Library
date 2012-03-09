@@ -166,6 +166,11 @@ gint32 jm_v1_mikuni_set_keep_link(JMMikuni *self, const guint8 *data,
     JM_V1_DEFAULT_SET_KEEP_LINK(box, buff, length);
 }
 
+static void _jm_v1_mikuni_free(gpointer user_data)
+{
+    g_free(user_data);
+}
+
 JMMikuni* jm_v1_mikuni_new(JMV1Box *box)
 {
     JMMikuni *obj = jm_mikuni_new();
@@ -173,15 +178,10 @@ JMMikuni* jm_v1_mikuni_new(JMV1Box *box)
 
     v1->box = box;
 
+    obj->free = _jm_v1_mikuni_free;
     obj->user_data = v1;
     obj->init = _jm_v1_mikuni_init;
 
     return obj;
 }
 
-void jm_v1_mikuni_free(JMMikuni *self)
-{
-    g_return_if_fail(self != NULL);
-    g_free(self->user_data);
-    jm_mikuni_free(self);
-}

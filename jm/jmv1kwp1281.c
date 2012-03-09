@@ -250,6 +250,11 @@ static size_t _jm_v1_kwp1281_send_one_frame(JMKWP1281 *self,
     return count;
 }
 
+static void _jm_v1_kwp1281_free(gpointer user_data)
+{
+    g_free(user_data);
+}
+
 JMKWP1281* jm_v1_kwp1281_new(JMV1Box *box)
 {
     JMKWP1281 *obj = jm_kwp1281_new();
@@ -264,18 +269,6 @@ JMKWP1281* jm_v1_kwp1281_new(JMV1Box *box)
     v1->box = box;
 
     return obj;
-}
-
-void jm_v1_kwp1281_free(JMKWP1281 *self)
-{
-    JMV1KWP1281 *v1 = NULL;
-
-    g_return_if_fail(self != NULL);
-
-    v1 = (JMV1KWP1281*)self->user_data;
-
-    g_free(self->user_data);
-    jm_kwp1281_free(self);
 }
 
 size_t jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data, 

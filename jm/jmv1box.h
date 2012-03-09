@@ -23,13 +23,19 @@ struct _JMV1Box
 {
     gboolean (*open_comm)(JMV1Box *self);
     gboolean (*close_comm)(JMV1Box *self);
-    size_t (*read_bytes)(JMV1Box *self, guint8 *buff, size_t count);
-    gboolean (*set_comm_ctrl)(JMV1Box *self, guint8 value_open, guint8 value_close);
-    gboolean (*set_comm_line)(JMV1Box *self, guint8 send_line, guint8 recv_line);
-    gboolean (*set_comm_link)(JMV1Box *self, guint8 ctrl_word1, guint8 ctrl_word2, guint8 ctrl_word3);
+    size_t (*read_bytes)(JMV1Box *self, guint8 *buff, 
+        size_t count);
+    gboolean (*set_comm_ctrl)(JMV1Box *self, guint8 value_open, 
+        guint8 value_close);
+    gboolean (*set_comm_line)(JMV1Box *self, guint8 send_line, 
+        guint8 recv_line);
+    gboolean (*set_comm_link)(JMV1Box *self, guint8 ctrl_word1, 
+        guint8 ctrl_word2, guint8 ctrl_word3);
     gboolean (*set_comm_baud)(JMV1Box *self, gdouble baud);
-    gboolean (*set_comm_time)(JMV1Box *self, guint8 type, guint32 time);
-    gboolean (*set_line_level)(JMV1Box *self, guint8 value_low, guint8 value_high);
+    gboolean (*set_comm_time)(JMV1Box *self, guint8 type, 
+        guint32 time);
+    gboolean (*set_line_level)(JMV1Box *self, guint8 value_low, 
+        guint8 value_high);
     gboolean (*commbox_delay)(JMV1Box *self, guint32 time);
     gboolean (*turn_over_one_by_one)(JMV1Box *self);
     gboolean (*stop_now)(JMV1Box *self, gboolean is_stop_execute);
@@ -37,11 +43,14 @@ struct _JMV1Box
     gboolean (*del_batch)(JMV1Box *self, guint8 buff_id);
     gboolean (*check_result)(JMV1Box *self, gint64 microseconds);
     gboolean (*keep_link)(JMV1Box *self, gboolean is_run_link);
-    gboolean (*send_out_data)(JMV1Box *self, const guint8 *buff, size_t count);
+    gboolean (*send_out_data)(JMV1Box *self, const guint8 *buff, 
+        size_t count);
     gboolean (*run_receive)(JMV1Box *self, guint8 type);
     gboolean (*end_batch)(JMV1Box *self);
-    gboolean (*run_batch)(JMV1Box *self, guint8 *buff_id, size_t count, gboolean is_execute_many);
-    size_t (*read_data)(JMV1Box *self, guint8 *buff, size_t count, gint64 microseconds);
+    gboolean (*run_batch)(JMV1Box *self, guint8 *buff_id, 
+        size_t count, gboolean is_execute_many);
+    size_t (*read_data)(JMV1Box *self, guint8 *buff, size_t count, 
+        gint64 microseconds);
     gboolean (*update_buff)(JMV1Box *self, guint8 type, guint8 *buff);
     guint8 (*get_abs_add)(JMV1Box *self, guint8 buff_id, guint8 add);
     gint32 (*serial_port_baud)(JMV1Box *self);
@@ -51,6 +60,7 @@ struct _JMV1Box
     gint32 (*serial_port_flow_control)(JMV1Box *self);
     gboolean (*serial_port_change_config)(JMV1Box *self);
     gboolean (*check_serial_port_change_config)(JMV1Box *self);
+    void (*free)(gpointer user_data);
     
     guint32 box_type;
     JMV1Shared *shared;

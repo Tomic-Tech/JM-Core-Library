@@ -37,6 +37,7 @@ struct _JMCanbus
         JMCanbusIDMode id_mode,
         JMCanbusFilterMask mask,
         JMCanbusFrameType frame);
+    void (*free)(gpointer user_data);
 
     gint32 target_id;
     JMCanbusBaud baud;

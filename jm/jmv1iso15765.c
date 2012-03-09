@@ -450,6 +450,11 @@ static size_t _jm_v1_iso15765_read_one_frame(JMCanbus *self, guint8 *buff,
     return 0;
 }
 
+static void _jm_v1_iso15765_free(gpointer user_data)
+{
+    g_free(user_data);
+}
+
 JMCanbus* jm_v1_iso15765_new(JMV1Box *box)
 {
     JMCanbus *obj = jm_canbus_new();
@@ -461,17 +466,8 @@ JMCanbus* jm_v1_iso15765_new(JMV1Box *box)
     obj->set_filter = _jm_v1_iso15765_set_filter;
     obj->set_lines = _jm_v1_iso15765_set_lines;
     obj->set_options = _jm_v1_iso15765_set_options;
+    obj->free = _jm_v1_iso15765_free;
     return obj;
-}
-
-void jm_v1_iso15765_free(JMCanbus *self)
-{
-    JMV1ISO15765 *v1 = NULL;
-    g_return_if_fail(self != NULL);
-    v1 = (JMV1ISO15765*)self->user_data;
-
-    g_free(v1);
-    jm_canbus_free(self);
 }
 
 gboolean jm_v1_iso15765_prepare(JMCanbus *self)

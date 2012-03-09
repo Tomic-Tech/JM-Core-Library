@@ -9,10 +9,7 @@ static void _jm_commbox_destroy(gpointer data)
     JMCommbox *box = NULL;
     g_return_if_fail(data != NULL);
     box = (JMCommbox*)data;
-    if (box->version == JM_COMMBOX_V1)
-    {
-        jm_v1_commbox_free(box);
-    }
+    jm_commbox_free(box);
 }
 
 void jm_commbox_factory_init(void)

@@ -41,6 +41,7 @@ JMKWP1281* jm_kwp1281_new(void)
     obj->set_lines = NULL;
     obj->pack = _jm_kwp1281_pack;
     obj->unpack = _jm_kwp1281_unpack;
+    obj->free = NULL;
     obj->user_data = NULL;
 
     return obj;
@@ -49,6 +50,8 @@ JMKWP1281* jm_kwp1281_new(void)
 void jm_kwp1281_free(JMKWP1281 *self)
 {
     g_return_if_fail(self != NULL);
+    if (self->free != NULL)
+        self->free(self->user_data);
 
     g_free(self);
 }

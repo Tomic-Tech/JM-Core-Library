@@ -137,6 +137,13 @@ static gpointer _jm_v1_comm_get_protocol(JMComm *self)
     return v1->prc;
 }
 
+static void _jm_v1_comm_free(gpointer user_data)
+{
+    JMV1Comm *v1 = (JMV1Comm*)user_data;
+    v1->prc_free(v1->prc);
+    g_free(v1);
+}
+
 JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box)
 {
     JMComm *comm = NULL;
@@ -145,11 +152,12 @@ JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box)
     {
     case JM_PRC_ISO14230:
         comm = jm_comm_new();
+        comm->free = _jm_v1_comm_free;
 
         v1 = (JMV1Comm*)g_malloc(sizeof(JMV1Comm));
         v1->box = box;
         v1->prc = JM_V1_MAKE_PRC(iso14230, box);
-        v1->prc_free = JM_V1_FREE_PRC(iso14230);
+        v1->prc_free = jm_kwp2000_free;
 
         comm->user_data = v1;
         comm->prc_type = type;
@@ -164,11 +172,12 @@ JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box)
         break;
     case JM_PRC_KWP1281:
         comm = jm_comm_new();
+        comm->free = _jm_v1_comm_free;
 
         v1 = (JMV1Comm*)g_malloc(sizeof(JMV1Comm));
         v1->box = box;
         v1->prc = JM_V1_MAKE_PRC(kwp1281, box);
-        v1->prc_free = JM_V1_FREE_PRC(kwp1281);
+        v1->prc_free = jm_kwp1281_free;
 
         comm->user_data = v1;
         comm->prc_type = type;
@@ -183,11 +192,13 @@ JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box)
         break;
     case JM_PRC_ISO15765:
         comm = jm_comm_new();
+        comm->free = _jm_v1_comm_free;
 
         v1 = (JMV1Comm*) g_malloc(sizeof(JMV1Comm));
         v1->box = box;
         v1->prc = JM_V1_MAKE_PRC(iso15765, box);
-        v1->prc_free = JM_V1_FREE_PRC(iso15765);
+        //v1->prc_free = JM_V1_FREE_PRC(iso15765);
+        v1->prc_free = jm_canbus_free;
 
         comm->user_data = v1;
         comm->prc_type = type;
@@ -202,11 +213,12 @@ JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box)
         break;
     case JM_PRC_MIKUNI:
         comm = jm_comm_new();
+        comm->free = _jm_v1_comm_free;
 
         v1 = (JMV1Comm*) g_malloc(sizeof(JMV1Comm));
         v1->box = box;
         v1->prc = JM_V1_MAKE_PRC(mikuni, box);
-        v1->prc_free = JM_V1_FREE_PRC(mikuni);
+        v1->prc_free = jm_mikuni_free;
 
         comm->user_data = v1;
         comm->prc_type = type;
@@ -225,13 +237,4 @@ JMComm* jm_v1_comm_new(JMProtocolType type, JMV1Box *box)
     return comm;
 }
 
-void jm_v1_comm_free(JMComm *self)
-{
-    JMV1Comm *v1 = NULL;
-    g_return_if_fail(self != NULL);
 
-    v1 = (JMV1Comm*)self->user_data;
-    v1->prc_free(v1->prc);
-    g_free(v1);
-    jm_comm_free(self);
-}

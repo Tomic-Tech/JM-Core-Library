@@ -199,6 +199,11 @@ gint32 _jm_v1_iso14230_set_lines(JMKWP2000 *self, gint32 com_line,
     return JM_ERROR_SUCCESS;
 }
 
+static void _jm_v1_iso14230_free(gpointer user_data)
+{
+    g_free(user_data);
+}
+
 JMKWP2000* jm_v1_iso14230_new(JMV1Box *box)
 {
     JMKWP2000 *obj = jm_kwp2000_new();
@@ -207,6 +212,7 @@ JMKWP2000* jm_v1_iso14230_new(JMV1Box *box)
     obj->fast_init = _jm_v1_iso14230_fast_init;
     obj->addr_init = _jm_v1_iso14230_addr_init;
     obj->set_lines = _jm_v1_iso14230_set_lines;
+    obj->free = _jm_v1_iso14230_free;
 
     iso14230->box = box;
     iso14230->l_line = FALSE;
@@ -214,17 +220,6 @@ JMKWP2000* jm_v1_iso14230_new(JMV1Box *box)
     iso14230->recv_line = 0;
 
     return obj;
-}
-
-void jm_v1_iso14230_free(JMKWP2000 *self)
-{
-    JMV1ISO14230 *iso14230 = NULL;
-    g_return_if_fail(self != NULL);
-
-    iso14230 = (JMV1ISO14230*)self->user_data;
-    g_free(iso14230);
-
-    jm_kwp2000_free(self);
 }
 
 static size_t _jm_v1_iso14230_read_one_frame(JMKWP2000 *self, guint8 *data, 

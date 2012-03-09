@@ -10,7 +10,6 @@
 G_BEGIN_DECLS
 
 JMV1Box* jm_v1_box_c168_new(JMV1Shared *shared);
-void jm_v1_box_c168_free(JMV1Box *self);
 
 G_END_DECLS
 

@@ -30,6 +30,7 @@ struct _JMCommbox
 	gint32 (*serial_port_flow_control)(JMCommbox *);
 	gboolean (*serial_port_change_config)(JMCommbox *);
 	gboolean (*check_serial_port_change_config)(JMCommbox *);
+    void (*free)(gpointer user_data);
 
 	JMCommboxVersion version;
     JMComm *comm;

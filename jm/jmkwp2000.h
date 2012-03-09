@@ -28,8 +28,10 @@ struct _JMKWP2000
     gint32 (*addr_init)(JMKWP2000 *self, guint8 addr_code);
     gint32 (*fast_init)(JMKWP2000 *self, const guint8 *data, size_t count);
     gint32 (*set_lines)(JMKWP2000 *self, gint32 com_line, gboolean l_line);
-    gint32 (*set_options)(JMKWP2000 *self, JMKWPMode msg_mode, JMKWPMode link_mode, gint32 baud);
+    gint32 (*set_options)(JMKWP2000 *self, JMKWPMode msg_mode, JMKWPMode link_mode, 
+        gint32 baud);
     gint32 (*set_address)(JMKWP2000 *self, guint8 target, guint8 source);
+    void (*free)(gpointer user_data);
 
     JMKWPMode mode;
     JMKWPMode link_mode;
@@ -43,13 +45,18 @@ struct _JMKWP2000
 
 GLIB_VAR JMKWP2000* jm_kwp2000_new(void);
 GLIB_VAR void jm_kwp2000_free(JMKWP2000 *self);
-GLIB_VAR size_t jm_kwp2000_pack(JMKWP2000 *self, const guint8 *src, size_t count, guint8 *tar);
-GLIB_VAR size_t jm_kwp2000_unpack(JMKWP2000 *self, const guint8 *src, size_t count, guint8 *tar);
+GLIB_VAR size_t jm_kwp2000_pack(JMKWP2000 *self, const guint8 *src, 
+    size_t count, guint8 *tar);
+GLIB_VAR size_t jm_kwp2000_unpack(JMKWP2000 *self, const guint8 *src, 
+    size_t count, guint8 *tar);
 GLIB_VAR gint32 jm_kwp2000_addr_init(JMKWP2000 *self, guint8 addr_code);
-GLIB_VAR gint32 jm_kwp2000_fast_init(JMKWP2000 *self, const guint8 *data, size_t count);
-GLIB_VAR gint32 jm_kwp2000_set_lines(JMKWP2000 *self, gint32 com_line, gboolean l_line);
-GLIB_VAR gint32 jm_kwp2000_set_options(JMKWP2000 *self, JMKWPMode msg_mode, JMKWPMode link_mode, gint32 baud);
-GLIB_VAR gint32 jm_kwp2000_set_address(JMKWP2000 *self, guint32 target, guint32 source);
+GLIB_VAR gint32 jm_kwp2000_fast_init(JMKWP2000 *self, const guint8 *data, 
+    size_t count);
+GLIB_VAR gint32 jm_kwp2000_set_lines(JMKWP2000 *self, gint32 com_line, 
+    gboolean l_line);
+GLIB_VAR gint32 jm_kwp2000_set_options(JMKWP2000 *self, JMKWPMode msg_mode, 
+    JMKWPMode link_mode, gint32 baud);
+GLIB_VAR gint32 jm_kwp2000_set_address(JMKWP2000 *self, guint8 target, guint8 source);
 
 G_END_DECLS
 

@@ -126,6 +126,7 @@ JMCanbus* jm_canbus_new(void)
     obj->pack = _jm_canbus_pack;
     obj->unpack = _jm_canbus_unpack;
     obj->set_options = _jm_canbus_set_options;
+    obj->free = NULL;
 
     obj->set_lines = NULL;
     obj->set_filter = NULL;
@@ -138,6 +139,8 @@ void jm_canbus_free(JMCanbus *self)
     g_return_if_fail(self != NULL);
 
     g_ptr_array_free(self->id_array, FALSE);
+    if (self->free != NULL)
+        self->free(self->user_data);
 
     g_free(self);
 }

@@ -1592,6 +1592,11 @@ static gint32 _jm_v1_box_c168_serial_port_flow_control(JMV1Box *self)
     return JM_SP_FC_NONE;
 }
 
+static void _jm_v1_box_c168_free(gpointer user_data)
+{
+    g_free(user_data);
+}
+
 JMV1Box* jm_v1_box_c168_new(JMV1Shared *shared)
 {
     JMV1Box *obj = jm_v1_box_new(shared);
@@ -1647,18 +1652,11 @@ JMV1Box* jm_v1_box_c168_new(JMV1Shared *shared)
     obj->stop_now = _jm_v1_box_c168_stop_now;
     obj->turn_over_one_by_one = _jm_v1_box_c168_turn_over_one_by_one;
     obj->update_buff = _jm_v1_box_c168_update_buff;
+    obj->free = _jm_v1_box_c168_free;
 
     obj->box_type = JM_V1_BOX_C168;
 
     return obj;
 }
 
-void jm_v1_box_c168_free(JMV1Box *self)
-{
-    g_return_if_fail(self != NULL);
 
-    g_free(self->user_data);
-    self->user_data = NULL;
-
-    jm_v1_box_free(self);
-}

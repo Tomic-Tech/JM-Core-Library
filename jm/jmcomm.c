@@ -19,6 +19,7 @@ JMComm* jm_comm_new(void)
     obj->start_keep_link = NULL;
     obj->set_keep_link = NULL;
     obj->set_timeout = NULL;
+    obj->free = NULL;
     obj->prc_type = JM_PRC_UNKNOW;
     obj->user_data = NULL;
     return obj;
@@ -27,6 +28,9 @@ JMComm* jm_comm_new(void)
 void jm_comm_free(JMComm *self)
 {
     g_return_if_fail(self != NULL);
+    if (self->free != NULL)
+        self->free(self->user_data);
+
     g_free(self);
 }
 

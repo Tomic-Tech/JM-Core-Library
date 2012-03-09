@@ -11,7 +11,6 @@
 G_BEGIN_DECLS
 
 JMKWP1281* jm_v1_kwp1281_new(JMV1Box *box);
-void jm_v1_kwp1281_free(JMKWP1281 *self);
 size_t jm_v1_kwp1281_send_one_frame(JMKWP1281 *self, const guint8 *data, size_t count);
 size_t jm_v1_kwp1281_send_frames(JMKWP1281 *self, const guint8 *data, size_t count);
 size_t jm_v1_kwp1281_read_one_frame(JMKWP1281 *self, guint8 *data);

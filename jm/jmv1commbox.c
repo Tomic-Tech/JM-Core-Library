@@ -241,7 +241,19 @@ static void _jm_comm_destroy(gpointer data)
     JMComm *comm = (JMComm*)data;
     g_return_if_fail(data != NULL);
 
-    jm_v1_comm_free(comm);
+    jm_comm_free(comm);
+}
+
+static void _jm_v1_commbox_free(gpointer user_data)
+{
+    JMV1Commbox *v1 = (JMV1Commbox *)user_data;
+
+    jm_v1_box_free(v1->c168);
+    jm_v1_box_free(v1->w80);
+    g_hash_table_unref(v1->w80_prc_hash);
+    g_hash_table_unref(v1->c168_prc_hash);
+
+    g_free(user_data);
 }
 
 JMCommbox* jm_v1_commbox_new(void)
@@ -263,6 +275,7 @@ JMCommbox* jm_v1_commbox_new(void)
         _jm_v1_commbox_serial_port_change_config;
     obj->check_serial_port_change_config = 
         _jm_v1_commbox_check_serial_port_change_config;
+    obj->free = _jm_v1_commbox_free;
     obj->version = JM_COMMBOX_V1;
     obj->user_data = v1;
     v1->current_box = 0;
@@ -288,20 +301,3 @@ JMCommbox* jm_v1_commbox_new(void)
     return obj;
 }
 
-void jm_v1_commbox_free(JMCommbox *self)
-{
-    JMV1Commbox *v1 = NULL;
-    g_return_if_fail(self != NULL);
-
-    v1 = (JMV1Commbox *)self->user_data;
-
-    jm_v1_box_c168_free(v1->c168);
-    jm_v1_box_w80_free(v1->w80);
-    g_hash_table_unref(v1->w80_prc_hash);
-    g_hash_table_unref(v1->c168_prc_hash);
-
-    g_free(self->user_data);
-    self->user_data = NULL;
-
-    jm_commbox_free(self);
-}

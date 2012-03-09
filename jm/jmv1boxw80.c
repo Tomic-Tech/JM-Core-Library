@@ -985,6 +985,11 @@ static gboolean _jm_v1_box_w80_check_serial_port_change_config(
     return TRUE;
 }
 
+static void _jm_v1_box_w80_free(gpointer user_data)
+{
+    g_free(user_data);
+}
+
 JMV1Box* jm_v1_box_w80_new(JMV1Shared *shared)
 {
     JMV1Box *obj = jm_v1_box_new(shared);
@@ -1027,18 +1032,11 @@ JMV1Box* jm_v1_box_w80_new(JMV1Shared *shared)
     obj->stop_now = _jm_v1_box_w80_stop_now;
     obj->turn_over_one_by_one = _jm_v1_box_w80_turn_over_one_by_one;
     obj->update_buff = _jm_v1_box_w80_update_buff;
+    obj->free = _jm_v1_box_w80_free;
 
     obj->box_type = JM_V1_BOX_W80;
 
     return obj;
 }
 
-void jm_v1_box_w80_free(JMV1Box *self)
-{
-    g_return_if_fail(self != NULL);
 
-    g_free(self->user_data);
-    self->user_data = NULL;
-
-    jm_v1_box_free(self);
-}

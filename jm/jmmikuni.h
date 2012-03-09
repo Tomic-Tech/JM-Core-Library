@@ -18,6 +18,7 @@ struct _JMMikuni
     size_t (*pack)(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
     size_t (*unpack)(JMMikuni *self, const guint8 *src, size_t count, guint8 *tar);
     gint32 (*init)(JMMikuni *self);
+    void (*free)(gpointer user_data);
 
     gpointer user_data;
 };

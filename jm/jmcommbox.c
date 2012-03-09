@@ -51,6 +51,7 @@ JMCommbox *jm_commbox_new(void)
         _jm_commbox_serial_port_change_config;
     obj->check_serial_port_change_config = 
         _jm_commbox_check_serial_port_change_config;
+    obj->free = NULL;
     obj->version = JM_COMMBOX_UNKNOW;
     obj->user_data = NULL;
     return obj;
@@ -59,6 +60,10 @@ JMCommbox *jm_commbox_new(void)
 void jm_commbox_free(JMCommbox *self)
 {
     g_return_if_fail(self != NULL);
+
+    if (self->free != NULL)
+        self->free(self->user_data);
+
     g_free(self);
 }
 

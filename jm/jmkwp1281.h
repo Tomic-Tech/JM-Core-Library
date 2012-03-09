@@ -19,6 +19,7 @@ struct _JMKWP1281
     size_t (*unpack)(JMKWP1281* self, const guint8 *src, size_t count, guint8 *tar);
     gint32 (*addr_init)(JMKWP1281 *self, guint8 addr_code);
     gint32 (*set_lines)(JMKWP1281 *self, gint32 com_line, gboolean l_line);
+    void (*free)(gpointer user_data);
     guint8 frame_counter;
 
     gpointer user_data;

@@ -17,7 +17,7 @@ static gint32 _jm_kwp2000_set_options(JMKWP2000 *self, JMKWPMode msg_mode,
 }
 
 static gint32 _jm_kwp2000_set_address(JMKWP2000 *self, 
-    guint32 target_address, guint32 source_address)
+    guint8 target_address, guint8 source_address)
 {
     g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
@@ -152,6 +152,14 @@ JMKWP2000 *jm_kwp2000_new(void)
 {
     JMKWP2000 *obj = (JMKWP2000*)g_malloc(sizeof(JMKWP2000));
 
+    obj->set_options = _jm_kwp2000_set_options;
+    obj->set_address = _jm_kwp2000_set_address;
+    obj->pack = _jm_kwp2000_pack;
+    obj->unpack = _jm_kwp2000_unpack;
+    obj->addr_init = NULL;
+    obj->fast_init = NULL;
+    obj->set_lines = NULL;
+    obj->free = NULL;
     obj->user_data = NULL;
 
     return obj;
@@ -160,6 +168,8 @@ JMKWP2000 *jm_kwp2000_new(void)
 void jm_kwp2000_free(JMKWP2000 *self)
 {
     g_return_if_fail(self != NULL);
+    if (self->free != NULL)
+        self->free(self->user_data);
 
     g_free(self);
 }

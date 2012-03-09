@@ -11,7 +11,6 @@
 G_BEGIN_DECLS
 
 JMCanbus* jm_v1_iso15765_new(JMV1Box *box);
-void jm_v1_iso15765_free(JMCanbus *self);
 gboolean jm_v1_iso15765_prepare(JMCanbus *self);
 size_t jm_v1_iso15765_send_one_frame(JMCanbus *self, const guint8 *data, size_t count);
 size_t jm_v1_iso15765_send_frames(JMCanbus *self, const guint8 *data, size_t count);
