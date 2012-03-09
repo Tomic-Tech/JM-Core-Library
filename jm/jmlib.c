@@ -721,13 +721,14 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path,
     GString *real_name = NULL;
     JMCommbox *box = NULL;
     gboolean ret = TRUE;
+    gchar *log_pw = NULL;
 
     if (!_jm_open_db_first(path, db_name))
     {
         return FALSE;
     }
 
-#if 0
+#if 0 /* Will run when commbox finish. */
     if (!_jm_open_commbox_second())
     {
         return FALSE;
@@ -736,23 +737,29 @@ gboolean jm_load_vehicle_script(const gchar *name, const gchar *path,
 
     box = jm_commbox_factory_create_commbox();
 
-#ifndef JM_SDK
-    real_name = g_string_new(name);
-    real_name = g_string_append(real_name, ".bin");
-
-    if (_jm_load_lua_script(real_name->str, path))
+    log_pw = jm_auth_decrypt_log_pw();
+    if (log_pw == NULL)
     {
-        goto EXIT;
-    }
+        real_name = g_string_new(name);
+        real_name = g_string_append(real_name, ".bin");
 
-#else
-    real_name = g_string_new(name);
-    real_name = g_string_append(real_name, ".lua");
-    if (_jm_load_lua_script(real_name->str, path))
-    {
-        goto EXIT;
+        if (_jm_load_lua_script(real_name->str, path))
+        {
+            goto EXIT;
+        }
+
     }
-#endif
+    else
+    {
+        g_free(log_pw);
+        real_name = g_string_new(name);
+        real_name = g_string_append(real_name, ".lua");
+        if (_jm_load_lua_script(real_name->str, path))
+        {
+            goto EXIT;
+        }
+
+    }
     ret = FALSE;
 EXIT:
     _jm_lib_commbox_close_thread = g_thread_create(_jm_commbox_close, box, 

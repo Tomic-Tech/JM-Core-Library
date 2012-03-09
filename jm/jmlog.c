@@ -1,12 +1,11 @@
 #include "jmlog.h"
+#include "jmauth.h"
 
 #ifdef _MSC_VER
 #include <Windows.h>
 #endif
 
-#ifdef JM_SDK
 static GIOChannel *log_file = NULL;
-#endif
 
 #define JM_LOG_DOMAIN "JMLib"
 
@@ -23,36 +22,35 @@ static void _jm_log_debug_handler(const gchar   *log_domain,
         g_free(uni_msg);
     }
 #endif
-#ifdef JM_SDK
     {
         gsize bytes_written;
         g_io_channel_write_chars(log_file, message, 
             g_utf8_strlen(message, -1), &bytes_written, NULL);
         g_io_channel_flush(log_file, NULL);
     }
-
-#endif
 }
 
 void jm_log_init(void)
 {
     g_log_set_handler(JM_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, 
         _jm_log_debug_handler, NULL);
-#ifdef JM_SDK
     log_file = g_io_channel_new_file("./log", "a", NULL);
-#endif
 }
 
 void jm_log_destroy(void)
 {
-#ifdef JM_SDK
     g_io_channel_shutdown(log_file, TRUE, NULL);
     g_io_channel_unref(log_file);
-#endif
 }
 
 static void _jm_log_write(JMLogLevel l, const gchar *str)
 {
+    gchar *log_pw = jm_auth_decrypt_log_pw();
+    
+    if (log_pw == NULL)
+        return;
+    g_free(log_pw);
+
     switch(l)
     {
     case JM_LOG_UNKNOW:
@@ -94,6 +92,7 @@ void jm_log_write(JMLogLevel l, const gchar *tag, const gchar *msg)
     GTimeVal time;
     gchar *str = NULL;
     GString *temp = NULL;
+
     g_get_current_time(&time);
     str = g_time_val_to_iso8601(&time);
     temp = g_string_new(str);

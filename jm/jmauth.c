@@ -1,4 +1,5 @@
 #include <openssl/rsa.h>
+#include <openssl/des.h>
 #include <openssl/err.h>
 #include <string.h>
 #include <stdlib.h>
@@ -135,7 +136,7 @@ static gchar** _jm_auth_decrypt(void)
         goto RETURN;
     }
 
-    cipher = g_base64_decode(file_text, &length);
+    cipher = (gchar*)g_base64_decode(file_text, &length);
 
     if (cipher == NULL || length <= 0)
     {
@@ -146,7 +147,8 @@ static gchar** _jm_auth_decrypt(void)
     recovered = (gchar *)g_malloc(flen);
     memset(recovered, 0, flen);
 
-    ret = RSA_private_decrypt(length, cipher, recovered, _jm_auth_rsa, 
+    ret = RSA_private_decrypt(length, (const unsigned char*)cipher, 
+        (unsigned char*)recovered, _jm_auth_rsa, 
         RSA_PKCS1_OAEP_PADDING);
     if (ret < 0)
     {
@@ -160,7 +162,7 @@ static gchar** _jm_auth_decrypt(void)
 
     length = g_strv_length(result);
 
-    if (length != (CRYPT_MESSAGE_LINES + 1))
+    if (length < (CRYPT_MESSAGE_LINES + 1))
     {
         g_strfreev(result);
         result = NULL;
@@ -225,8 +227,14 @@ gchar* jm_auth_decrypt(size_t index)
 {
     gchar ** vec = _jm_auth_decrypt();
     GString *str = NULL;
+    size_t length = g_strv_length(vec);
 
     if (vec == NULL)
+    {
+        return NULL;
+    }
+
+    if (index >= length)
     {
         return NULL;
     }
@@ -234,6 +242,12 @@ gchar* jm_auth_decrypt(size_t index)
     str = g_string_new(vec[index]);
 
     g_strfreev(vec);
+
+    if (str->len == 0)
+    {
+        g_string_free(str, TRUE);
+        return NULL;
+    }
 
     return g_string_free(str, FALSE);
 }
@@ -244,4 +258,21 @@ gboolean jm_auth_check_reg(void)
     gboolean ret = vec != NULL ? FALSE : TRUE;
     g_strfreev(vec);
     return ret;
+}
+
+#define JM_AUTH_DES_KEY_LENGTH 24
+
+gchar* jm_auth_encrypt_log_text(const gchar *log)
+{
+    gchar *log_pw = jm_auth_decrypt_log_pw();
+    if (log_pw == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        GString *str = g_string_new(log);
+        g_free(log_pw);
+        return g_string_free(str, FALSE);
+    }
 }

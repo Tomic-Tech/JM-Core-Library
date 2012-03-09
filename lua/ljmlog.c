@@ -1,4 +1,6 @@
 #include <jm/jmlog.h>
+#include <jm/jmauth.h>
+#include <openssl/des.h>
 
 #define LUA_LIB
 
@@ -18,7 +20,7 @@ static int _lua_jm_log_write_hex(lua_State *L)
 {
     size_t l;
     const gchar *text = luaL_checklstring(L, 1, &l);
-    jm_log_write_hex(JM_LOG_DEBUG, "Lua Debug", text, l);
+    jm_log_write_hex(JM_LOG_DEBUG, "Lua Debug", (const guint8*)text, l);
     return 0;
 }
 

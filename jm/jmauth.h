@@ -21,6 +21,8 @@ gchar* jm_auth_decrypt(size_t index);
 #define jm_auth_decrypt_expire_time() jm_auth_decrypt(3)
 #define jm_auth_decrypt_db_pw() jm_auth_decrypt(4)
 #define jm_auth_decrypt_lang() jm_auth_decrypt(5)
+#define jm_auth_decrypt_log_pw() jm_auth_decrypt(6)
+gchar* jm_auth_encrypt_log_text(const gchar *log);
 GLIB_VAR gboolean jm_auth_check_reg(void);
 
 G_END_DECLS
