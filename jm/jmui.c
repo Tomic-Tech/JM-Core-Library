@@ -384,7 +384,7 @@ gchar* jm_ui_get_btn_clicked(gboolean is_blocked)
     {
         GTimeVal time_val;
         g_get_current_time(&time_val);
-        g_time_val_add(&time_val, 1000);
+        g_time_val_add(&time_val, 4000);
         g_cond_timed_wait(_jm_ui_btn_cond, _jm_ui_btn_mutex, &time_val);
         if (_jm_ui_btn_clicked == NULL)
         {
@@ -396,6 +396,7 @@ gchar* jm_ui_get_btn_clicked(gboolean is_blocked)
         }
     }
     g_mutex_unlock(_jm_ui_btn_mutex);
+    //g_usleep(3000);
     return ret;
 }
 

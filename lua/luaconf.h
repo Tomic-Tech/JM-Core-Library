@@ -94,8 +94,10 @@
 #define LUA_PATH_DEFAULT  \
 		LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua;" ".\\?.lua;" \
-        LUA_CDIR".\\Vehicles\\?.lua;" \
-        LUA_CDIR".\\Vehicles\\?.bin;"
+        LUA_CDIR"vehicles\\?.lua;" \
+        LUA_CDIR"vehicles\\?.bin;"
+//LUA_CDIR".\\vehicles\\?.lua;" \
+//LUA_CDIR".\\vehicles\\?.bin;"
 #define LUA_CPATH_DEFAULT \
 		LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll;" ".\\?.dll"
 
