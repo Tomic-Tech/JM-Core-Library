@@ -102,6 +102,30 @@ static size_t _jm_canbus_unpack(JMCanbus *self, const guint8 *src,
     return length;
 }
 
+static gint32 _jm_canbus_set_lines(JMCanbus *self, gint32 high, gint32 low)
+{
+    g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
+
+    self->high = high;
+    self->low = low;
+
+    return JM_ERROR_SUCCESS;
+}
+
+static gint32 _jm_canbus_set_filter(JMCanbus *self, const gint32 *id_array, 
+    size_t count)
+{
+    size_t i;
+    g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
+    g_ptr_array_set_size(self->id_array, 0);
+
+    for (i = 0; i < count; i++)
+    {
+        g_ptr_array_add(self->id_array, GINT_TO_POINTER(id_array[i]));
+    }
+    return JM_ERROR_SUCCESS;
+}
+
 JMCanbus* jm_canbus_new(void)
 {
     JMCanbus *obj = (JMCanbus*)g_malloc(sizeof(JMCanbus));
@@ -128,8 +152,9 @@ JMCanbus* jm_canbus_new(void)
     obj->set_options = _jm_canbus_set_options;
     obj->free = NULL;
 
-    obj->set_lines = NULL;
-    obj->set_filter = NULL;
+    obj->set_lines = _jm_canbus_set_lines;
+    obj->set_filter = _jm_canbus_set_filter;
+    obj->set_options = _jm_canbus_set_options;
 
     return obj;
 }

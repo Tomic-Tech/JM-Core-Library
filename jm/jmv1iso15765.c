@@ -74,7 +74,7 @@ struct _JMV1ISO15765
     JMV1Box *box;
 };
 
-void _jm_v1_iso15765_finish_execute(JMCanbus *self, gboolean is_finish)
+static void _jm_v1_iso15765_finish_execute(JMCanbus *self, gboolean is_finish)
 {
     g_return_if_fail(self != NULL);
 
@@ -87,30 +87,7 @@ void _jm_v1_iso15765_finish_execute(JMCanbus *self, gboolean is_finish)
     }
 }
 
-gint32 _jm_v1_iso15765_set_lines(JMCanbus *self, gint32 high, gint32 low)
-{
-    g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
-
-    self->high = high;
-    self->low = low;
-
-    return JM_ERROR_SUCCESS;
-}
-
-gint32 _jm_v1_iso15765_set_filter(JMCanbus *self, const gint32 *id_array, 
-    size_t count)
-{
-    size_t i;
-    g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
-    g_ptr_array_set_size(self->id_array, 0);
-
-    for (i = 0; i < count; i++) {
-        g_ptr_array_add(self->id_array, GINT_TO_POINTER(id_array[i]));
-    }
-    return JM_ERROR_SUCCESS;
-}
-
-gint32 _jm_v1_iso15765_set_options(JMCanbus *self, 
+static gint32 _jm_v1_iso15765_set_options(JMCanbus *self, 
     gint32 id, 
     JMCanbusBaud baud, 
     JMCanbusIDMode id_mode, 
@@ -463,8 +440,6 @@ JMCanbus* jm_v1_iso15765_new(JMV1Box *box)
     v1->box = box;
 
     obj->user_data = v1;
-    obj->set_filter = _jm_v1_iso15765_set_filter;
-    obj->set_lines = _jm_v1_iso15765_set_lines;
     obj->set_options = _jm_v1_iso15765_set_options;
     obj->free = _jm_v1_iso15765_free;
     return obj;

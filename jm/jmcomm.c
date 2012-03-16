@@ -7,10 +7,16 @@ static gint32 _jm_comm_set_keep_link_array(JMComm *self,
     return self->set_keep_link(self, data->data, data->len);
 }
 
+static gpointer _jm_comm_get_protocol(JMComm *self)
+{
+    g_return_val_if_fail(self != NULL, NULL);
+    return self->prc;
+}
+
 JMComm* jm_comm_new(void)
 {
     JMComm *obj = (JMComm*)g_malloc(sizeof(JMComm));
-    obj->get_protocol = NULL;
+    obj->get_protocol = _jm_comm_get_protocol;
     obj->send_one_frame = NULL;
     obj->send_frames = NULL;
     obj->read_one_frame = NULL;
@@ -30,6 +36,8 @@ void jm_comm_free(JMComm *self)
     g_return_if_fail(self != NULL);
     if (self->free != NULL)
         self->free(self->user_data);
+    if (self->prc_free != NULL)
+        self->prc_free(self->prc);
 
     g_free(self);
 }
