@@ -1,6 +1,5 @@
 #include <jni.h>
-#include "jmldarray.h"
-#include "jmdb.h"
+#include <jm/jmlib.h>
 
 JNIEXPORT jstring Java_jm_core_LDArray_nativeGetShortName(JNIEnv *env, 
     jclass cls, jint index)

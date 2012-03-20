@@ -1,5 +1,4 @@
-#include <jm/jmui.h>
-#include <jm/jmldarray.h>
+#include <jm/jmlib.h>
 
 #define LUA_LIB
 

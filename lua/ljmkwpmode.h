@@ -5,9 +5,10 @@
 #pragma once
 #endif
 
-#include <jm/jmkwp2000.h>
+#include <jm/jmlib.h>
 
-typedef struct _LuaJMKWPMode {
+typedef struct _LuaJMKWPMode
+{
     const gchar *name;
     JMKWPMode mode;
 } LuaJMKWPMode;

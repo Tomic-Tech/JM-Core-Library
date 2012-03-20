@@ -1,13 +1,7 @@
 #include <glib/gthread.h>
 #include "jmvehicle.h"
 #include "jmserialport.h"
-#include "jmlog.h"
-#include "jmsys.h"
-#include "jmauth.h"
-#include "jmdb.h"
-#include "jmcommboxport.h"
-#include "jmcommboxfactory.h"
-#include "jmui.h"
+#include "jmlib.h"
 
 static GString *_jm_vehicle_path = NULL;
 static GThread *_jm_vehicle_commbox_close_thread = NULL;
@@ -84,74 +78,6 @@ static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name)
     return ret;
 }
 
-static void _jm_open_commbox_sp(void)
-{
-    JMStringArray *vec = NULL;
-    JMSerialPort *port = (JMSerialPort*)jm_commbox_port_get_pointer();
-    size_t vec_length = 0;
-    size_t i;
-    gint32 err = 0;
-    JMCommbox *box = NULL;
-    gboolean ret = TRUE;
-
-    if (port == NULL)
-        return;
-
-    vec = jm_serial_port_get_system_ports();
-    vec_length = jm_string_array_size(vec);
-    box = jm_commbox_factory_create_commbox();
-
-    for (i = 0; i < vec_length; i++)
-    {
-        jm_serial_port_set_port_name(port, jm_string_array_get(vec, i));
-        if (jm_commbox_serial_port_change_config(box))
-        {
-            jm_serial_port_set_baudrate(port, 
-                jm_commbox_serial_port_baud(box));
-            jm_serial_port_set_databits(port, 
-                jm_commbox_serial_port_databits(box));
-            jm_serial_port_set_flow_control(port, 
-                jm_commbox_serial_port_flow_control(box));
-            jm_serial_port_set_parity(port, 
-                jm_commbox_serial_port_parity(box));
-            jm_serial_port_set_stopbits(port, 
-                jm_commbox_serial_port_stopbits(box));
-            jm_serial_port_open(port);
-            jm_serial_port_set_dtr(port, TRUE);
-        }
-
-        err = jm_commbox_open(box);
-        if (err == JM_ERROR_SUCCESS)
-        {
-            if (jm_commbox_serial_port_change_config(box))
-            {
-                jm_serial_port_set_baudrate(port, 
-                    jm_commbox_serial_port_baud(box));
-                if (jm_commbox_check_serial_port_change_config(box))
-                {
-                    break;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-        else if (err == JM_ERROR_COMMBOX_TRY_AGAIN)
-        {
-            jm_serial_port_close(port);
-            continue;
-        }
-        else
-        {
-            jm_serial_port_close(port);
-            i++;
-        }
-    }
-
-    jm_string_array_free(vec);
-}
-
 static void _jm_open_commbox_second(void)
 {
     gchar *text = jm_sys_text("OpenCommbox");
@@ -159,10 +85,9 @@ static void _jm_open_commbox_second(void)
     jm_ui_msg_box_set_msg(text);
     g_free(text);
     jm_ui_msg_box_show();
-    if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
-    {
-        _jm_open_commbox_sp();
-    }
+
+    jm_commbox_open();
+
     jm_ui_msg_box_hide();
 }
 
@@ -700,7 +625,7 @@ static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
 
 static gpointer _jm_commbox_close(gpointer data)
 {
-    jm_commbox_close((JMCommbox*)data);
+    jm_commbox_close();
     return NULL;
 }
 
@@ -708,7 +633,6 @@ gboolean jm_vehicle_load_script(const gchar *name, const gchar *path,
     const gchar *db_name)
 {
     GString *real_name = NULL;
-    JMCommbox *box = NULL;
     gboolean ret = TRUE;
     gchar *log_pw = NULL;
 
@@ -718,8 +642,6 @@ gboolean jm_vehicle_load_script(const gchar *name, const gchar *path,
     }
 
     _jm_open_commbox_second();
-
-    box = jm_commbox_factory_create_commbox();
 
     log_pw = jm_auth_decrypt_log_pw();
     if (log_pw == NULL)
@@ -746,8 +668,7 @@ gboolean jm_vehicle_load_script(const gchar *name, const gchar *path,
     }
     ret = FALSE;
 EXIT:
-    _jm_vehicle_commbox_close_thread = g_thread_create(_jm_commbox_close, box, 
-        TRUE, NULL);
+    _jm_vehicle_commbox_close_thread = g_thread_create(_jm_commbox_close, NULL, TRUE, NULL);
     g_string_free(real_name, TRUE);
     return ret;
 }

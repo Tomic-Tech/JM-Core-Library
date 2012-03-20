@@ -6,7 +6,7 @@
 #endif
 
 #include <glib.h>
-#include <jm/jmcanbus.h>
+#include <jm/jmlib.h>
 
 typedef struct _LuaJMCanbusBaud {
     const char *name;

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <jm/jmlog.h>
+#include <jm/jmlib.h>
 
 #define lbaselib_c
 #define LUA_LIB

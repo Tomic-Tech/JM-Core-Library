@@ -1,10 +1,12 @@
 #include "jmv2iso15765.h"
+#include <string.h>
 #include "jmerror.h"
 #include "jmv2boxoption.h"
 #include "jmv2default.h"
 #include "jmtimer.h"
 #include "jmutils.h"
 #include "jmerror.h"
+
 
 JMCanbus* jm_v2_iso15765_new(void)
 {

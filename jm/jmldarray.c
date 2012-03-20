@@ -1,5 +1,4 @@
-#include "jmldarray.h"
-#include "jmdb.h"
+#include <jm/jmlib.h>
 
 static GMutex *_jm_ld_array_mutex = NULL;
 static JMLDArray *_jm_ld_array = NULL;

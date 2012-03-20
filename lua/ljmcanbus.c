@@ -1,4 +1,3 @@
-#include <jm/jmcanbus.h>
 #include "ljmcanbus.h"
 
 LuaJMCanbusBaud lua_jm_canbus_baud[16] = {

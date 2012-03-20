@@ -1,5 +1,4 @@
-#include <jm/jmlog.h>
-#include <jm/jmauth.h>
+#include <jm/jmlib.h>
 #include <openssl/des.h>
 
 #define LUA_LIB

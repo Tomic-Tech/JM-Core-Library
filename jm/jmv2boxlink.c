@@ -3,18 +3,23 @@
 #include "jmv2boxbuffer.h"
 #include "jmserialport.h"
 
+static gboolean _jm_v2_box_link_is_connected = FALSE;
+
 gboolean jm_v2_box_link_open(void)
 {
+    _jm_v2_box_link_is_connected = TRUE;
+    jm_v2_box_link_reset();
     return TRUE;
 }
 
 void jm_v2_box_link_close(void)
 {
+    _jm_v2_box_link_is_connected = FALSE;
 }
 
 gboolean jm_v2_box_link_is_connected(void)
 {
-    return TRUE;
+    return _jm_v2_box_link_is_connected;
 }
 
 size_t _jm_v2_box_link_read(guint8 *buffer, size_t length, gint64 microseconds)
@@ -76,7 +81,7 @@ size_t jm_v2_box_link_send(size_t length)
 
 void jm_v2_box_link_reset(void)
 {
-    JMSerialPort *port = jm_commbox_port_get_pointer();
+    JMSerialPort *port = (JMSerialPort*)jm_commbox_port_get_pointer();
 
     if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
     {
@@ -84,7 +89,7 @@ void jm_v2_box_link_reset(void)
         g_usleep(1000);
         jm_serial_port_set_rts(port, FALSE);
         g_usleep(1000);
-        jm_serial_port_discard_in_buffer(port);
+        //jm_serial_port_discard_in_buffer(port);
     }
 }
 

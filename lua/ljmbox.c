@@ -1,4 +1,4 @@
-#include <jm/jmcommboxfactory.h>
+#include <jm/jmlib.h>
 
 #define LUA_LIB
 
@@ -74,16 +74,20 @@ static struct {
 static int _lua_jm_commbox_configure(lua_State *L) {
     size_t i = 0;
     size_t l = 0;
-    JMCommbox *box = jm_commbox_factory_create_commbox();
     const gchar* prc = luaL_checklstring(L, 1, &l);
     while (_lua_jm_protocol_type[i].name != NULL &&
-        g_ascii_strncasecmp(prc, _lua_jm_protocol_type[i].name, l) != 0) {
-            i++;
+        g_ascii_strncasecmp(prc, _lua_jm_protocol_type[i].name, l) != 0)
+    {
+        i++;
     }
-    if (_lua_jm_protocol_type[i].name == NULL) {
+    if (_lua_jm_protocol_type[i].name == NULL)
+    {
         lua_pushboolean(L, 0);
-    } else {
-        if (jm_commbox_configure(box, _lua_jm_protocol_type[i].type) == NULL) {
+    }
+    else
+    {
+        if (jm_commbox_configure(_lua_jm_protocol_type[i].type) != JM_ERROR_SUCCESS)
+        {
             lua_pushboolean(L, 0);
         }
     }
@@ -91,21 +95,27 @@ static int _lua_jm_commbox_configure(lua_State *L) {
     return 1;
 }
 
-static int _lua_jm_commbox_set_connector(lua_State *L) {
+static int _lua_jm_commbox_set_connector(lua_State *L)
+{
     size_t i = 0;
     size_t l = 0;
-    JMCommbox *box = jm_commbox_factory_create_commbox();
+
     const gchar *cn = luaL_checklstring(L, 1, &l);
 
     while (_lua_jm_connector[i].name != NULL &&
-        g_ascii_strncasecmp(cn, _lua_jm_connector[i].name, l) != 0) {
-            i++;
+        g_ascii_strncasecmp(cn, _lua_jm_connector[i].name, l) != 0)
+    {
+        i++;
     }
 
-    if (_lua_jm_connector[i].name == NULL) {
+    if (_lua_jm_connector[i].name == NULL)
+    {
         lua_pushboolean(L, 0);
-    } else {
-        if (jm_commbox_set_connector(box, _lua_jm_connector[i].connector) != JM_ERROR_SUCCESS) {
+    }
+    else
+    {
+        if (jm_commbox_set_connector(_lua_jm_connector[i].connector) != JM_ERROR_SUCCESS)
+        {
             lua_pushboolean(L, 0);
         }
     }
@@ -113,13 +123,15 @@ static int _lua_jm_commbox_set_connector(lua_State *L) {
     return 1;
 }
 
-static const luaL_Reg _lua_jm_box_lib[] = {
+static const luaL_Reg _lua_jm_box_lib[] =
+{
     {"configure", _lua_jm_commbox_configure},
     {"setConnector", _lua_jm_commbox_set_connector},
     {NULL, NULL}
 };
 
-LUALIB_API int luaopen_jmbox(lua_State *L) {
+LUALIB_API int luaopen_jmbox(lua_State *L)
+{
     luaL_newlib(L, _lua_jm_box_lib);
     return 1;
 }

@@ -1,4 +1,4 @@
-#include <jm/jmdb.h>
+#include <jm/jmlib.h>
 
 #define LUA_LIB
 
