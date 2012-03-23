@@ -48,23 +48,30 @@ namespace JM
 
             gint32 open()
             {
-                if (_currentBox == &_c168)
-                {
-                    if (!_c168.openComm())
-                    {
-                        _currentBox = &_w80;
-                        return JM_ERROR_COMMBOX_TRY_AGAIN;
-                    }
-                }
-                else
-                {
-                    if (!_w80.openComm())
-                    {
-                        _currentBox = &_c168;
-                        return JM_ERROR_COMMBOX_OPEN_FAIL;
-                    }
-                }
-                return JM_ERROR_SUCCESS;
+				while (TRUE)
+				{
+					if (_currentBox == &_c168)
+					{
+						if (!_c168.openComm())
+						{
+							_currentBox = &_w80;
+							_c168.closeComm();
+							continue;
+						}
+						break;
+					}
+					else
+					{
+						if (!_w80.openComm())
+						{
+							_currentBox = &_c168;
+							_w80.closeComm();
+							return JM_ERROR_COMMBOX_OPEN_FAIL;
+						}
+						break;
+					}
+				}
+				return JM_ERROR_SUCCESS;
             }
 
             gint32 close()

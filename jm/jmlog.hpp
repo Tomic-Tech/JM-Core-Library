@@ -61,7 +61,7 @@ namespace JM
             : _file(NULL)
         {
             g_log_set_handler(JM_LOG_DOMAIN, G_LOG_LEVEL_DEBUG,
-                debugHandler, NULL);
+                debugHandler, this);
             _file = g_io_channel_new_file("./log", "a", NULL);
         }
 

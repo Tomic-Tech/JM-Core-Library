@@ -29,8 +29,8 @@ namespace JM
             {
                 guint8 sendBuff[256];
                 size_t length = _protocol->pack(data, count, sendBuff);
-                _shared->buff_id = 0;
-                if (_box->newBatch(_shared->buff_id))
+                _shared->buffID = 0;
+                if (_box->newBatch(_shared->buffID))
                 {
                     return 0;
                 }
@@ -42,7 +42,7 @@ namespace JM
                     if (!_box->sendOutData(sendBuff, length) ||
                         !_box->runReceive(BOX::C::RECEIVE) ||
                         !_box->endBatch() ||
-                        !_box->runBatch(&_shared->buff_id, 1, FALSE))
+                        !_box->runBatch(&_shared->buffID, 1, FALSE))
                     {
                         return 0;
                     }
@@ -51,7 +51,7 @@ namespace JM
                 {
                     if (!_box->sendOutData(sendBuff, length) ||
                         !_box->endBatch() ||
-                        !_box->runBatch(&_shared->buff_id, 1, FALSE))
+                        !_box->runBatch(&_shared->buffID, 1, FALSE))
                     {
                         return 0;
                     }

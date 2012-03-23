@@ -21,6 +21,7 @@ namespace JM
             public:
                 Box(V1::Shared *shared)
                     : V1::Box<W80::CONSTANT>(shared)
+                    , _pos(0)
                 {
                 }
 
@@ -101,8 +102,7 @@ namespace JM
                     }
                 }
 
-                gboolean setCommLink(guint8 ctrlWord1, guint8 ctrlWord2, 
-                    guint8 ctrlWord3)
+                gboolean setCommLink(guint8 ctrlWord1, guint8 ctrlWord2, guint8 ctrlWord3)
                 {
                     guint8 ctrlWord[3];
                     guint8 modeControl = ctrlWord1 & 0xE0;
@@ -111,11 +111,11 @@ namespace JM
                     ctrlWord[0] = ctrlWord1;
                     if ((ctrlWord1 & 0x04) != 0)
                     {
-                        _shared->is_db_20 = TRUE;
+                        _shared->isDB20 = TRUE;
                     }
                     else
                     {
-                        _shared->is_db_20 = FALSE;
+                        _shared->isDB20 = FALSE;
                     }
 
                     if (modeControl == C::SET_VPW || 
@@ -147,10 +147,9 @@ namespace JM
                     guint8 baudTime[2];
                     gdouble instructNum = 0;
 
-                    instructNum = ((1000000.0 / _boxTimeUnit) * 1000000) / 
-                        baud;
+                    instructNum = ((1000000.0 / _boxTimeUnit) * 1000000) / baud;
 
-                    if (_shared->is_db_20)
+                    if (_shared->isDB20)
                     {
                         instructNum /= 20;
                     }
@@ -189,8 +188,7 @@ namespace JM
                     }
                     else
                     {
-                        time = (guint32)((time / _timeBaseDB) / 
-                            (_boxTimeUnit / 1000000.0));
+                        time = (guint32)((time / _timeBaseDB) / (_boxTimeUnit / 1000000.0));
                     }
 
                     timeBuff[0] = JM_HIGH_BYTE(time);
@@ -220,8 +218,7 @@ namespace JM
 
                         if (time > 65535)
                         {
-                            time = (guint32)((time * _timeBaseDB) / 
-                                _timeExternDB);
+                            time = (guint32)((time * _timeBaseDB) / _timeExternDB);
                             if (time > 65535)
                             {
                                 return FALSE;
@@ -252,7 +249,7 @@ namespace JM
                 {
                     if (type == C::GET_PORT1)
                     {
-                        _shared->is_db_20 = FALSE;
+                        _shared->isDB20 = FALSE;
                     }
                     return doCmd(type, 0, NULL);
                 }
@@ -289,11 +286,9 @@ namespace JM
 
                 gboolean openComm()
                 {
-                    if (jm_commbox_port_get_type() == 
-                        JM_COMMBOX_PORT_SERIAL_PORT)
+                    if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
                     {
-                        JM::SerialPort *port = 
-                            (JM::SerialPort*)jm_commbox_port_get_pointer();
+                        JM::SerialPort *port = (JM::SerialPort*)jm_commbox_port_get_pointer();
                         JMStringArray *vec = NULL;
                         size_t vec_length = 0;
                         size_t i;
@@ -367,7 +362,7 @@ namespace JM
                 {
                     _pos = 0;
                     _isLink = (buffID == C::LINKBLOCK ? TRUE : FALSE);
-                    _shared->is_do_now = FALSE;
+                    _shared->isDoNow = FALSE;
                     return TRUE;
                 }
 
@@ -375,7 +370,7 @@ namespace JM
                 {
                     int i = 0;
 
-                    _shared->is_do_now = TRUE;
+                    _shared->isDoNow = TRUE;
                     _buf[_pos++] = 0; // 命令块以0x00标记结束 
                     if (_isLink)
                     {
@@ -417,15 +412,14 @@ namespace JM
 
                 gboolean delBatch(guint8 buffID)
                 {
-                    _shared->is_do_now = TRUE;
+                    _shared->isDoNow = TRUE;
 
                     _pos = 0;
                     return TRUE;
 
                 }
 
-                gboolean runBatch(guint8 *buffID, size_t count, 
-                    gboolean isExecuteMany)
+                gboolean runBatch(guint8 *buffID, size_t count, gboolean isExecuteMany)
                 {
                     guint8 cmd;
 
@@ -576,7 +570,7 @@ namespace JM
                         cmd |= count; // 加上长度位 
                     }
 
-                    if (_shared->is_do_now)
+                    if (_shared->isDoNow)
                     {
                         // 发送到BOX执行 
                         if (cmd == C::WR_DATA)
@@ -600,8 +594,7 @@ namespace JM
                             cmd = count;
                             g_byte_array_append(temp, &cmd, 1);
                             g_byte_array_append(temp, buff, count);
-                            ret = sendCmd(C::WR_DATA, 
-                                temp->len, temp->data);
+                            ret = sendCmd(C::WR_DATA, temp->len, temp->data);
                             g_byte_array_free(temp, TRUE);
                             return ret;
                         }
@@ -620,15 +613,13 @@ namespace JM
                             cmd = count - 1; // 命令长度-1 
                             g_byte_array_append(temp, &cmd, 1);
                             g_byte_array_append(temp, buff, count);
-                            ret = sendCmd(C::WR_DATA, 
-                                temp->len, temp->data);
+                            ret = sendCmd(C::WR_DATA, temp->len, temp->data);
                             g_byte_array_free(temp, TRUE);
                             if (!ret)
                             {
                                 return FALSE;
                             }
-                            return sendCmd(C::DO_BAT_C, 0,
-                                NULL);
+                            return sendCmd(C::DO_BAT_C, 0, NULL);
                         }
                         else
                         {
@@ -659,7 +650,7 @@ namespace JM
                     gboolean result = FALSE;
 
                     result = doCmd(cmd, count, buff);
-                    if (result && _shared->is_do_now)
+                    if (result && _shared->isDoNow)
                     {
                         result = checkResult(JM_TIMER_TO_MS(150));
                     }
@@ -688,7 +679,7 @@ namespace JM
                     guint8 run = 0;
 
                     srand((guint8)time(NULL));
-                    _shared->is_do_now = TRUE;
+                    _shared->isDoNow = TRUE;
                     _runFlag = 0;
 
                     for (i = 0; i < 4; i++)
@@ -729,7 +720,7 @@ namespace JM
                     }
 
                     _pos = 0;
-                    _shared->is_db_20 = FALSE;
+                    _shared->isDB20 = FALSE;
                     return TRUE;
                 }
 
@@ -738,8 +729,8 @@ namespace JM
                     guint8 len = 0;
                     guint8 cs = 0;
 
-                    if ((readBytes(receiveBuffer, 1) != 1)
-                        || (readBytes(&len, 1) != 1))
+                    if ((readBytes(receiveBuffer, 1) != 1) ||
+						(readBytes(&len, 1) != 1))
                     {
                         return 0;
                     }
@@ -784,24 +775,23 @@ namespace JM
                 {
                     if (type == C::SETBYTETIME)
                     {
-                        _shared->req_byte_to_byte = time;
+                        _shared->reqByteToByte = time;
                     }
                     else if (type == C::SETRECBBOUT)
                     {
-                        _shared->req_wait_time = time;
+                        _shared->reqWaitTime = time;
                     }
                     else if (type == C::SETRECFROUT)
                     {
-                        _shared->res_byte_to_byte = time;
+                        _shared->resByteToByte = time;
                     }
                     else
                     {
-                        _shared->res_wait_time = time;
+                        _shared->resWaitTime = time;
                     }
                 }
 
-                gboolean setRF(guint8 cmd, 
-                    guint8 data)
+                gboolean setRF(guint8 cmd, guint8 data)
                 {
                     return FALSE;
                 }

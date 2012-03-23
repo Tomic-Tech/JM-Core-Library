@@ -28,7 +28,7 @@ namespace JM
             {
                 if (isFinish)
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     _box->checkResult(JM_TIMER_TO_MS(500));
                 }
             }
@@ -44,7 +44,7 @@ namespace JM
                 guint8 ctrlWord2;
                 guint8 ctrlWord3;
 
-                _shared->buff_id = 0;
+                _shared->buffID = 0;
                 _box->stopNow(TRUE);
                 _box->checkResult(JM_TIMER_TO_MS(50));
 
@@ -71,7 +71,7 @@ namespace JM
 
                 g_usleep(JM_TIMER_TO_MS(1));
 
-                if (!_box->newBatch(_shared->buff_id))
+                if (!_box->newBatch(_shared->buffID))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -89,18 +89,18 @@ namespace JM
                     !_box->runReceive(BOX::C::REC_LEN_1) ||
                     !_box->endBatch())
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
-                if (!_box->runBatch(&_shared->buff_id, 1,  FALSE))
+                if (!_box->runBatch(&_shared->buffID, 1,  FALSE))
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
                 if (_box->readData(temp, 2, JM_TIMER_TO_MS(3500)) != 2)
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
@@ -112,11 +112,11 @@ namespace JM
 
                 if (!_box->checkResult(JM_TIMER_TO_MS(500)))
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->delBatch(_shared->buff_id))
+                if (!_box->delBatch(_shared->buffID))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -160,9 +160,9 @@ namespace JM
                 guint8 sendBuff[256];
                 size_t length;
 
-                _shared->buff_id = 0;
+                _shared->buffID = 0;
 
-                if (!_box->newBatch(_shared->buff_id))
+                if (!_box->newBatch(_shared->buffID))
                 {
                     return 0;
                 }
@@ -189,13 +189,13 @@ namespace JM
                         !_box->turnOverOneByOne() ||
                         !_box->runReceive(BOX::C::REC_LEN_1) ||
                         !_box->endBatch() ||
-                        !_box->runBatch(&_shared->buff_id, 1, FALSE))
+                        !_box->runBatch(&_shared->buffID, 1, FALSE))
                     {
-                        _box->delBatch(_shared->buff_id);
+                        _box->delBatch(_shared->buffID);
                         return 0;
                     }
-                    g_usleep((length * _shared->req_byte_to_byte + 
-                        _shared->req_wait_time) / 1000);
+                    g_usleep((length * _shared->reqByteToByte + 
+                        _shared->reqWaitTime) / 1000);
                 }
                 else
                 {
@@ -208,9 +208,9 @@ namespace JM
                         !_box->runReceive(BOX::C::REC_LEN_1) ||
                         !_box->updateBuff(BOX::C::INC_DATA, _buffIDAddr) ||
                         !_box->endBatch() ||
-                        !_box->runBatch(&_shared->buff_id, 1, FALSE))
+                        !_box->runBatch(&_shared->buffID, 1, FALSE))
                     {
-                        _box->delBatch(_shared->buff_id);
+                        _box->delBatch(_shared->buffID);
                         return 0;
                     }
                 }

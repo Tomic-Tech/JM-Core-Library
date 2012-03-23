@@ -89,12 +89,10 @@ namespace JM
         gint32 _baudrate;
         gboolean _isMultiSetting;
         guint8 _databits;
-        GStaticRecMutex *_mutex;
+        GMutex *_mutex;
 #ifdef G_OS_WIN32
         gint64 _bytesToWrite;
         HANDLE _handle;
-        OVERLAPPED _readOverlap;
-        OVERLAPPED _writeOverlap;
         COMMCONFIG _commConfig;
         COMMTIMEOUTS _commTimeouts;
         DWORD _eventMask;

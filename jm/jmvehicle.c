@@ -35,16 +35,12 @@ void jm_vehicle_set_path(const gchar *software_path)
     {
         if (i != 0)
         {
-            _jm_vehicle_path = g_string_append_c(_jm_vehicle_path, 
-                G_DIR_SEPARATOR);
+            _jm_vehicle_path = g_string_append_c(_jm_vehicle_path, G_DIR_SEPARATOR);
         }
-        _jm_vehicle_path = g_string_append(_jm_vehicle_path, 
-            str_array[i]);
+        _jm_vehicle_path = g_string_append(_jm_vehicle_path, str_array[i]);
     }
-    _jm_vehicle_path = g_string_append_c(_jm_vehicle_path, 
-        G_DIR_SEPARATOR);
-    _jm_vehicle_path = g_string_append(_jm_vehicle_path, 
-        "vehicles");
+    _jm_vehicle_path = g_string_append_c(_jm_vehicle_path, G_DIR_SEPARATOR);
+    _jm_vehicle_path = g_string_append(_jm_vehicle_path, "vehicles");
 
     g_strfreev(str_array);
 }
@@ -60,13 +56,7 @@ static gboolean _jm_open_db_first(const gchar *path, const gchar *db_name)
     gchar *pw = NULL;
     gboolean ret = FALSE;
 
-    g_string_append_printf(abs_db_path, 
-        "%s%s%s%s%s", 
-        G_DIR_SEPARATOR_S, 
-        path, 
-        G_DIR_SEPARATOR_S, 
-        db_name, 
-        ".db");
+    g_string_append_printf(abs_db_path, "%s%s%s%s%s", G_DIR_SEPARATOR_S, path, G_DIR_SEPARATOR_S, db_name, ".db");
 
     pw = jm_auth_decrypt_db_pw();
 
@@ -598,12 +588,7 @@ static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
 
     file_path = g_string_new(_jm_vehicle_path->str);
 
-    g_string_append_printf(file_path, 
-        "%s%s%s%s",
-        G_DIR_SEPARATOR_S,
-        path,
-        G_DIR_SEPARATOR_S,
-        name);
+    g_string_append_printf(file_path, "%s%s%s%s", G_DIR_SEPARATOR_S, path, G_DIR_SEPARATOR_S, name);
 
     argv[0] = "JMScanner";
     argv[1] = file_path->str;
@@ -625,12 +610,19 @@ static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
 
 static gpointer _jm_commbox_close(gpointer data)
 {
+	gchar *text = jm_sys_text("CloseCommbox");
+	jm_ui_msg_box_btn_clr();
+	jm_ui_msg_box_set_msg(text);
+	g_free(text);
+	jm_ui_msg_box_show();
+
     jm_commbox_close();
+
+	jm_ui_msg_box_hide();
     return NULL;
 }
 
-gboolean jm_vehicle_load_script(const gchar *name, const gchar *path, 
-    const gchar *db_name)
+gboolean jm_vehicle_load_script(const gchar *name, const gchar *path, const gchar *db_name)
 {
     GString *real_name = NULL;
     gboolean ret = TRUE;

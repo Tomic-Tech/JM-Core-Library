@@ -62,9 +62,9 @@ namespace JM
                 }
 
                 g_usleep(JM_TIMER_TO_SEC(1));
-                _shared->buff_id = 0;
+                _shared->buffID = 0;
 
-                if (!_box->newBatch(_shared->buff_id))
+                if (!_box->newBatch(_shared->buffID))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -79,11 +79,11 @@ namespace JM
                     !_box->runReceive(BOX::C::REC_FR) ||
                     !_box->endBatch())
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->runBatch(&(_shared->buff_id), 1, FALSE))
+                if (!_box->runBatch(&(_shared->buffID), 1, FALSE))
                     return JM_ERROR_GENERIC;
 
                 length = readOneFrame(packEnter);
@@ -99,7 +99,7 @@ namespace JM
                 if (isFinish)
                 {
                     _box->stopNow(TRUE);
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     _box->checkResult(JM_TIMER_TO_MS(500));
                 }
             }
@@ -124,9 +124,9 @@ namespace JM
 
                 g_usleep(JM_TIMER_TO_SEC(1));
 
-                _shared->buff_id = 0;
+                _shared->buffID = 0;
 
-                if (!_box->newBatch(_shared->buff_id))
+                if (!_box->newBatch(_shared->buffID))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -141,19 +141,19 @@ namespace JM
                     !_box->runReceive(BOX::C::REC_LEN_1) ||
                     !_box->endBatch())
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->runBatch(&(_shared->buff_id), 1, FALSE) ||
+                if (!_box->runBatch(&(_shared->buffID), 1, FALSE) ||
                     (_box->readData(temp, 0, JM_TIMER_TO_SEC(3)) <= 0) ||
                     !_box->checkResult(JM_TIMER_TO_SEC(5)))
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->delBatch(_shared->buff_id) ||
+                if (!_box->delBatch(_shared->buffID) ||
                     !_box->setCommTime(BOX::C::SETWAITTIME, 
                     JM_TIMER_TO_MS(55)))
                 {

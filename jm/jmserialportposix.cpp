@@ -25,17 +25,17 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (name == NULL)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
         if (jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -49,7 +49,7 @@ namespace JM
         g_utf8_strncpy(self->port_name, name, length);
         self->port_name[length] = 0;
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return JM_ERROR_SUCCESS;
     }
 
@@ -59,7 +59,7 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (self->baudrate != baudrate)
         {
@@ -69,11 +69,11 @@ namespace JM
             case 56000:
             case 128000:
             case 256000:
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             case 76800:
 #ifndef B76800
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
 #else
                 self->baudrate = baudrate;
@@ -87,7 +87,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
@@ -172,7 +172,7 @@ namespace JM
             break;
         }
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -182,11 +182,11 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (databits < 5 || databits > 8)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -194,17 +194,17 @@ namespace JM
         {
             if (self->stopbits == JM_SP_SB_TWO && databits == 5)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             }
             else if (self->stopbits == JM_SP_SB_ONE_POINT_FIVE && databits != 5)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             }
             else if (self->parity == JM_SP_PAR_SPACE && databits == 8)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             }
             else
@@ -215,7 +215,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
@@ -267,7 +267,7 @@ namespace JM
             break;
         }
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -277,7 +277,7 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!(parity == JM_SP_PAR_EVEN || 
             parity == JM_SP_PAR_MARK || 
@@ -285,7 +285,7 @@ namespace JM
             parity == JM_SP_PAR_ODD || 
             parity == JM_SP_PAR_SPACE))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -294,7 +294,7 @@ namespace JM
             if (parity == JM_SP_PAR_MARK || 
                 (parity == JM_SP_PAR_SPACE && self->databits == 8))
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             }
             else
@@ -305,7 +305,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
@@ -356,12 +356,12 @@ namespace JM
         }
         if (self->is_multi_setting)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
         ret = tcsetattr(self->fd, TCSAFLUSH, &self->comm_config);
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
 
         return ret;
     }
@@ -372,13 +372,13 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!(stopbits == JM_SP_SB_ONE || 
             stopbits == JM_SP_SB_ONE_POINT_FIVE || 
             stopbits == JM_SP_SB_TWO))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -386,12 +386,12 @@ namespace JM
         {
             if (self->databits == 5 && stopbits == JM_SP_SB_TWO)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             }
             else if (stopbits == JM_SP_SB_ONE_POINT_FIVE && self->databits != 5)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC
             }
             else
@@ -402,7 +402,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
@@ -413,13 +413,13 @@ namespace JM
             self->comm_config.c_cflag &= (~CSTOPB);
             break;
         case JM_SP_SB_ONE_POINT_FIVE:
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
             break;
         case JM_SP_SB_TWO:
             if (self->databits == 5)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return JM_ERROR_GENERIC;
             }
             else
@@ -432,13 +432,13 @@ namespace JM
 
         if (self->is_multi_setting)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
         ret = tcsetattr(self->fd, TCSAFLUSH, &self->comm_config);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -449,13 +449,13 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!(flow_control == JM_SP_FC_HARDWARE || 
             flow_control == JM_SP_FC_SOFTWARE || 
             flow_control == JM_SP_FC_NONE))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -466,7 +466,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
@@ -490,13 +490,13 @@ namespace JM
 
         if (self->is_multi_setting)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
         ret = tcsetattr(self->fd, TCSAFLUSH, &self->comm_config);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -512,7 +512,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
@@ -524,7 +524,7 @@ namespace JM
             ret = fcntl(self->fd, F_SETFL, O_NDELAY);
             if (ret)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return ret;
             }
         }
@@ -537,7 +537,7 @@ namespace JM
             ret = fcntl(self->fd, F_SETFL, O_NDELAY);
             if (ret)
             {
-                g_static_rec_mutex_unlock(self->mutex);
+                g_mutex_unlock(self->mutex);
                 return ret;
             }
         }
@@ -545,7 +545,7 @@ namespace JM
         ret = tcgetattr(self->fd, &self->comm_config);
         if (error_code)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return ret;
         }
 
@@ -553,13 +553,13 @@ namespace JM
 
         if (self->is_multi_setting)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_SUCCESS;
         }
 
         ret = tcsetattr(self->fd, TCSAFLUSH, &self->comm_config);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -567,11 +567,11 @@ namespace JM
     {
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         self->write_timeout = millic;
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
 
         return JM_ERROR_SUCCESS;
     }
@@ -582,11 +582,11 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, FALSE);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         ret = self->fd != -1;
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -600,11 +600,11 @@ namespace JM
 
         vdisable = fpathconf(self->fd, _PC_VDISABLE);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -617,7 +617,7 @@ namespace JM
         self->fd = open(self->port_name, O_RDWR | O_NOCTTY | O_NDELAY);
         if (self->fd == -1)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -627,7 +627,7 @@ namespace JM
         ret = tcgetattr(self->fd, &self->old_termios);
         if (ret != 0)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return error_code;
         }
 
@@ -661,7 +661,7 @@ namespace JM
             || jm_serial_port_set_read_timeout(self->read_timeout)
             || jm_serial_port_set_write_timeout(self->write_timeout))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             self->is_multi_setting = FALSE;
             return JM_ERROR_GENERIC;
         }
@@ -671,7 +671,7 @@ namespace JM
             close();
         self->is_multi_setting = FALSE;
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -681,13 +681,13 @@ namespace JM
         gint32 ret = JM_ERROR_GENERIC;
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self);
+        g_mutex_lock(self);
 
         jm_log_write(JM_LOG_DEBUG, "Serial Port", "Close");
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
@@ -701,7 +701,7 @@ namespace JM
             TCSAFLUSH | TCSANOW, &(self->old_termios)); /* Restore termios */
         if (ret != 0)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return ret;
         }
 
@@ -709,7 +709,7 @@ namespace JM
 
         if (ret != 0)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return ret;
         }
 
@@ -723,17 +723,17 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
         ret = tcflush(self->fd, TCIOFLUSH);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -743,17 +743,17 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self != NULL, JM_ERROR_GENERIC);
+        g_mutex_lock(self != NULL, JM_ERROR_GENERIC);
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
         ret = tcflush(self->fd, TCIFLUSH);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -765,13 +765,13 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
         ret = tcflush(self->fd, TCOFLUSH);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -782,18 +782,18 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, 0);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return 0;
         }
 
         ret = ioctl(self->fd, FIONREAD, &bytes_queued);
         if (ret != 0)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return 0;
         }
 
@@ -807,18 +807,18 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
         ret = ioctl(self->fd, TIOCMGET, &status);
         if (ret != 0)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return ret;
         }
 
@@ -833,7 +833,7 @@ namespace JM
 
         ret = ioctl(self->fd, TIOCMSET, &status);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -844,18 +844,18 @@ namespace JM
 
         g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
 
-        g_static_rec_mutex_lock(self->mutex);
+        g_mutex_lock(self->mutex);
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return JM_ERROR_GENERIC;
         }
 
         ret = ioctl(self->fd, TIOCMGET, &status);
         if (ret != 0)
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return ret;
         }
 
@@ -870,7 +870,7 @@ namespace JM
 
         ret = ioctl(self->fd, TIOCMSET, &status);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return ret;
     }
 
@@ -884,13 +884,13 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return 0;
         }
 
         ret = read(self->fd, data, count);
 
-        g_static_rec_mutex_unlock(self->mutex);
+        g_mutex_unlock(self->mutex);
         return (size_t)ret;
     }
 
@@ -905,7 +905,7 @@ namespace JM
 
         if (!jm_serial_port_is_open(self))
         {
-            g_static_rec_mutex_unlock(self->mutex);
+            g_mutex_unlock(self->mutex);
             return 0;
         }
 

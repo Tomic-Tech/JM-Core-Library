@@ -38,12 +38,10 @@ namespace JM
                 }
                 gboolean openComm()
                 {
-                    if (jm_commbox_port_get_type() == 
-                        JM_COMMBOX_PORT_SERIAL_PORT)
+                    if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
                     {
                         JMStringArray *vec = NULL;
-                        JM::SerialPort *port = 
-                            (JM::SerialPort*)jm_commbox_port_get_pointer();
+                        JM::SerialPort *port = (JM::SerialPort*)jm_commbox_port_get_pointer();
                         size_t vec_length = 0;
                         size_t i;
 
@@ -78,8 +76,7 @@ namespace JM
                     stopNow(TRUE);
                     doSet(C::RESET, 0, NULL);
                     setRF(C::RESET_RF, 0);
-                    if  (jm_commbox_port_get_type() == 
-                        JM_COMMBOX_PORT_SERIAL_PORT)
+                    if  (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
                     {
                         ((JM::SerialPort*)jm_commbox_port_get_pointer())->close();
                     }
@@ -91,7 +88,7 @@ namespace JM
                     if (buffID > C::MAXIM_BLOCK)
                     {
                         // 数据块不存在
-                        _shared->last_error = C::NODEFINE_BUFF;
+                        _shared->lastError = C::NODEFINE_BUFF;
                         return FALSE;
                     }
 
@@ -104,7 +101,7 @@ namespace JM
                     if (_buffAdd[buffID] == C::NULLADD)
                     {
                         // 数据块标识登记是否有申请?
-                        _shared->last_error = C::NOUSED_BUFF;
+                        _shared->lastError = C::NOUSED_BUFF;
                         return FALSE;
                     }
 
@@ -131,8 +128,7 @@ namespace JM
                             data[1] = _buffAdd[_buffUsed[i + 1]];
                             data[2] = _buffAdd[C::SWAPBLOCK] - data[1];
 
-                            if (!doSet(C::COPY_DATA - C::COPY_DATA % 4, 3, 
-                                data))
+                            if (!doSet(C::COPY_DATA - C::COPY_DATA % 4, 3, data))
                             {
                                 return FALSE;
                             }
@@ -146,12 +142,10 @@ namespace JM
                         for (i = i + 1; i < _buffUsedNum; i++)
                         {
                             _buffUsed[i - 1] = _buffUsed[i];
-                            _buffAdd[_buffUsed[i]] = 
-                                _buffAdd[_buffUsed[i]] - deleteBuffLen;
+                            _buffAdd[_buffUsed[i]] = _buffAdd[_buffUsed[i]] - deleteBuffLen;
                         }
                         _buffUsedNum--;
-                        _buffAdd[C::SWAPBLOCK] = 
-                            _buffAdd[C::SWAPBLOCK] - deleteBuffLen;
+                        _buffAdd[C::SWAPBLOCK] = _buffAdd[C::SWAPBLOCK] - deleteBuffLen;
                         _buffAdd[_buffID] = C::NULLADD;
                     }
                     return TRUE;
@@ -161,12 +155,12 @@ namespace JM
                 {
                     if (buffID > C::MAXIM_BLOCK)
                     {
-                        _shared->last_error = C::NODEFINE_BUFF;
+                        _shared->lastError = C::NODEFINE_BUFF;
                         return FALSE;
                     }
                     if (_buffID != C::NULLADD)
                     {
-                        _shared->last_error = C::APPLICATION_NOW;
+                        _shared->lastError = C::APPLICATION_NOW;
                         return FALSE;
                     }
 
@@ -191,39 +185,38 @@ namespace JM
 
                     if (bufferSize() <= 1)
                     {
-                        _shared->last_error = C::BUFFFLOW;
+                        _shared->lastError = C::BUFFFLOW;
                         return FALSE;
                     }
                     _cmdTemp[3] = C::WR_DATA + 0x01 + _cmdTemp[2];
                     _cmdTemp[0] += _headPassword;
                     _buffID = buffID;
-                    _shared->is_do_now = FALSE;
+                    _shared->isDoNow = FALSE;
                     return TRUE;
                 }
 
-                gboolean addToBuff(guint8 commandWord, size_t count, 
-                    const guint8 *data)
+                gboolean addToBuff(guint8 commandWord, size_t count, const guint8 *data)
                 {
                     size_t i;
                     guint8 checksum;
 
                     checksum = _cmdTemp[_cmdTemp[1] + 2];
 
-                    _shared->next_address = _cmdTemp[1] + count + 1;
+                    _shared->nextAddress = _cmdTemp[1] + count + 1;
 
                     if (_buffID == C::NULLADD)
                     {
                         // 数据块标识登记是否有申请?
-                        _shared->last_error = C::NOAPPLICATBUFF;
-                        _shared->is_do_now = TRUE;
+                        _shared->lastError = C::NOAPPLICATBUFF;
+                        _shared->isDoNow = TRUE;
                         return FALSE;
                     }
 
-                    if (bufferSize() < _shared->next_address)
+                    if (bufferSize() < _shared->nextAddress)
                     {
                         // 检查是否有足够的空间存储?
-                        _shared->last_error = C::BUFFFLOW;
-                        _shared->is_do_now = TRUE;
+                        _shared->lastError = C::BUFFFLOW;
+                        _shared->isDoNow = TRUE;
                         return FALSE;
                     }
 
@@ -244,12 +237,10 @@ namespace JM
                                 getBoxVer() > 0x400)
                             {
                                 // 增加发送长命令
-                                _cmdTemp[_cmdTemp[1] + 2] = 
-                                    C::SEND_CMD;
+                                _cmdTemp[_cmdTemp[1] + 2] = C::SEND_CMD;
                                 checksum += C::SEND_CMD;
                                 _cmdTemp[1]++;
-                                _cmdTemp[_cmdTemp[1] + 2] = commandWord + 
-                                    count;
+                                _cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
                                 if (count > 0)
                                 {
                                     _cmdTemp[_cmdTemp[1] + 2]--;
@@ -261,14 +252,12 @@ namespace JM
                                     _cmdTemp[_cmdTemp[1] + 2] = data[i];
                                     checksum += data[i];
                                 }
-                                _cmdTemp[_cmdTemp[1] + 2] = checksum + count + 
-                                    2;
-                                _shared->next_address++;
+                                _cmdTemp[_cmdTemp[1] + 2] = checksum + count + 2;
+                                _shared->nextAddress++;
                             }
                             else
                             {
-                                _cmdTemp[_cmdTemp[1] + 2] = commandWord + 
-                                    count;
+                                _cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
                                 if (count > 0)
                                 {
                                     _cmdTemp[_cmdTemp[1] + 2]--;
@@ -280,18 +269,17 @@ namespace JM
                                     _cmdTemp[_cmdTemp[1] + 2] = data[i];
                                     checksum += data[i];
                                 }
-                                _cmdTemp[_cmdTemp[1] + 2] = checksum + count + 
-                                    1;
-                                _shared->next_address++; // Rocky Add
+                                _cmdTemp[_cmdTemp[1] + 2] = checksum + count + 1;
+                                _shared->nextAddress++; // Rocky Add
                             }
                             return TRUE;
                         }
-                        _shared->last_error = C::ILLIGICAL_LEN;
-                        _shared->is_do_now = TRUE;
+                        _shared->lastError = C::ILLIGICAL_LEN;
+                        _shared->isDoNow = TRUE;
                         return FALSE;
                     }
-                    _shared->last_error = C::UNBUFF_CMD;
-                    _shared->is_do_now = TRUE;
+                    _shared->lastError = C::UNBUFF_CMD;
+                    _shared->isDoNow = TRUE;
                     return FALSE;
                 }
 
@@ -299,19 +287,19 @@ namespace JM
                 {
                     guint32 times = C::REPLAYTIMES;
 
-                    _shared->is_do_now = TRUE;
+                    _shared->isDoNow = TRUE;
 
                     if (_buffID == C::NULLADD)
                     {
                         // 数据块标识登记是否有申请?
-                        _shared->last_error = C::NOAPPLICATBUFF;
+                        _shared->lastError = C::NOAPPLICATBUFF;
                         return FALSE;
                     }
 
                     if (_cmdTemp[1] == 0x01)
                     {
                         _buffID = C::NULLADD;
-                        _shared->last_error = C::NOADDDATA;
+                        _shared->lastError = C::NOADDDATA;
                         return FALSE;
                     }
 
@@ -323,13 +311,11 @@ namespace JM
                             return FALSE;
                         }
                         if (!checkIdle() || 
-                            (jm_commbox_port_write(_cmdTemp, _cmdTemp[1] + 3) 
-                            != (_cmdTemp[1] + 3)))
+                            (jm_commbox_port_write(_cmdTemp, _cmdTemp[1] + 3) != (_cmdTemp[1] + 3)))
                         {
                             continue;
                         }
-                        else if (sendOK(
-                            JM_TIMER_TO_MS(20) * (_cmdTemp[1] + 10)))
+                        else if (sendOK(JM_TIMER_TO_MS(20) * (_cmdTemp[1] + 10)))
                         {
                             break;
                         }
@@ -342,26 +328,22 @@ namespace JM
 
                     if (_buffID == C::LINKBLOCK)
                     {
-                        _buffAdd[C::LINKBLOCK] = 
-                            _cmdBuffLen - _cmdTemp[1];
+                        _buffAdd[C::LINKBLOCK] = _cmdBuffLen - _cmdTemp[1];
                     }
                     else
                     {
-                        _buffAdd[_buffID] = 
-                            _buffAdd[C::SWAPBLOCK];
+                        _buffAdd[_buffID] = _buffAdd[C::SWAPBLOCK];
                         _buffUsed[_buffUsedNum] = _buffID;
                         _buffUsedNum++;
-                        _buffAdd[C::SWAPBLOCK] = 
-                            _buffAdd[C::SWAPBLOCK] + _cmdTemp[1];
+                        _buffAdd[C::SWAPBLOCK] = _buffAdd[C::SWAPBLOCK] + _cmdTemp[1];
                     }
                     _buffID = C::NULLADD;
                     return TRUE;
                 }
 
-                gboolean sendToBox(guint8 commandWord, size_t count, 
-                    const guint8 *buff)
+                gboolean sendToBox(guint8 commandWord, size_t count, const guint8 *buff)
                 {
-                    if (_shared->is_do_now)
+                    if (_shared->isDoNow)
                     {
                         return doSet(commandWord, count, buff);
                     }
@@ -412,16 +394,15 @@ namespace JM
                 {
                     if (echoBuff == NULL || echoLen == 0 || echoLen > 4)
                     {
-                        _shared->last_error = C::ILLIGICAL_LEN;
+                        _shared->lastError = C::ILLIGICAL_LEN;
                         return FALSE;
                     }
-                    if (_shared->is_do_now)
+                    if (_shared->isDoNow)
                     {
                         guint8 receiveBuff[6];
                         size_t i;
                         if (!commboxDo(C::ECHO, echoLen, echoBuff) || 
-                            (readData(receiveBuff, echoLen, 
-                            JM_TIMER_TO_MS(100)) != echoLen))
+                            (readData(receiveBuff, echoLen, JM_TIMER_TO_MS(100)) != echoLen))
                         {
                             return FALSE;
                         }
@@ -429,7 +410,7 @@ namespace JM
                         {
                             if (receiveBuff[i] != echoBuff[i])
                             {
-                                _shared->last_error = C::CHECKSUM_ERROR;
+                                _shared->lastError = C::CHECKSUM_ERROR;
                                 return FALSE;
                             }
                         }
@@ -457,11 +438,11 @@ namespace JM
 
                     if ((ctrlWord1 & 0x04) != 0)
                     {
-                        _shared->is_db_20 = TRUE;
+                        _shared->isDB20 = TRUE;
                     }
                     else
                     {
-                        _shared->is_db_20 = FALSE;
+                        _shared->isDB20 = FALSE;
                     }
 
                     if (modeControl == C::SET_VPW || 
@@ -482,7 +463,7 @@ namespace JM
                     }
                     if (modeControl == C::EXRS_232 && length < 2)
                     {
-                        _shared->last_error = C::UNSET_EXRSBIT;
+                        _shared->lastError = C::UNSET_EXRSBIT;
                         return FALSE;
                     }
 
@@ -494,10 +475,9 @@ namespace JM
                     guint8 baudTime[2];
                     gdouble instructNum;
 
-                    instructNum = ((1000000.0 / (_timeUnit)) * 1000000) / 
-                        baud;
+                    instructNum = ((1000000.0 / (_timeUnit)) * 1000000) / baud;
 
-                    if (_shared->is_db_20)
+                    if (_shared->isDB20)
                     {
                         instructNum /= 20;
                     }
@@ -505,7 +485,7 @@ namespace JM
                     instructNum += 0.5;
                     if (instructNum > 65535 || instructNum < 10)
                     {
-                        _shared->last_error = C::COMMBAUD_OUT;
+                        _shared->lastError = C::COMMBAUD_OUT;
                         return FALSE;
                     }
                     baudTime[0] = JM_HIGH_BYTE(instructNum);
@@ -524,19 +504,19 @@ namespace JM
                 {
                     if (type == C::SETBYTETIME)
                     {
-                        _shared->req_byte_to_byte = time;
+                        _shared->reqByteToByte = time;
                     }
                     else if (type == C::SETWAITTIME)
                     {
-                        _shared->req_wait_time = time;
+                        _shared->reqWaitTime = time;
                     }
                     else if (type == C::SETRECBBOUT)
                     {
-                        _shared->res_byte_to_byte = time;
+                        _shared->resByteToByte = time;
                     }
                     else if (type == C::SETRECFROUT)
                     {
-                        _shared->res_wait_time = time;
+                        _shared->resWaitTime = time;
                     }
                 }
 
@@ -558,21 +538,20 @@ namespace JM
                     }
                     else
                     {
-                        time = ((time / _timeBaseDB) / 
-                            (_timeUnit / 1000000.0));
+                        time = ((time / _timeBaseDB) / (_timeUnit / 1000000.0));
                     }
 
                     if (time > 65535)
                     {
-                        _shared->last_error = C::COMMTIME_OUT;
+                        _shared->lastError = C::COMMTIME_OUT;
                         return FALSE;
                     }
 
-                    if (type == C::SETBYTETIME
-                        || type == C::SETWAITTIME
-                        || type == C::SETRECBBOUT
-                        || type == C::SETRECFROUT
-                        || type == C::SETLINKTIME)
+                    if (type == C::SETBYTETIME ||
+						type == C::SETWAITTIME ||
+						type == C::SETRECBBOUT ||
+						type == C::SETRECFROUT ||
+						type == C::SETLINKTIME)
                     {
                         timeBuff[0] = JM_HIGH_BYTE(time);
                         timeBuff[1] = JM_LOW_BYTE(time);
@@ -582,7 +561,7 @@ namespace JM
                         }
                         return sendToBox(type, 2, timeBuff);
                     }
-                    _shared->last_error = C::UNDEFINE_CMD;
+                    _shared->lastError = C::UNDEFINE_CMD;
                     return FALSE;
                 }
 
@@ -590,20 +569,20 @@ namespace JM
                 {
                     if (type == C::GET_PORT1)
                     {
-                        _shared->is_db_20 = FALSE;
+                        _shared->isDB20 = FALSE;
                     }
 
                     if (type == C::GET_PORT1 || 
                         type == C::SET55_BAUD || 
                         (type >= C::REC_FR && type <= C::RECEIVE))
                     {
-                        if (_shared->is_do_now)
+                        if (_shared->isDoNow)
                         {
                             return commboxDo(type, 0, NULL);
                         }
                         return addToBuff(type, 0, NULL);
                     }
-                    _shared->last_error = C::UNDEFINE_CMD;
+                    _shared->lastError = C::UNDEFINE_CMD;
                     return FALSE;
                 }
 
@@ -616,14 +595,13 @@ namespace JM
                     {
                         if (_buffAdd[_buffID] == C::NULLADD)
                         {
-                            _shared->last_error = C::NOUSED_BUFF;
+                            _shared->lastError = C::NOUSED_BUFF;
                             return 0;
                         }
 
                         if (_buffID == C::LINKBLOCK)
                         {
-                            length = _cmdBuffLen - 
-                                _buffAdd[C::LINKBLOCK];
+                            length = _cmdBuffLen - _buffAdd[C::LINKBLOCK];
                         }
                         else
                         {
@@ -637,21 +615,18 @@ namespace JM
                             }
                             if (i == (_buffUsedNum - 1))
                             {
-                                length = _buffAdd[C::SWAPBLOCK] - 
-                                    _buffAdd[_buffID];
+                                length = _buffAdd[C::SWAPBLOCK] - _buffAdd[_buffID];
                             }
                             else
                             {
-                                length = _buffAdd[_buffID + 1] - 
-                                    _buffAdd[_buffID];
+                                length = _buffAdd[_buffID + 1] - _buffAdd[_buffID];
                             }
                         }
                         start_add = _buffAdd[_buffID];
                     }
                     else
                     {
-                        length = _buffAdd[C::LINKBLOCK] - 
-                            _buffAdd[C::SWAPBLOCK];
+                        length = _buffAdd[C::LINKBLOCK] - _buffAdd[C::SWAPBLOCK];
                         start_add = _buffAdd[C::SWAPBLOCK];
                     }
 
@@ -660,7 +635,7 @@ namespace JM
                         return add + start_add;
                     }
 
-                    _shared->last_error = C::OUTADDINBUFF;
+                    _shared->lastError = C::OUTADDINBUFF;
                     return 0;
                 }
 
@@ -669,7 +644,7 @@ namespace JM
                     guint8 cmdTemp[4];
                     guint8 ret;
 
-                    _shared->last_error = 0;
+                    _shared->lastError = 0;
                     ret = getAbsAdd(buffer[0], buffer[1]);
                     if (ret == 0)
                     {
@@ -739,12 +714,11 @@ namespace JM
                     }
                     else
                     {
-                        _shared->last_error = C::UNDEFINE_CMD;
+                        _shared->lastError = C::UNDEFINE_CMD;
                         return FALSE;
 
                     }
-                    return sendToBox(type - type % 4, type % 4 + 1, 
-                        cmdTemp);
+                    return sendToBox(type - type % 4, type % 4 + 1, cmdTemp);
                 }
 
                 gboolean commboxDelay(guint32 time)
@@ -755,7 +729,7 @@ namespace JM
                     time = time / (_timeUnit / 1000000.0);
                     if (time == 0)
                     {
-                        _shared->last_error = C::SETTIME_ERROR;
+                        _shared->lastError = C::SETTIME_ERROR;
                         return FALSE;
                     }
                     if (time > 65535)
@@ -766,7 +740,7 @@ namespace JM
                             time = time / _timeBaseDB;
                             if (time > 65535)
                             {
-                                _shared->last_error = C::COMMTIME_OUT;
+                                _shared->lastError = C::COMMTIME_OUT;
                                 return FALSE;
                             }
                             delayWord = C::DELAYLONG;
@@ -780,15 +754,13 @@ namespace JM
                     timeBuff[1] = JM_LOW_BYTE(time);
                     if (timeBuff[0] == 0)
                     {
-                        if (_shared->is_do_now)
+                        if (_shared->isDoNow)
                         {
-                            return commboxDo(delayWord, 1, 
-                                timeBuff + 1);
+                            return commboxDo(delayWord, 1, timeBuff + 1);
                         }
-                        return addToBuff(delayWord, 1, 
-                            timeBuff + 1);
+                        return addToBuff(delayWord, 1, timeBuff + 1);
                     }
-                    if (_shared->is_do_now)
+                    if (_shared->isDoNow)
                     {
                         return commboxDo(delayWord, 2, timeBuff);
                     }
@@ -799,23 +771,20 @@ namespace JM
                 {
                     if (count == 0)
                     {
-                        _shared->last_error = C::ILLIGICAL_LEN;
+                        _shared->lastError = C::ILLIGICAL_LEN;
                         return FALSE;
                     }
-                    if (_shared->is_do_now)
+                    if (_shared->isDoNow)
                     {
-                        return commboxDo(C::SEND_DATA, 
-                            count, buffer);
+                        return commboxDo(C::SEND_DATA, count, buffer);
                     }
                     else
                     {
-                        return addToBuff(C::SEND_DATA, 
-                            count, buffer);
+                        return addToBuff(C::SEND_DATA, count, buffer);
                     }
                 }
 
-                gboolean runBatch(guint8 *buffID, size_t count, 
-                    gboolean isExecuteMany)
+                gboolean runBatch(guint8 *buffID, size_t count, gboolean isExecuteMany)
                 {
                     guint8 commandWord = C::D0_BAT;
                     size_t i;
@@ -824,7 +793,7 @@ namespace JM
                     {
                         if (_buffAdd[buffID[i]] == C::NULLADD)
                         {
-                            _shared->last_error = C::NOUSED_BUFF;
+                            _shared->lastError = C::NOUSED_BUFF;
                             return FALSE;
                         }
                     }
@@ -842,8 +811,7 @@ namespace JM
                     return commboxDo(commandWord, count, buffID);
                 }
 
-                size_t readData(guint8 *buff, size_t count, 
-                    gint64 microseconds)
+                size_t readData(guint8 *buff, size_t count, gint64 microseconds)
                 {
                     jm_commbox_port_set_read_timeout(microseconds);
 
@@ -852,7 +820,7 @@ namespace JM
 
                 size_t readBytes(guint8 *buff, size_t count)
                 {
-                    return readData(buff, count, _shared->res_wait_time);
+                    return readData(buff, count, _shared->resWaitTime);
                 }
 
                 gboolean checkResult(gint64 microseconds)
@@ -863,7 +831,7 @@ namespace JM
 
                     if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
                     {
-                        _shared->last_error = C::TIMEOUT_ERROR;
+                        _shared->lastError = C::TIMEOUT_ERROR;
                     }
 
                     if (receiveBuffer == C::SUCCESS)
@@ -872,7 +840,7 @@ namespace JM
                     }
 
                     while (jm_commbox_port_read(&receiveBuffer, 1) == 1);
-                    _shared->last_error = receiveBuffer;
+                    _shared->lastError = receiveBuffer;
                     return FALSE;
                 }
 
@@ -890,13 +858,13 @@ namespace JM
                             }
                             if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
                             {
-                                _shared->last_error = C::TIMEOUT_ERROR;
+                                _shared->lastError = C::TIMEOUT_ERROR;
                             }
                             if (receiveBuffer == C::RUN_ERR)
                             {
                                 return TRUE;
                             }
-                            _shared->last_error = C::TIMEOUT_ERROR;
+                            _shared->lastError = C::TIMEOUT_ERROR;
                         }
                         return FALSE;
                     }
@@ -932,7 +900,7 @@ namespace JM
 
                     if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
                     {
-                        _shared->last_error = C::KEEPLINK_ERROR;
+                        _shared->lastError = C::KEEPLINK_ERROR;
                         return FALSE;
                     }
 
@@ -941,7 +909,7 @@ namespace JM
                         return TRUE;
                     }
 
-                    _shared->last_error = receiveBuffer;
+                    _shared->lastError = receiveBuffer;
                     return FALSE;
                 }
 
@@ -955,7 +923,7 @@ namespace JM
                     {
                         if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
                         {
-                            _shared->last_error = C::TIMEOUT_ERROR;
+                            _shared->lastError = C::TIMEOUT_ERROR;
                             return FALSE;
                         }
 
@@ -966,12 +934,12 @@ namespace JM
                         else if (receiveBuffer >= C::UP_TIMEOUT && 
                             receiveBuffer <= C::ERROR_REC)
                         {
-                            _shared->last_error = C::SENDDATA_ERROR;
+                            _shared->lastError = C::SENDDATA_ERROR;
                             return FALSE;
                         }
                     }
 
-                    _shared->last_error = C::SENDDATA_ERROR;
+                    _shared->lastError = C::SENDDATA_ERROR;
                     return FALSE;
                 }
 
@@ -998,8 +966,7 @@ namespace JM
                     command[3] = C::SEND_CMD;
                     command[4] = JM_LOW_BYTE(count - 1);
 
-                    command[checksum] = C::WR_DATA + command[1] + 
-                        command[2] + command[3] + command[4];
+                    command[checksum] = C::WR_DATA + command[1] + command[2] + command[3] + command[4];
 
                     memcpy(command + 5, buff, count);
 
@@ -1013,7 +980,7 @@ namespace JM
                         if (!checkIdle() || 
                             (jm_commbox_port_write(command, size) != size))
                         {
-                            _shared->last_error = C::SENDDATA_ERROR;
+                            _shared->lastError = C::SENDDATA_ERROR;
                             continue;
                         }
 
@@ -1040,8 +1007,7 @@ namespace JM
                     command[2] = _buffAdd[C::SWAPBLOCK];
                     command[3] = JM_LOW_BYTE(count - 1);
 
-                    command[checksum] = C::WR_DATA + command[1] + command[2] + 
-                        command[3];
+                    command[checksum] = C::WR_DATA + command[1] + command[2] + command[3];
 
                     memcpy(command + 4, buff, count);
 
@@ -1055,7 +1021,7 @@ namespace JM
                         if (!checkIdle() || 
                             (jm_commbox_port_write(command, size) != size))
                         {
-                            _shared->last_error = C::SENDDATA_ERROR;
+                            _shared->lastError = C::SENDDATA_ERROR;
                             continue;
                         }
 
@@ -1071,15 +1037,14 @@ namespace JM
 
                 }
 
-                gboolean sendDataToEcu(guint8 commandWord, size_t count, 
-                    const guint8 *buff)
+                gboolean sendDataToEcu(guint8 commandWord, size_t count, const guint8 *buff)
                 {
                     if (commandWord == C::SEND_DATA && 
                         count <= C::SEND_LEN)
                     {
                         if (bufferSize() < (count + 1))
                         {
-                            _shared->last_error = C::NOBUFF_TOSEND;
+                            _shared->lastError = C::NOBUFF_TOSEND;
                             return FALSE;
                         }
 
@@ -1099,49 +1064,48 @@ namespace JM
                                 return FALSE;
                             }
                         }
-                        return commboxDo(C::D0_BAT, 1, 
-                            _buffAdd + C::SWAPBLOCK);
+                        return commboxDo(C::D0_BAT, 1, _buffAdd + C::SWAPBLOCK);
                     }
-                    _shared->last_error = C::ILLIGICAL_LEN;
+                    _shared->lastError = C::ILLIGICAL_LEN;
                     return FALSE;
                 }
 
-                gboolean commboxCommand(guint8 commandWord, size_t count, 
-                    const guint8 *buff)
+                gboolean commboxCommand(guint8 commandWord, size_t count, const guint8 *buff)
                 {
                     size_t size = count + 2;
-                    size_t checksum = count + 1;
+                    size_t csPos = count + 1;
                     size_t i;
                     guint8 *command = (guint8*)g_malloc(size);
+                    guint8 *checksum = &command[csPos];
 
-                    command[checksum] = JM_LOW_BYTE(commandWord + count);
+                    *checksum = JM_LOW_BYTE(commandWord + count);
 
                     if (commandWord < C::WR_DATA)
                     {
                         if (count == 0)
                         {
-                            _shared->last_error = C::ILLIGICAL_LEN;
+                            _shared->lastError = C::ILLIGICAL_LEN;
                             g_free(command);
                             return FALSE;
                         }
-                        checksum--;
+                        (*checksum)--;
                     }
                     else
                     {
                         if (count != 0)
                         {
-                            _shared->last_error = C::ILLIGICAL_LEN;
+                            _shared->lastError = C::ILLIGICAL_LEN;
                             g_free(command);
                             return FALSE;
                         }
                     }
 
-                    command[0] = checksum + _headPassword;
+                    command[0] = *checksum + _headPassword;
                     memcpy(command + 1, buff, count);
 
                     for (i = 0; i < count; i++)
                     {
-                        command[checksum] += buff[i];
+                        *checksum += buff[i];
                     }
 
                     for (i = 0; i < 3; i++)
@@ -1152,7 +1116,7 @@ namespace JM
                             if (!checkIdle() || 
                                 (jm_commbox_port_write(command, size) != size))
                             {
-                                _shared->last_error = C::SENDDATA_ERROR;
+                                _shared->lastError = C::SENDDATA_ERROR;
                                 continue;
                             }
                         }
@@ -1160,12 +1124,12 @@ namespace JM
                         {
                             if (jm_commbox_port_write(command, size) != size)
                             {
-                                _shared->last_error = C::SENDDATA_ERROR;
+                                _shared->lastError = C::SENDDATA_ERROR;
                                 continue;
                             }
                         }
 
-                        if (sendOK(JM_TIMER_TO_MS(20) * size))
+                        if (sendOK(JM_TIMER_TO_MS(200) * size))
                         {
                             g_free(command);
                             return TRUE;
@@ -1188,8 +1152,7 @@ namespace JM
                     }
                 }
 
-                gboolean doSet(guint8 commandWord, size_t count, 
-                    const guint8 *buff)
+                gboolean doSet(guint8 commandWord, size_t count, const guint8 *buff)
                 {
                     guint32 times = C::REPLAYTIMES;
 
@@ -1221,15 +1184,13 @@ namespace JM
 
                     if (cmdInfo[0] != command)
                     {
-                        _shared->last_error = cmdInfo[0];
+                        _shared->lastError = cmdInfo[0];
                         jm_commbox_port_discard_in_buffer();
                         return 0;
                     }
 
-                    if ((readData(receiveBuffer, cmdInfo[1], 
-                        JM_TIMER_TO_MS(150)) != cmdInfo[1]) ||
-                        (readData(cmdInfo, 1, JM_TIMER_TO_MS(150)) 
-                        != 1))
+                    if ((readData(receiveBuffer, cmdInfo[1], JM_TIMER_TO_MS(150)) != cmdInfo[1]) ||
+                        (readData(cmdInfo, 1, JM_TIMER_TO_MS(150)) != 1))
                     {
                         return 0;
                     }
@@ -1243,7 +1204,7 @@ namespace JM
 
                     if (checksum != cmdInfo[0])
                     {
-                        _shared->last_error = C::CHECKSUM_ERROR;
+                        _shared->lastError = C::CHECKSUM_ERROR;
                         return 0;
                     }
                     return cmdInfo[1];
@@ -1251,8 +1212,7 @@ namespace JM
 
                 gboolean checkBox()
                 {
-                    guint8 password[] = {0x0C, 0x22, 0x17, 0x41, 0x57, 
-                        0x2D, 0x43, 0x17, 0x2D, 0x4D};
+                    static guint8 password[] = {0x0C, 0x22, 0x17, 0x41, 0x57, 0x2D, 0x43, 0x17, 0x2D, 0x4D};
                     guint8 temp[5];
                     size_t i;
                     guint8 checksum;
@@ -1270,7 +1230,7 @@ namespace JM
 
                     if (jm_commbox_port_write(temp, 5) != 5)
                     {
-                        _shared->last_error = C::SENDDATA_ERROR;
+                        _shared->lastError = C::SENDDATA_ERROR;
                         return FALSE;
                     }
 
@@ -1285,8 +1245,7 @@ namespace JM
 
                     g_usleep(JM_TIMER_TO_MS(20));
 
-                    if (getCmdData(C::GETINFO, temp) 
-                        <= 0)
+                    if (getCmdData(C::GETINFO, temp) <= 0)
                     {
                         return FALSE;
                     }
@@ -1295,7 +1254,7 @@ namespace JM
 
                     if (checksum != _headPassword)
                     {
-                        _shared->last_error = C::CHECKSUM_ERROR;
+                        _shared->lastError = C::CHECKSUM_ERROR;
                         return FALSE;
                     }
                     if (_headPassword == 0)
@@ -1311,7 +1270,8 @@ namespace JM
                     size_t pos = 0;
                     size_t i;
 
-                    _shared->is_db_20 = FALSE;
+					_headPassword = 0x00;
+                    _shared->isDB20 = FALSE;
 
                     if (!commboxDo(C::GETINFO, 0, NULL))
                     {
@@ -1321,7 +1281,7 @@ namespace JM
                     length = getCmdData(C::GETINFO, _cmdTemp);
                     if (length < C::COMMBOXIDLEN)
                     {
-                        _shared->last_error = C::LOST_VERSIONDATA;
+                        _shared->lastError = C::LOST_VERSIONDATA;
                         return FALSE;
                     }
 
@@ -1337,7 +1297,7 @@ namespace JM
                         _timeUnit == 0 ||
                         _cmdBuffLen == 0)
                     {
-                        _shared->last_error = C::COMMTIME_ZERO;
+                        _shared->lastError = C::COMMTIME_ZERO;
                         return FALSE;
                     }
 
@@ -1381,17 +1341,17 @@ namespace JM
                         if (checkIdle() && 
                             (jm_commbox_port_write(&cmdInfo, 1) == 1))
                         {
-                            if (!sendOK(JM_TIMER_TO_MS(50)))
+                            if (!sendOK(JM_TIMER_TO_MS(500)))
                             {
                                 continue;
                             }
 
                             if ((jm_commbox_port_write(&cmdInfo, 1) != 1) ||
-                                !checkResult(JM_TIMER_TO_MS(150)))
+                                !checkResult(JM_TIMER_TO_MS(500)))
                             {
                                 continue;
                             }
-                            g_usleep(JM_TIMER_TO_MS(100));
+                            g_usleep(JM_TIMER_TO_MS(500));
                             return TRUE;
                         }
                     }
@@ -1402,47 +1362,47 @@ namespace JM
                 {
                     JM::SerialPort *port = (JM::SerialPort*)jm_commbox_port_get_pointer();
 
-                    if (!commboxDo(C::SETRFBAUD, 1, &baud))
+                    if (!commboxDo(C::SET_UPBAUD, 1, &baud))
                     {
                         return FALSE;
                     }
 
-                    g_usleep(JM_TIMER_TO_MS(50));
-                    checkResult(JM_TIMER_TO_MS(50));
+                    g_usleep(JM_TIMER_TO_MS(500));
+                    checkResult(JM_TIMER_TO_MS(500));
                     setRF(C::SETRFBAUD, baud);
-                    checkResult(JM_TIMER_TO_MS(50));
+                    checkResult(JM_TIMER_TO_MS(500));
 
                     switch (baud)
                     {
                     case C::UP_9600BPS:
-                        _shared->last_error = port->setBaudrate(9600);
+                        _shared->lastError = port->setBaudrate(9600);
                         break;
                     case C::UP_19200BPS:
-                        _shared->last_error = port->setBaudrate(19200);
+                        _shared->lastError = port->setBaudrate(19200);
                         break;
                     case C::UP_38400BPS:
-                        _shared->last_error = port->setBaudrate(38400);
+                        _shared->lastError = port->setBaudrate(38400);
                         break;
                     case C::UP_57600BPS:
-                        _shared->last_error = port->setBaudrate(57600);
+                        _shared->lastError = port->setBaudrate(57600);
                         break;
                     case C::UP_115200BPS:
-                        _shared->last_error = port->setBaudrate(115200);
+                        _shared->lastError = port->setBaudrate(115200);
                         break;
                     default:
-                        _shared->last_error = C::ILLIGICAL_CMD;
+                        _shared->lastError = C::ILLIGICAL_CMD;
                         return FALSE;
                         break;
                     }
-                    if (!_shared->last_error)
+                    if (_shared->lastError)
                     {
-                        _shared->last_error = C::DISCONNECT_COMM;
+                        _shared->lastError = C::DISCONNECT_COMM;
                         return FALSE;
                     }
                     setRF(C::SETRFBAUD, baud);
                     if (!commboxDo(C::SET_UPBAUD, 1,&baud))
                         return FALSE;
-                    if (!checkResult(JM_TIMER_TO_MS(100)))
+                    if (!checkResult(JM_TIMER_TO_MS(500)))
                         return FALSE;
                     jm_commbox_port_discard_in_buffer();
                     return TRUE;
@@ -1472,8 +1432,7 @@ namespace JM
                         if (initBox() && checkBox())
                         {
                             jm_commbox_port_discard_in_buffer();
-                            if (jm_commbox_port_get_type() == 
-                                JM_COMMBOX_PORT_SERIAL_PORT)
+                            if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
                             {
                                 return setPCBaud(C::UP_57600BPS);
                             }

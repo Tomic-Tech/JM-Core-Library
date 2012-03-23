@@ -67,7 +67,7 @@ namespace JM
                 if (isFinish)
                 {
                     _box->stopNow(TRUE);
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     _box->checkResult(JM_TIMER_TO_MS(500));
                 }
             }

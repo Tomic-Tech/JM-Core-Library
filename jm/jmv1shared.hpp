@@ -16,15 +16,15 @@ namespace JM
         {
         public:
             JMConnector connector;
-            guint32 last_error; /* 提供错误查询 */
-            gboolean is_db_20;
-            gboolean is_do_now;
-            guint32 req_byte_to_byte;
-            guint32 req_wait_time;
-            guint32 res_wait_time;
-            guint32 res_byte_to_byte;
-            guint32 next_address;
-            guint8 buff_id;
+            guint32 lastError; /* 提供错误查询 */
+            gboolean isDB20;
+            gboolean isDoNow;
+            guint32 reqByteToByte;
+            guint32 reqWaitTime;
+            guint32 resWaitTime;
+            guint32 resByteToByte;
+            guint32 nextAddress;
+            guint8 buffID;
         };
     }
 }

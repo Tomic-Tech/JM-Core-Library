@@ -95,7 +95,7 @@ namespace JM
                 if (isFinish)
                 {
                     _box->stopNow(TRUE);
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     _box->checkResult(JM_TIMER_TO_MS(200));
                 }
             }
@@ -332,8 +332,8 @@ namespace JM
         private:
             size_t sendCmd(const guint8 *data, size_t count)
             {
-                _shared->buff_id = 0;
-                if (_box->newBatch(_shared->buff_id))
+                _shared->buffID = 0;
+                if (_box->newBatch(_shared->buffID))
                 {
                     return 0;
                 }
@@ -341,14 +341,14 @@ namespace JM
                 if (!_box->sendOutData(data, count) ||
                     !_box->runReceive(C::RECEIVE) ||
                     !_box->endBatch() ||
-                    !_box->runBatch(&_shared->buff_id, 1, FALSE))
+                    !_box->runBatch(&_shared->buffID, 1, FALSE))
                 {
-                    _box->delBatch(_shared->buff_id);
+                    _box->delBatch(_shared->buffID);
                     return 0;
                 }
 
-                g_usleep(count * _shared->req_byte_to_byte + 
-                    _shared->req_wait_time);
+                g_usleep(count * _shared->reqByteToByte + 
+                    _shared->reqWaitTime);
                 return count;
             }
 
