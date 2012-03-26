@@ -14,6 +14,16 @@
 #include "jmmikuni.hpp"
 #include "jmui.hpp"
 
+static gchar* _jm_std_string_to_gchar(const std::string &text)
+{
+	if (text.empty())
+		return NULL;
+
+	gchar* ret = (gchar*)g_malloc(text.size());
+	strcpy(ret, text.c_str());
+	return ret;
+}
+
 extern "C"
 {
     /************************************************************************/
@@ -21,62 +31,71 @@ extern "C"
     /************************************************************************/
     void jm_auth_set_dat_path(const gchar *path)
     {
-        JM::Auth::inst().setPath(path);
+        JM::Auth::inst().setPath(std::string(path));
     }
 
     void jm_auth_save_reg(const gchar *reg)
     {
-        JM::Auth::inst().saveReg(reg);
+        JM::Auth::inst().saveReg(std::string(reg));
     }
 
     gchar* jm_auth_query_id_code(void)
     {
-        return JM::Auth::inst().queryIDCode();
+		std::string idCode = JM::Auth::inst().queryIDCode();
+		return _jm_std_string_to_gchar(idCode);
     }
 
     gchar* jm_auth_decrypt_id_code()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_ID_CODE);
+		std::string idCode = JM::Auth::inst().decrypt(JM_AUTH_DE_ID_CODE);
+		return _jm_std_string_to_gchar(idCode);
     }
 
     gchar* jm_auth_decrypt_commbox_id()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_COMMBOX_ID);
+		std::string commboxID = JM::Auth::inst().decrypt(JM_AUTH_DE_COMMBOX_ID);
+		return _jm_std_string_to_gchar(commboxID);
     }
 
     gchar* jm_auth_decrypt_reg_time()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_REG_TIME);
+		std::string regTime = JM::Auth::inst().decrypt(JM_AUTH_DE_REG_TIME);
+		return _jm_std_string_to_gchar(regTime);
     }
 
     gchar* jm_auth_decrypt_expire_time()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_EXPIRE_TIME);
+		std::string expireTime = JM::Auth::inst().decrypt(JM_AUTH_DE_EXPIRE_TIME);
+		return _jm_std_string_to_gchar(expireTime);
     }
 
     gchar* jm_auth_decrypt_db_pw()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_DB_PW);
+		std::string dbPW = JM::Auth::inst().decrypt(JM_AUTH_DE_DB_PW);
+		return _jm_std_string_to_gchar(dbPW);
     }
 
     gchar* jm_auth_decrypt_lang()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_LANG);
+		std::string lang = JM::Auth::inst().decrypt(JM_AUTH_DE_LANG);
+		return _jm_std_string_to_gchar(lang);
     }
 
     gchar* jm_auth_decrypt_log_pw()
     {
-        return JM::Auth::inst().decrypt(JM_AUTH_DE_LOG_PW);
+		std::string logPW = JM::Auth::inst().decrypt(JM_AUTH_DE_LOG_PW);
+		return _jm_std_string_to_gchar(logPW);
     }
 
     gchar* jm_auth_encrypt_log_text(const gchar *log)
     {
-        return JM::Auth::inst().encryptLogText(log);
+		std::string text = JM::Auth::inst().encryptLogText(std::string(log));
+		return _jm_std_string_to_gchar(text);
     }
 
     gboolean jm_auth_check_reg(void)
     {
-        return JM::Auth::inst().checkReg();
+        return JM::Auth::inst().checkReg() ? TRUE : FALSE;
     }
 
     /************************************************************************/
@@ -98,7 +117,7 @@ extern "C"
     /************************************************************************/
     gboolean jm_db_open(const gchar* file_path, const gchar* password)
     {
-        return JM::Database::inst().open(file_path, password);
+        return JM::Database::inst().open(std::string(file_path), std::string(password));
     }
 
     gboolean jm_db_close(void)
@@ -113,42 +132,47 @@ extern "C"
 
     void jm_db_set_tc_catalog(const gchar *catalog)
     {
-        JM::Database::inst().setTCCatalog(catalog);
+        JM::Database::inst().setTCCatalog(std::string(catalog));
     }
 
     void jm_db_set_ld_catalog(const gchar *catalog)
     {
-        JM::Database::inst().setLDCatalog(catalog);
+        JM::Database::inst().setLDCatalog(std::string(catalog));
     }
 
     void jm_db_set_cmd_catalog(const gchar *catalog)
     {
-        JM::Database::inst().setCMDCatalog(catalog);
+        JM::Database::inst().setCMDCatalog(std::string(catalog));
     }
 
     gchar *jm_db_get_text(const gchar *name)
     {
-        return JM::Database::inst().getText(name);
+		std::string text = JM::Database::inst().getText(std::string(name));
+		return _jm_std_string_to_gchar(text);
     }
 
     gchar *jm_db_get_trouble_code(const gchar *code)
     {
-        return JM::Database::inst().getTroubleCode(code);
+		std::string content = JM::Database::inst().getTroubleCode(std::string(code));
+		return _jm_std_string_to_gchar(content);
     }
 
     GByteArray *jm_db_get_command(const gchar *name)
     {
-        return JM::Database::inst().getCommand(name);
+		GByteArray *result;
+		boost::asio::const_buffer buff = JM::Database::inst().getCommand(std::string(name));
+		result = g_byte_array_new();
+		result = g_byte_array_append(result, boost::asio::buffer_cast<const guint8*>(buff), boost::asio::buffer_size(buff));
+		return result;
     }
 
     GByteArray *jm_db_get_command_by_id(gint32 id)
     {
-        return JM::Database::inst().getCommandByID(id);
-    }
-
-    JMLDArray *jm_db_get_live_data(gboolean showed)
-    {
-        return JM::Database::inst().getLiveData(showed);
+		GByteArray *result;
+		boost::asio::const_buffer buff = JM::Database::inst().getCommandByID(id);
+		result = g_byte_array_new();
+		result = g_byte_array_append(result, boost::asio::buffer_cast<const guint8*>(buff), boost::asio::buffer_size(buff));
+		return result;
     }
 
     /************************************************************************/
@@ -156,12 +180,13 @@ extern "C"
     /************************************************************************/
     void jm_sys_set_software_path(const gchar *software_path)
     {
-        JM::System::inst().setPath(software_path);
+        JM::System::inst().setPath(std::string(software_path));
     }
 
     gchar* jm_sys_text(const gchar *name)
     {
-        return JM::System::inst().text(name);
+		GString *ret = g_string_new(JM::System::inst().text(std::string(name)).c_str());
+		return g_string_free(ret, FALSE);
     }
 
     /************************************************************************/
@@ -700,6 +725,139 @@ extern "C"
         return JM::UserInterface::inst().msgCount();
     }
 
+	/************************************************************************/
+	/* Live Data Array                                                      */
+	/************************************************************************/
+	void jm_ld_array_update_global_array(gboolean showed)
+	{
+		JM::LiveDataVector::updateGlobalArray(showed ? true : false);
+	}
+
+	gint32 jm_ld_array_next_showed_index(void)
+	{
+		return JM::LiveDataVector::nextShowedIndex();
+	}
+
+	gint32 jm_ld_array_get_showed_index(gint32 index)
+	{
+		return JM::LiveDataVector::getShowedIndex(index);
+	}
+
+	gint32 jm_ld_array_query_showed_position(gint32 index)
+	{
+		return JM::LiveDataVector::queryShowedPosition(index);
+	}
+
+	gint32 jm_ld_array_get_enabled_index(gint32 index)
+	{
+		return JM::LiveDataVector::getEnabledIndex(index);
+	}
+
+	void jm_ld_array_deploy_enabled_index(void)
+	{
+		JM::LiveDataVector::deployEnabledIndex();
+	}
+
+	void jm_ld_array_deploy_showed_index(void)
+	{
+		JM::LiveDataVector::deployShowedIndex();
+	}
+
+	size_t jm_ld_array_size(void)
+	{
+		return JM::LiveDataVector::globalSize();
+	}
+
+	size_t jm_ld_array_enabled_size(void)
+	{
+		return JM::LiveDataVector::enabledSize();
+	}
+
+	size_t jm_ld_array_showed_size(void)
+	{
+		return JM::LiveDataVector::showedSize();
+	}
+
+	void jm_ld_array_set_short_name(gint32 index, const gchar *short_name)
+	{
+		JM::LiveDataVector::globalAt(index)->setShortName(std::string(short_name));
+	}
+
+	const gchar* jm_ld_array_get_short_name(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->shortName().c_str();
+	}
+
+	void jm_ld_array_set_content(gint32 index, const gchar *content)
+	{
+		JM::LiveDataVector::globalAt(index)->setContent(std::string(content));
+	}
+
+	const gchar* jm_ld_array_get_content(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->content().c_str();
+	}
+
+	void jm_ld_array_set_unit(gint32 index, const gchar *unit)
+	{
+		JM::LiveDataVector::globalAt(index)->setUnit(std::string(unit));
+	}
+
+	const gchar* jm_ld_array_get_unit(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->unit().c_str();
+	}
+
+	void jm_ld_array_set_default_value(gint32 index, const gchar *value)
+	{
+		JM::LiveDataVector::globalAt(index)->setDefaultValue(std::string(value));
+	}
+
+	const gchar* jm_ld_array_get_default_value(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->defaultValue().c_str();
+	}
+
+	void jm_ld_array_set_value(gint32 index, const gchar *value)
+	{
+		JM::LiveDataVector::globalAt(index)->setValue(std::string(value));
+	}
+
+	const gchar* jm_ld_array_get_value(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->value().c_str();
+	}
+
+	void jm_ld_array_set_command_id(gint32 index, gint32 id)
+	{
+		JM::LiveDataVector::globalAt(index)->setCmdID(id);
+	}
+
+	gint32 jm_ld_array_get_command_id(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->cmdID();
+	}
+
+	void jm_ld_array_set_enabled(gint32 index, gboolean enabled)
+	{
+		JM::LiveDataVector::globalAt(index)->setEnabled(enabled ? true : false);
+	}
+
+	gboolean jm_ld_array_get_enabled(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->enabled();
+	}
+
+	void jm_ld_array_set_showed(gint32 index, gboolean show)
+	{
+		JM::LiveDataVector::globalAt(index)->setShowed(show ? true : false);
+	}
+
+	gboolean jm_ld_array_get_showed(gint32 index)
+	{
+		return JM::LiveDataVector::globalAt(index)->showed();
+	}
+
     /************************************************************************/
     /* JM Lib                                                               */
     /************************************************************************/
@@ -708,7 +866,6 @@ extern "C"
         g_thread_init(NULL);
         jm_sys_set_software_path(software_path);
         jm_auth_set_dat_path(software_path);
-        jm_ld_array_init();
         jm_vehicle_init();
         jm_vehicle_set_path(software_path);
     }
@@ -716,7 +873,6 @@ extern "C"
     void jm_lib_destroy(void)
     {
         jm_vehicle_destroy();
-        jm_ld_array_destroy();
     }
 };
 

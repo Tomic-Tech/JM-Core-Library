@@ -5,7 +5,7 @@ namespace JM
 {
 	void SerialPort::init()
 	{
-		_portName = NULL;
+		_portName = "";
 		_readTimeout = 500;
 		_writeTimeout = 500;
 		_parity = JM_SP_PAR_NONE;
@@ -23,7 +23,7 @@ namespace JM
 		platformInit();
 	}
 
-	SerialPort::SerialPort(const gchar *name)
+	SerialPort::SerialPort(const std::string &name)
 	{
 		init();
 		platformInit();
@@ -38,11 +38,10 @@ namespace JM
 		}
 
 		platformDestroy();
-		g_free(_portName);
 		g_mutex_free(_mutex);
 	}
 
-	const gchar* SerialPort::portName()
+	std::string SerialPort::portName() const
 	{
 		return _portName;
 	}
@@ -84,24 +83,18 @@ namespace JM
 
 
 #ifdef G_OS_WIN32
-	gint32 SerialPort::fullNameWin(const gchar *name, gchar **result)
+	gint32 SerialPort::fullNameWin(const std::string &name, std::string &result)
 	{
-		GString *temp = g_string_new("");
-		if (*result != NULL)
-		{
-			g_free(*result);
-			*result = NULL;
-		}
+		result.clear();
 		if (name[0] != '\\')
-			g_string_append(temp, "\\\\.\\");
+			result.append("\\\\.\\");
 
-		g_string_append(temp, name);
-		if (temp->str[4] != 'C' || temp->str[5] != 'O' || temp->str[6] != 'M')
+		result.append(name);
+
+		if (result[4] != 'C' || result[5] != 'O' || result[6] != 'M')
 		{
-			g_string_free(temp, TRUE);
 			return JM_ERROR_GENERIC;
 		}
-		*result = g_string_free(temp, FALSE);
 		return JM_ERROR_SUCCESS;
 	}
 
@@ -109,49 +102,42 @@ namespace JM
 	{
 		JMStringArray *arr = jm_string_array_new();
 		HDEVINFO dev_info;
-		if ((dev_info = SetupDiGetClassDevsA(guid, NULL, NULL, DIGCF_PRESENT)) 
-			!= INVALID_HANDLE_VALUE)
+		if ((dev_info = SetupDiGetClassDevsA(guid, NULL, NULL, DIGCF_PRESENT)) != INVALID_HANDLE_VALUE)
 		{
 			SP_DEVINFO_DATA dev_info_data;
 			DWORD i;
 			dev_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
-			for (i = 0; SetupDiEnumDeviceInfo(dev_info, i, &dev_info_data); 
-				++i)
+			for (i = 0; SetupDiEnumDeviceInfo(dev_info, i, &dev_info_data); ++i)
 			{
-				HKEY dev_key = SetupDiOpenDevRegKey(dev_info, &dev_info_data, 
-					DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
-				gchar* name = getRegKeyValue(dev_key, 
-					"PortName");
-				gchar* full_name = NULL;
-				gint32 ret = fullNameWin(name, &full_name);
+				HKEY dev_key = SetupDiOpenDevRegKey(dev_info, &dev_info_data, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
+				std::string name = getRegKeyValue(dev_key, "PortName");
+				std::string fullName;
+				gint32 ret = fullNameWin(name, fullName);
 				if (ret)
 				{
-					g_free(name);
-					g_free(full_name);
 					continue;
 				}
-				jm_string_array_append(arr, full_name);
-				g_free(name);
-				g_free(full_name);
+				jm_string_array_append(arr, fullName.c_str());
 			}
 		}
 		return arr;
 	}
 
-	gchar* SerialPort::getRegKeyValue(HKEY key, const gchar *property)
+	std::string SerialPort::getRegKeyValue(HKEY key, const std::string &property)
 	{
 		DWORD size = 0;
 		DWORD type;
 		BYTE *buff = NULL;
-		RegQueryValueExA(key, property, NULL, NULL, NULL, &size);
+		RegQueryValueExA(key, property.c_str(), NULL, NULL, NULL, &size);
 		buff = (BYTE*)g_malloc(size);
-		if (RegQueryValueExA(key, property, NULL, &type, buff, &size) 
-			== ERROR_SUCCESS)
+		std::string ret;
+
+		if (RegQueryValueExA(key, property.c_str(), NULL, &type, buff, &size) == ERROR_SUCCESS)
 		{
-			return (gchar*)buff;
+			ret = std::string((char*)buff);
 		}
 		g_free(buff);
-		return NULL;
+		return ret;
 	}
 
 #else
@@ -207,7 +193,7 @@ void jm_serial_port_free(JMSerialPort *self)
 const gchar* jm_serial_port_get_port_name(JMSerialPort *self)
 {
 	g_return_val_if_fail(self != NULL, NULL);
-	return ((JM::SerialPort*)(self->_handle))->portName();
+	return ((JM::SerialPort*)(self->_handle))->portName().c_str();
 }
 
 gint32 jm_serial_port_set_port_name(JMSerialPort *self, 

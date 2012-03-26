@@ -1,6 +1,7 @@
 #include "ljmcanbus.h"
 
-LuaJMCanbusBaud lua_jm_canbus_baud[16] = {
+LuaJMCanbusBaud lua_jm_canbus_baud[16] =
+{
     {"1000K", JM_CANBUS_B1000K},
     {"800K", JM_CANBUS_B800K},
     {"666K", JM_CANBUS_B666K},
@@ -19,19 +20,22 @@ LuaJMCanbusBaud lua_jm_canbus_baud[16] = {
     {NULL, (JMCanbusBaud)0xFF}
 };
 
-LuaJMCanbusIDMode lua_jm_canbus_id_mode[3] = {
+LuaJMCanbusIDMode lua_jm_canbus_id_mode[3] = 
+{
     {"Standard", JM_CANBUS_ID_MODE_STD},
     {"Extend", JM_CANBUS_ID_MODE_EXT},
     {NULL, (JMCanbusIDMode)(0xFF)}
 };
 
-LuaJMCanbusFrameType lua_jm_canbus_frame_type[3] = {
+LuaJMCanbusFrameType lua_jm_canbus_frame_type[3] = 
+{
     {"Data", JM_CANBUS_FRAME_TYPE_DATA},
     {"Remote", JM_CANBUS_FRAME_TYPE_REMOTE},
     {NULL, (JMCanbusFrameType)(0xFF)}
 };
 
-LuaJMCanbusFilterMask lua_jm_canbus_filter_mask[3] = {
+LuaJMCanbusFilterMask lua_jm_canbus_filter_mask[3] = 
+{
     {"Enable", JM_CANBUS_FILTER_MASK_ENABLE},
     {"Disable", JM_CANBUS_FILTER_MASK_DISABLE},
     {NULL, (JMCanbusFilterMask)(0xFF)}

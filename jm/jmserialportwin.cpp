@@ -24,10 +24,9 @@ namespace JM
 	{
 	}
 
-	gint32 SerialPort::setPortName(const gchar *name)
+	gint32 SerialPort::setPortName(const std::string &name)
 	{
 		gint32 ret;
-		g_return_val_if_fail(name != NULL, JM_ERROR_GENERIC);
 
 		g_mutex_lock(_mutex);
 		if (isOpen())
@@ -36,7 +35,7 @@ namespace JM
 			return JM_ERROR_GENERIC;
 		}
 
-		ret = fullNameWin(name, &_portName);
+		ret = fullNameWin(name, _portName);
 		g_mutex_unlock(_mutex);
 		return ret;
 	}
@@ -528,7 +527,7 @@ namespace JM
 		}
 
 		/* Open the port */
-		_handle = CreateFileA(_portName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, dwFlagsAndAttribute, NULL);
+		_handle = CreateFileA(_portName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, dwFlagsAndAttribute, NULL);
 
 		if (_handle == INVALID_HANDLE_VALUE)
 		{

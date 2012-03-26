@@ -30,16 +30,18 @@
 #include <cstring>
 #endif
 
+#include <string>
+
 namespace JM
 {
     class SerialPort
     {
     public:
         SerialPort();
-        SerialPort(const gchar *name);
+        SerialPort(const std::string &name);
         virtual ~SerialPort();
-        const gchar* portName();
-        gint32 setPortName(const gchar *name);
+        std::string portName() const;
+        gint32 setPortName(const std::string &name);
         gint32 baudrate();
         gint32 setBaudrate(gint32 baudrate);
         guint8 databits();
@@ -71,16 +73,16 @@ namespace JM
         void platformInit();
         void platformDestroy();
 #ifdef G_OS_WIN32
-        static gint32 fullNameWin(const gchar* name, gchar **result);
+        static gint32 fullNameWin(const std::string &name, std::string &result);
         static JMStringArray* enumerateDeviceWin(const GUID *guid);
-        static gchar* getRegKeyValue(HKEY key, const gchar *property);
+        static std::string getRegKeyValue(HKEY key, const std::string &property);
 #else
         gint32 _setBaudrate(tcflag_t baud);
         gint32 _setDatabits(tcflag_t bits);
 #endif
     private:
         // Data
-        gchar* _portName;
+        std::string _portName;
         gint64 _readTimeout;
         gint64 _writeTimeout;
         gint32 _parity;

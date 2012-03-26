@@ -8,7 +8,6 @@
 #include <glib.h>
 #include <jm/jmerror.h>
 #include <jm/jmutils.h>
-#include <jm/jmldarray.h>
 #include <jm/jmcommboxversion.h>
 #include <jm/jmcommboxporttype.h>
 #include <jm/jmprotocoltype.h>
@@ -85,7 +84,6 @@ gchar *jm_db_get_text(const gchar *name);
 gchar *jm_db_get_trouble_code(const gchar *code);
 GByteArray *jm_db_get_command(const gchar *name);
 GByteArray *jm_db_get_command_by_id(gint32 id);
-JMLDArray *jm_db_get_live_data(gboolean showed);
 
 /************************************************************************/
 /* System                                                               */
@@ -218,6 +216,36 @@ gchar* jm_ui_get_menu_selected(void);
 void jm_ui_set_menu_selected(const gchar *text);
 JMUIMessage* jm_ui_pop_msg(void);
 size_t jm_ui_msg_count(void);
+
+/************************************************************************/
+/* Live Data Array                                                      */
+/************************************************************************/
+void jm_ld_array_update_global_array(gboolean showed);
+gint32 jm_ld_array_next_showed_index(void);
+gint32 jm_ld_array_get_showed_index(gint32 index);
+gint32 jm_ld_array_query_showed_position(gint32 index);
+gint32 jm_ld_array_get_enabled_index(gint32 index);
+void jm_ld_array_deploy_enabled_index(void);
+void jm_ld_array_deploy_showed_index(void);
+size_t jm_ld_array_size(void);
+size_t jm_ld_array_enabled_size(void);
+size_t jm_ld_array_showed_size(void);
+void jm_ld_array_set_short_name(gint32 index, const gchar *short_name);
+const gchar* jm_ld_array_get_short_name(gint32 index);
+void jm_ld_array_set_content(gint32 index, const gchar *content);
+const gchar* jm_ld_array_get_content(gint32 index);
+void jm_ld_array_set_unit(gint32 index, const gchar *unit);
+const gchar* jm_ld_array_get_unit(gint32 index);
+void jm_ld_array_set_default_value(gint32 index, const gchar *value);
+const gchar* jm_ld_array_get_default_value(gint32 index);
+void jm_ld_array_set_value(gint32 index, const gchar *value);
+const gchar* jm_ld_array_get_value(gint32 index);
+void jm_ld_array_set_command_id(gint32 index, gint32 id);
+gint32 jm_ld_array_get_command_id(gint32 index);
+void jm_ld_array_set_enabled(gint32 index, gboolean enabled);
+gboolean jm_ld_array_get_enabled(gint32 index);
+void jm_ld_array_set_showed(gint32 index, gboolean show);
+gboolean jm_ld_array_get_showed(gint32 index);
 
 /************************************************************************/
 /* JM Lib                                                               */

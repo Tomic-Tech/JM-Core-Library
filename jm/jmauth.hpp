@@ -1,28 +1,36 @@
 #ifndef __JM_AUTH_HPP__
 #define __JM_AUTH_HPP__
 
-#include <glib.h>
+#include <cstring>
+#include <cstdlib>
 #include <openssl/rsa.h>
 #include <openssl/des.h>
 #include <openssl/err.h>
-#include <string.h>
-#include <stdlib.h>
 #include "cyo/CyoEncode.h"
 #include "cyo/CyoDecode.h"
 
-#ifdef G_OS_WIN32
-#include "jmdiskinfowin32.hpp"
-#endif
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <iterator>
+#include <sstream>
+#include <boost/config.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
 
-#define JM_AUTH_DES_KEY_LENGTH 24
-#define JM_AUTH_DE_ID_CODE 0
-#define JM_AUTH_DE_COMMBOX_ID 1
-#define JM_AUTH_DE_REG_TIME 2
-#define JM_AUTH_DE_EXPIRE_TIME 3
-#define JM_AUTH_DE_DB_PW 4
-#define JM_AUTH_DE_LANG 5
-#define JM_AUTH_DE_LOG_PW 6
-#define JM_AUTH_CRYPT_MESSAGE_LINES 6
+#include "jmdiskinfowin32.hpp"
+
+const size_t JM_AUTH_DES_KEY_LENGTH = 24;
+const size_t JM_AUTH_DE_ID_CODE = 0;
+const size_t JM_AUTH_DE_COMMBOX_ID = 1;
+const size_t JM_AUTH_DE_REG_TIME = 2;
+const size_t JM_AUTH_DE_EXPIRE_TIME = 3;
+const size_t JM_AUTH_DE_DB_PW = 4;
+const size_t JM_AUTH_DE_LANG = 5;
+const size_t JM_AUTH_DE_LOG_PW = 6;
+const size_t JM_AUTH_CRYPT_MESSAGE_LINES = 6;
 
 namespace JM
 {
@@ -42,41 +50,35 @@ namespace JM
     static const char *_theE = "520867428764322287956";
     static const char *_theD = "6631469748128439641093466942634298934310183617519785922832753364779504545442819243929372396326252892806279538949438336090451052942419560485725808425139665452314595491508746653641979734940110006508423323894853626068431652144372809462467897929315717758496041997753944167900641739951095600981663228301603973102328728356949181328932687752511026655924715687291073657115904361406992272742712103290190582340730909335899869474441882750868966612226430720681984316990446720160233780254640558658477370027999245397971141960223503631489607372083144501541140137376902158628244247383822407112867446141748459602582988244740708147243041490038704478674187516912473640086150475883413416419043559218279857692277263225321885288510353194417297415550578038891059137840689894680913692729327023002460593466290787647478860545291703776439619530111067066172349111222858813180998943099392501345560985497776043124669696919430128651859331884305473802348916202196552891884368907863723742480379562184628903067830946485102499067941935834976169248148345766508953066278488143098179385402295488972232456204464004698866491979082021708065979612455216709710029237202401744728024709940757140693227210826765663880836710099699802821571316573433951101749896869773760554823386485432388138304389456364244399112900391039771347122716036879496282871688668349472311822797231519507614822068307375172370530896941123923954739043564289242127195229719604596957031061498186581617793991013046547815324034982562741195477652010964731871833843101287056806480718363439469089518232947929463078838772443036546598148542488466851814918989038547005596200546751839751977317875711137113213326659705309410008721491805153910162044565649232928213650338417728333946014366760479133529367563176410907689113832128632852667922325801225987218166519002144201447724479700709643173059325620721185711001962559468057413215728795624565761853757057100821977970544164556723940825574893106924995821238384630009829976768719418882193141859435906525271887037939195284208719705089389052125504457822373955021685435429116976493023818555822558962084333254617359157583843308988927840111142364592236471161774231431923574976896724646748139060694413058568969024304895870082352272392651421124867924902440748273905974022226183227903011727192408033507864759888334119593384456467432431521562586146988621666632791906406258976842925018456527599500805963180044431835063675006595323426763684269243039015300645377512929896921915441470079808163316201484963551791621089880";
 
-    class Auth
+	template<typename DiskInfo>
+    class BasicAuth
     {
     public:
-        static Auth& inst()
+        static BasicAuth& inst()
         {
-            static Auth instance;
+            static BasicAuth instance;
             return instance;
         }
 
-        void setPath(const gchar* path)
+		void setPath(const std::string &path)
+		{
+			_datPath = path;
+		}
+
+		void saveReg(const std::string &reg)
+		{
+			std::ofstream out;
+			out.open(_datPath, std::ios::trunc);
+
+			out << reg;
+		}
+
+        std::string queryIDCode()
         {
-            _datPath = g_string_assign(_datPath, path);
-            _datPath = g_string_append(_datPath, "demo.dat");
-        }
-
-        void saveReg(const gchar *reg)
-        {
-            GIOChannel *io = g_io_channel_new_file(_datPath->str, "w", NULL);
-            gsize bytesWritten = 0;
-
-            if (io == NULL)
-            {
-                return;
-            }
-
-            g_io_channel_write_chars(io, reg, g_utf8_strlen(reg, -1), &bytesWritten, NULL);
-            g_io_channel_shutdown(io, TRUE, NULL);
-            g_io_channel_unref(io);
-        }
-
-        gchar* queryIDCode()
-        {
-            GString *idCode = NULL;
-            GString *plain = g_string_new("");
-            gchar *temp = NULL;
+			std::string idCode;
+            char *result = NULL;
+            std::stringstream plain;
+            std::string temp;
 
             size_t count = DiskInfo::inst().load();
             size_t i;
@@ -84,102 +86,84 @@ namespace JM
             for (i = 0; i < count; i++)
             {
                 temp = DiskInfo::inst().serialNumber(i);
-                g_string_append_printf(plain, "%s\n", temp);
-                g_free(temp);
+				plain << temp << std::endl;
             }
 
-            count = cyoBase16EncodeGetLength(plain->len);
-            idCode = g_string_sized_new(count);
+            count = cyoBase16EncodeGetLength(plain.str().size());
+            result = new char[count];
 
-            cyoBase16Encode(idCode->str, plain->str, plain->len);
+            cyoBase16Encode(result, plain.str().c_str(), plain.str().size());
 
-            g_string_free(plain, TRUE);
+			idCode = result;
+			idCode.resize(16);
 
-            g_string_set_size(idCode, 16);
-
-            return g_string_free(idCode, FALSE);
+			delete[] result;
+			return idCode;
         }
 
-        gboolean checkReg()
+        bool checkReg()
         {
-            gchar **vec = decrypt();
-            gboolean ret = vec != NULL ? FALSE : TRUE;
-            g_strfreev(vec);
-            return ret;
+			std::vector<std::string> vec = decrypt();
+			return !vec.empty();
         }
 
-        gchar* encryptLogText(const gchar *log)
-        {
-            gchar *logPW = decrypt(JM_AUTH_DE_LOG_PW);
-            if (logPW == NULL)
-            {
-                return NULL;
-            }
-            else
-            {
-                GString *str = g_string_new(log);
-                g_free(logPW);
-                return g_string_free(str, FALSE);
-            }
-        }
+		std::string encryptLogText(const std::string &log)
+		{
+			std::string logPW = decrypt(JM_AUTH_DE_LOG_PW);
+			if (logPW.empty())
+			{
+				return std::string();
+			}
+			else
+			{
+				return log;
+			}
+		}
 
-        gchar *decrypt(size_t index)
-        {
-            gchar **vec = decrypt();
-            GString *str = NULL;
-            size_t length = g_strv_length(vec);
+		std::string decrypt(std::size_t index)
+		{
+			std::vector<std::string> vec = decrypt();
+			if (vec.empty())
+			{
+				return std::string();
+			}
 
-            if (vec == NULL)
-            {
-                return NULL;
-            }
+			if (index >= vec.size())
+			{
+				return std::string();
+			}
 
-            if (index >= length)
-            {
-                return NULL;
-            }
-
-            str = g_string_new(vec[index]);
-
-            g_strfreev(vec);
-
-            if (str->len == 0)
-            {
-                g_string_free(str, TRUE);
-                return NULL;
-            }
-
-            return g_string_free(str, FALSE);
-        }
+			return vec[index];
+		}
 
     private:
-        Auth()
+        BasicAuth()
             : _rsa(NULL)
             , _datPath(NULL)
         {
-            GString *n = g_string_new("");
-            GString *e = g_string_new("");
-            GString *d = g_string_new("");
+			std::string n;
+			std::string e;
+			std::string d;
 
             glong i;
             glong length;
 
-            length = g_utf8_strlen(_theN, -1);
+            length = strlen(_theN);
             for (i = 0; i < length; i += 2)
             {
-                g_string_append_c(n, _theN[i]);
+				n += _theN[i];
             }
 
-            length = g_utf8_strlen(_theE, -1);
+            length = strlen(_theE);
             for (i = 0; i < length; i += 3)
             {
-                g_string_append_c(e, _theE[i]);
+				e += _theE[i];
             }
 
-            length = g_utf8_strlen(_theD, -1);
+            length = strlen(_theD);
             for (i = 0; i < length; i += 4)
             {
-                g_string_append_c(d, _theD[i]);
+				d += _theD[i];
             }
 
             _rsa = RSA_new();
@@ -188,109 +172,68 @@ namespace JM
             _rsa->e = BN_new();
             _rsa->d = BN_new();
 
-            BN_dec2bn(&(_rsa->n), n->str);
-            BN_dec2bn(&(_rsa->e), e->str);
-            BN_dec2bn(&(_rsa->d), d->str);
-
-            g_string_free(n, TRUE);
-            g_string_free(e, TRUE);
-            g_string_free(d, TRUE);
-
-            _datPath = g_string_new("");
-
+            BN_dec2bn(&(_rsa->n), n.c_str());
+            BN_dec2bn(&(_rsa->e), e.c_str());
+            BN_dec2bn(&(_rsa->d), d.c_str());
         }
 
-        ~Auth()
+        ~BasicAuth()
         {
-            g_string_free(_datPath, TRUE);
             RSA_free(_rsa);
         }
 
-        gchar** decrypt()
+        std::vector<std::string> decrypt()
         {
-            GIOChannel *io = NULL;
-            gchar *fileText = NULL;
-            gchar *cipher = NULL;
-            gchar *recovered = NULL;
-            gchar **result = NULL;
-            gsize length = 0;
-            int ret;
-            int flen;
+			std::ifstream in;
 
-            io = g_io_channel_new_file(_datPath->str, "r", NULL);
+			in.open(_datPath, std::ios::in);
 
-            if (io == NULL)
-            {
-                goto RETURN;
-            }
+			if (in.fail())
+				return std::vector<std::string>();
 
-            g_io_channel_read_to_end(io, &fileText, &length, NULL);
+			std::string fileText((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+			char *cipher = NULL;
+			std::size_t count = cyoBase64DecodeGetLength(fileText.size());
+			cipher = new char[count];
+			count = cyoBase64Decode(cipher, fileText.c_str(), fileText.size());
 
-            if (length <= 0)
-            {
-                goto RETURN;
-            }
+			if (cipher == NULL || count <= 0)
+			{
+				delete[] cipher;
+				return std::vector<std::string>();
+			}
 
-            cipher = (gchar*)g_base64_decode(fileText, &length);
+			int flen = RSA_size(_rsa);
+			char *recovered = new char[flen];
+			memset(recovered, 0, flen);
 
-            if (cipher == NULL || length <= 0)
-            {
-                goto RETURN;
-            }
+			int ret = RSA_private_decrypt(count, (const unsigned char*)cipher, (unsigned char*)recovered, _rsa, RSA_PKCS1_OAEP_PADDING);
+			if (ret < 0)
+			{
+				delete[] cipher;
+				delete[] recovered;
+			}
 
-            flen = RSA_size(_rsa);
-            recovered = (gchar*)g_malloc(flen);
-            memset(recovered, 0, flen);
+			std::vector<std::string> result = boost::algorithm::split(result, recovered, boost::is_any_of("\n"));
 
-            ret = RSA_private_decrypt(length, (const unsigned char*)cipher, (unsigned char*)recovered, _rsa, RSA_PKCS1_OAEP_PADDING);
-            if (ret < 0)
-            {
-                goto RETURN;
-            }
+			delete[] cipher;
+			delete[] recovered;
 
-            result = g_strsplit_set(recovered, "\n", 0);
+			if (result.size() < (JM_AUTH_CRYPT_MESSAGE_LINES + 1))
+			{
+				return std::vector<std::string>();
+			}
 
-            if (result == NULL)
-                goto RETURN;
-
-            length = g_strv_length(result);
-
-            if (length < (JM_AUTH_CRYPT_MESSAGE_LINES + 1))
-            {
-                g_strfreev(result);
-                result = NULL;
-                goto RETURN;
-            }
-
-RETURN:
-            // No need io channel here, free it.
-            if (io != NULL)
-            {
-                g_io_channel_shutdown(io, FALSE, NULL);
-                g_io_channel_unref(io);
-            }
-
-            if (fileText != NULL)
-            {
-                g_free(fileText);
-            }
-
-            if (cipher != NULL)
-            {
-                g_free(cipher);
-            }
-
-            if (recovered != NULL)
-            {
-                g_free(recovered);
-            }
-
-            return result;
+			return result;
         }
     private:
         RSA *_rsa;
-        GString *_datPath;
+		std::string _datPath;
     };
+
+#ifdef BOOST_WINDOWS
+	typedef BasicAuth<JM::Win32::DiskInfo> Auth;
+#endif
 }
 
 #endif

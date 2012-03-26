@@ -8,22 +8,26 @@
 #include <glib.h>
 #include <jm/jmlib.h>
 
-typedef struct _LuaJMCanbusBaud {
+typedef struct _LuaJMCanbusBaud
+{
     const char *name;
     JMCanbusBaud baud;
 } LuaJMCanbusBaud;
 
-typedef struct _LuaJMCanbusIDMode {
+typedef struct _LuaJMCanbusIDMode
+{
     const char *name;
     JMCanbusIDMode mode;
 } LuaJMCanbusIDMode;
 
-typedef struct _LuaJMCanbusFrameType {
+typedef struct _LuaJMCanbusFrameType
+{
     const char *name;
     JMCanbusFrameType frame;
 } LuaJMCanbusFrameType;
 
-typedef struct _LuaJMCanbusFilterMask {
+typedef struct _LuaJMCanbusFilterMask
+{
     const char *name;
     JMCanbusFilterMask mask;
 } LuaJMCanbusFilterMask;
