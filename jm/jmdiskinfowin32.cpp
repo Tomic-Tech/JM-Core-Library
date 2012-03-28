@@ -293,6 +293,7 @@ namespace JM
 			{
 				PWORD diskdata = new WORD[256];
 				memcpy(diskdata, pIdSector, 256 * sizeof(WORD));
+				m_list.push_back(diskdata);
 			}
 
 			return bAdd;

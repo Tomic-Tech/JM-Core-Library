@@ -6,1460 +6,1428 @@
 #endif
 
 #include "jmutils.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/asio/buffer.hpp>
 #include "jmv1box.hpp"
 #include "jmserialport.hpp"
-#include "jmtimer.h"
+#include "jmcommboxport.hpp"
 
 namespace JM
 {
-    namespace V1
-    {
-        namespace C168
-        {
-            class Box : public V1::Box<C168::CONSTANT>
-            {
-            public:
-                Box(V1::Shared *shared)
-                    : V1::Box<C168::CONSTANT>(shared)
-                    , _buffUsedNum(0)
-                    , _timeUnit(0)
-                    , _timeBaseDB(0)
-                    , _timeExternDB(0)
-                    , _cmdBuffLen(0)
-                    , _buffID(0)
-                    , _headPassword(0)
-                {
-                    memset(_buffAdd, 0, C::MAXIM_BLOCK + 2);
-                    memset(_buffUsed, 0, C::MAXIM_BLOCK);
-                    memset(_version, 0, C::VERSIONLEN);
-                    memset(_boxID, 0, C::COMMBOXIDLEN);
-                    memset(_port, 0, C::COMMBOXPORTNUM);
-                    memset(_cmdTemp, 0, sizeof(_cmdTemp));
-                }
-                gboolean openComm()
-                {
-                    if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
-                    {
-                        JMStringArray *vec = NULL;
-                        JM::SerialPort *port = (JM::SerialPort*)jm_commbox_port_get_pointer();
-                        size_t vec_length = 0;
-                        size_t i;
-
-                        if (_port == NULL)
-                            return FALSE;
-
-                        vec = JM::SerialPort::getSystemPorts();
-                        vec_length = jm_string_array_size(vec);
-
-                        for (i = 0; i < vec_length; i++)
-                        {
-                            port->setPortName(jm_string_array_get(vec, i));
-                            port->setBaudrate(9600);
-                            port->setParity(JM_SP_PAR_NONE);
-                            port->setStopbits(JM_SP_SB_ONE);
-                            port->setFlowControl(JM_SP_FC_NONE);
-                            port->setDatabits(8);
-                            if (port->open() == JM_ERROR_SUCCESS)
-                            {
-                                port->setDtr(TRUE);
-                                if (openBox())
-                                    return TRUE;
-                            }
-                            port->close();
-                        }
-                    }
-                    return FALSE;
-                }
-
-                gboolean closeComm()
-                {
-                    stopNow(TRUE);
-                    doSet(C::RESET, 0, NULL);
-                    setRF(C::RESET_RF, 0);
-                    if  (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
-                    {
-                        ((JM::SerialPort*)jm_commbox_port_get_pointer())->close();
-                    }
-                    return TRUE;
-                }
-
-                gboolean delBatch(guint8 buffID)
-                {
-                    if (buffID > C::MAXIM_BLOCK)
-                    {
-                        // Êý¾Ý¿é²»´æÔÚ
-                        _shared->lastError = C::NODEFINE_BUFF;
-                        return FALSE;
-                    }
-
-                    if (_buffID == buffID)
-                    {
-                        _buffID = C::NULLADD;
-                        return TRUE;
-                    }
-
-                    if (_buffAdd[buffID] == C::NULLADD)
-                    {
-                        // Êý¾Ý¿é±êÊ¶µÇ¼ÇÊÇ·ñÓÐÉêÇë?
-                        _shared->lastError = C::NOUSED_BUFF;
-                        return FALSE;
-                    }
-
-                    if (buffID == C::LINKBLOCK)
-                    {
-                        _buffAdd[C::LINKBLOCK] = _cmdBuffLen;
-                    }
-                    else
-                    {
-                        size_t i = 0;
-                        guint8 data[3];
-                        guint8 deleteBuffLen;
-
-                        for (; i < _buffUsedNum; i++)
-                        {
-                            if (_buffUsed[i] == buffID)
-                            {
-                                break;
-                            }
-                        }
-                        data[0] = _buffAdd[buffID];
-                        if (i < _buffUsedNum - 1)
-                        {
-                            data[1] = _buffAdd[_buffUsed[i + 1]];
-                            data[2] = _buffAdd[C::SWAPBLOCK] - data[1];
-
-                            if (!doSet(C::COPY_DATA - C::COPY_DATA % 4, 3, data))
-                            {
-                                return FALSE;
-                            }
-                        }
-                        else
-                        {
-                            data[1] = _buffAdd[C::SWAPBLOCK];
-                        }
-
-                        deleteBuffLen = data[1] - data[0];
-                        for (i = i + 1; i < _buffUsedNum; i++)
-                        {
-                            _buffUsed[i - 1] = _buffUsed[i];
-                            _buffAdd[_buffUsed[i]] = _buffAdd[_buffUsed[i]] - deleteBuffLen;
-                        }
-                        _buffUsedNum--;
-                        _buffAdd[C::SWAPBLOCK] = _buffAdd[C::SWAPBLOCK] - deleteBuffLen;
-                        _buffAdd[_buffID] = C::NULLADD;
-                    }
-                    return TRUE;
-                }
-
-                gboolean newBatch(guint8 buffID)
-                {
-                    if (buffID > C::MAXIM_BLOCK)
-                    {
-                        _shared->lastError = C::NODEFINE_BUFF;
-                        return FALSE;
-                    }
-                    if (_buffID != C::NULLADD)
-                    {
-                        _shared->lastError = C::APPLICATION_NOW;
-                        return FALSE;
-                    }
-
-                    if ((_buffAdd[buffID] != C::NULLADD && 
-                        (buffID != C::LINKBLOCK) && 
-                        !delBatch(buffID)))
-                    {
-                        return FALSE;;
-                    }
-
-                    _cmdTemp[0] = C::WR_DATA;
-                    _cmdTemp[1] = 0x01;
-                    if (_buffID == C::LINKBLOCK)
-                    {
-                        _cmdTemp[2] = 0xFF;
-                        _buffAdd[C::LINKBLOCK] = _cmdBuffLen;
-                    }
-                    else
-                    {
-                        _cmdTemp[2] = _buffAdd[C::SWAPBLOCK];
-                    }
-
-                    if (bufferSize() <= 1)
-                    {
-                        _shared->lastError = C::BUFFFLOW;
-                        return FALSE;
-                    }
-                    _cmdTemp[3] = C::WR_DATA + 0x01 + _cmdTemp[2];
-                    _cmdTemp[0] += _headPassword;
-                    _buffID = buffID;
-                    _shared->isDoNow = FALSE;
-                    return TRUE;
-                }
-
-                gboolean addToBuff(guint8 commandWord, size_t count, const guint8 *data)
-                {
-                    size_t i;
-                    guint8 checksum;
-
-                    checksum = _cmdTemp[_cmdTemp[1] + 2];
-
-                    _shared->nextAddress = _cmdTemp[1] + count + 1;
-
-                    if (_buffID == C::NULLADD)
-                    {
-                        // Êý¾Ý¿é±êÊ¶µÇ¼ÇÊÇ·ñÓÐÉêÇë?
-                        _shared->lastError = C::NOAPPLICATBUFF;
-                        _shared->isDoNow = TRUE;
-                        return FALSE;
-                    }
-
-                    if (bufferSize() < _shared->nextAddress)
-                    {
-                        // ¼ì²éÊÇ·ñÓÐ×ã¹»µÄ¿Õ¼ä´æ´¢?
-                        _shared->lastError = C::BUFFFLOW;
-                        _shared->isDoNow = TRUE;
-                        return FALSE;
-                    }
-
-                    if (commandWord < C::RESET && 
-                        commandWord != C::CLR_LINK &&
-                        commandWord != C::DO_BAT_00 && 
-                        commandWord != C::D0_BAT &&
-                        commandWord != C::D0_BAT_FOR && 
-                        commandWord != C::WR_DATA)
-                    {
-                        // ÊÇ·ñÎª»º³åÇøÃüÁî?
-                        if ((count < C::CMD_DATALEN) ||
-                            (commandWord == C::SEND_DATA && 
-                            count < C::SEND_LEN))
-                        {
-                            // ÊÇ·ñºÏ·¨ÃüÁî?
-                            if (commandWord == C::SEND_DATA && 
-                                getBoxVer() > 0x400)
-                            {
-                                // Ôö¼Ó·¢ËÍ³¤ÃüÁî
-                                _cmdTemp[_cmdTemp[1] + 2] = C::SEND_CMD;
-                                checksum += C::SEND_CMD;
-                                _cmdTemp[1]++;
-                                _cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
-                                if (count > 0)
-                                {
-                                    _cmdTemp[_cmdTemp[1] + 2]--;
-                                }
-                                checksum += _cmdTemp[_cmdTemp[1] + 2];
-                                _cmdTemp[1]++;
-                                for (i = 0; i < count; i++, _cmdTemp[1]++)
-                                {
-                                    _cmdTemp[_cmdTemp[1] + 2] = data[i];
-                                    checksum += data[i];
-                                }
-                                _cmdTemp[_cmdTemp[1] + 2] = checksum + count + 2;
-                                _shared->nextAddress++;
-                            }
-                            else
-                            {
-                                _cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
-                                if (count > 0)
-                                {
-                                    _cmdTemp[_cmdTemp[1] + 2]--;
-                                }
-                                checksum += _cmdTemp[_cmdTemp[1] + 2];
-                                _cmdTemp[1]++;
-                                for (i = 0; i < count; i++, _cmdTemp[1]++)
-                                {
-                                    _cmdTemp[_cmdTemp[1] + 2] = data[i];
-                                    checksum += data[i];
-                                }
-                                _cmdTemp[_cmdTemp[1] + 2] = checksum + count + 1;
-                                _shared->nextAddress++; // Rocky Add
-                            }
-                            return TRUE;
-                        }
-                        _shared->lastError = C::ILLIGICAL_LEN;
-                        _shared->isDoNow = TRUE;
-                        return FALSE;
-                    }
-                    _shared->lastError = C::UNBUFF_CMD;
-                    _shared->isDoNow = TRUE;
-                    return FALSE;
-                }
-
-                gboolean endBatch()
-                {
-                    guint32 times = C::REPLAYTIMES;
-
-                    _shared->isDoNow = TRUE;
-
-                    if (_buffID == C::NULLADD)
-                    {
-                        // Êý¾Ý¿é±êÊ¶µÇ¼ÇÊÇ·ñÓÐÉêÇë?
-                        _shared->lastError = C::NOAPPLICATBUFF;
-                        return FALSE;
-                    }
-
-                    if (_cmdTemp[1] == 0x01)
-                    {
-                        _buffID = C::NULLADD;
-                        _shared->lastError = C::NOADDDATA;
-                        return FALSE;
-                    }
-
-                    while (times--)
-                    {
-                        if (times == 0)
-                        {
-                            _buffID = C::NULLADD;
-                            return FALSE;
-                        }
-                        if (!checkIdle() || 
-                            (jm_commbox_port_write(_cmdTemp, _cmdTemp[1] + 3) != (_cmdTemp[1] + 3)))
-                        {
-                            continue;
-                        }
-                        else if (sendOK(JM_TIMER_TO_MS(20) * (_cmdTemp[1] + 10)))
-                        {
-                            break;
-                        }
-                        if (!stopNow(TRUE))
-                        {
-                            _buffID = C::NULLADD;
-                            return FALSE;
-                        }
-                    }
-
-                    if (_buffID == C::LINKBLOCK)
-                    {
-                        _buffAdd[C::LINKBLOCK] = _cmdBuffLen - _cmdTemp[1];
-                    }
-                    else
-                    {
-                        _buffAdd[_buffID] = _buffAdd[C::SWAPBLOCK];
-                        _buffUsed[_buffUsedNum] = _buffID;
-                        _buffUsedNum++;
-                        _buffAdd[C::SWAPBLOCK] = _buffAdd[C::SWAPBLOCK] + _cmdTemp[1];
-                    }
-                    _buffID = C::NULLADD;
-                    return TRUE;
-                }
-
-                gboolean sendToBox(guint8 commandWord, size_t count, const guint8 *buff)
-                {
-                    if (_shared->isDoNow)
-                    {
-                        return doSet(commandWord, count, buff);
-                    }
-                    else
-                    {
-                        return addToBuff(commandWord, count, buff);
-                    }
-                }
-
-                gboolean setLineLevel(guint8 valueLow, guint8 valueHigh)
-                {
-                    // Ö»ÓÐÒ»¸ö×Ö½ÚµÄÊý¾Ý£¬Éè¶¨¶Ë¿Ú1
-                    _port[1] &= ~valueLow;
-                    _port[1] |= valueHigh;
-                    return sendToBox(C::SETPORT1, 1, _port + 1);
-                }
-
-                gboolean setCommCtrl(guint8 valueOpen, guint8 valueClose)
-                {
-                    // Ö»ÓÐÒ»¸ö×Ö½ÚµÄÊý¾Ý£¬Éè¶¨¶Ë¿Ú2
-                    _port[2] &= ~valueOpen;
-                    _port[2] |= valueClose;
-                    return sendToBox(C::SETPORT2, 1, _port + 2);
-                }
-
-                gboolean setCommLine(guint8 sendLine, guint8 recvLine)
-                {
-                    // Ö»ÓÐÒ»¸ö×Ö½ÚµÄÊý¾Ý£¬Éè¶¨¶Ë¿Ú0
-                    if (sendLine > 7)
-                    {
-                        sendLine = 0x0F;
-                    }
-                    if (recvLine > 7)
-                    {
-                        recvLine = 0x0F;
-                    }
-                    _port[0] = sendLine + (recvLine << 4);
-                    return sendToBox(C::SETPORT0, 1, _port);
-                }
-
-                gboolean turnOverOneByOne()
-                {
-                    // ½«Ô­ÓÐµÄ½ÓÊÜÒ»¸ö·¢ËÍÒ»¸öµÄ±êÖ¾·­×ª
-                    return sendToBox(C::SET_ONEBYONE, 0, NULL);
-                }
-
-                gboolean setEchoData(guint8 *echoBuff, size_t echoLen)
-                {
-                    if (echoBuff == NULL || echoLen == 0 || echoLen > 4)
-                    {
-                        _shared->lastError = C::ILLIGICAL_LEN;
-                        return FALSE;
-                    }
-                    if (_shared->isDoNow)
-                    {
-                        guint8 receiveBuff[6];
-                        size_t i;
-                        if (!commboxDo(C::ECHO, echoLen, echoBuff) || 
-                            (readData(receiveBuff, echoLen, JM_TIMER_TO_MS(100)) != echoLen))
-                        {
-                            return FALSE;
-                        }
-                        for (i = 0; i < echoLen; i++)
-                        {
-                            if (receiveBuff[i] != echoBuff[i])
-                            {
-                                _shared->lastError = C::CHECKSUM_ERROR;
-                                return FALSE;
-                            }
-                        }
-                        return checkResult(JM_TIMER_TO_MS(100));
-                    }
-                    return addToBuff(C::ECHO, echoLen, echoBuff);
-                }
-
-                gboolean keepLink(gboolean isRunLink)
-                {
-                    if (isRunLink)
-                    {
-                        return sendToBox(C::RUNLINK, 0, NULL);
-                    }
-                    return sendToBox(C::STOPLINK, 0, NULL);
-                }
-
-                gboolean setCommLink(guint8 ctrlWord1, guint8 ctrlWord2, guint8 ctrlWord3)
-                {
-                    guint8 ctrlWord[3]; // Í¨Ñ¶¿ØÖÆ×Ö3
-                    guint8 modeControl = ctrlWord1 & 0xE0;
-                    size_t length = 3;
-
-                    ctrlWord[0] = ctrlWord1;
-
-                    if ((ctrlWord1 & 0x04) != 0)
-                    {
-                        _shared->isDB20 = TRUE;
-                    }
-                    else
-                    {
-                        _shared->isDB20 = FALSE;
-                    }
-
-                    if (modeControl == C::SET_VPW || 
-                        modeControl == C::SET_PWM)
-                    {
-                        return sendToBox(C::SETTING, 1, ctrlWord);
-                    }
-
-                    ctrlWord[1] = ctrlWord2;
-                    ctrlWord[2] = ctrlWord3;
-                    if (ctrlWord3 == 0)
-                    {
-                        length--;
-                        if (ctrlWord2 == 0)
-                        {
-                            length--;
-                        }
-                    }
-                    if (modeControl == C::EXRS_232 && length < 2)
-                    {
-                        _shared->lastError = C::UNSET_EXRSBIT;
-                        return FALSE;
-                    }
-
-                    return sendToBox(C::SETTING, length, ctrlWord);
-                }
-
-                gboolean setCommBaud(gdouble baud)
-                {
-                    guint8 baudTime[2];
-                    gdouble instructNum;
-
-                    instructNum = ((1000000.0 / (_timeUnit)) * 1000000) / baud;
-
-                    if (_shared->isDB20)
-                    {
-                        instructNum /= 20;
-                    }
-
-                    instructNum += 0.5;
-                    if (instructNum > 65535 || instructNum < 10)
-                    {
-                        _shared->lastError = C::COMMBAUD_OUT;
-                        return FALSE;
-                    }
-                    baudTime[0] = JM_HIGH_BYTE(instructNum);
-                    baudTime[1] = JM_LOW_BYTE(instructNum);
-                    if (baudTime[0] == 0)
-                    {
-                        return sendToBox(C::SETBAUD, 1, baudTime + 1);
-                    }
-                    else
-                    {
-                        return sendToBox(C::SETBAUD, 2, baudTime);
-                    }
-                }
-
-                void getLinkTime(guint8 type, guint32 time)
-                {
-                    if (type == C::SETBYTETIME)
-                    {
-                        _shared->reqByteToByte = time;
-                    }
-                    else if (type == C::SETWAITTIME)
-                    {
-                        _shared->reqWaitTime = time;
-                    }
-                    else if (type == C::SETRECBBOUT)
-                    {
-                        _shared->resByteToByte = time;
-                    }
-                    else if (type == C::SETRECFROUT)
-                    {
-                        _shared->resWaitTime = time;
-                    }
-                }
-
-                gboolean setCommTime(guint8 type, guint32 time)
-                {
-                    guint8 timeBuff[2];
-
-                    getLinkTime(type, time);
-
-                    if (type == C::SETVPWSTART || 
-                        type == C::SETVPWRECS)
-                    {
-                        if (C::SETVPWRECS == type)
-                        {
-                            time = (time * 2) / 3;
-                        }
-                        type = type + (C::SETBYTETIME & 0xF0);
-                        time = time / ((_timeUnit / 1000000.0));
-                    }
-                    else
-                    {
-                        time = ((time / _timeBaseDB) / (_timeUnit / 1000000.0));
-                    }
-
-                    if (time > 65535)
-                    {
-                        _shared->lastError = C::COMMTIME_OUT;
-                        return FALSE;
-                    }
-
-                    if (type == C::SETBYTETIME ||
-						type == C::SETWAITTIME ||
-						type == C::SETRECBBOUT ||
-						type == C::SETRECFROUT ||
-						type == C::SETLINKTIME)
-                    {
-                        timeBuff[0] = JM_HIGH_BYTE(time);
-                        timeBuff[1] = JM_LOW_BYTE(time);
-                        if (timeBuff[0] == 0)
-                        {
-                            return sendToBox(type, 1, timeBuff + 1);
-                        }
-                        return sendToBox(type, 2, timeBuff);
-                    }
-                    _shared->lastError = C::UNDEFINE_CMD;
-                    return FALSE;
-                }
-
-                gboolean runReceive(guint8 type)
-                {
-                    if (type == C::GET_PORT1)
-                    {
-                        _shared->isDB20 = FALSE;
-                    }
-
-                    if (type == C::GET_PORT1 || 
-                        type == C::SET55_BAUD || 
-                        (type >= C::REC_FR && type <= C::RECEIVE))
-                    {
-                        if (_shared->isDoNow)
-                        {
-                            return commboxDo(type, 0, NULL);
-                        }
-                        return addToBuff(type, 0, NULL);
-                    }
-                    _shared->lastError = C::UNDEFINE_CMD;
-                    return FALSE;
-                }
-
-                guint8 getAbsAdd(guint8 _buffID, guint8 add)
-                {
-                    size_t length = 0;
-                    guint8 start_add = 0;
-
-                    if (_buffID != _buffID)
-                    {
-                        if (_buffAdd[_buffID] == C::NULLADD)
-                        {
-                            _shared->lastError = C::NOUSED_BUFF;
-                            return 0;
-                        }
-
-                        if (_buffID == C::LINKBLOCK)
-                        {
-                            length = _cmdBuffLen - _buffAdd[C::LINKBLOCK];
-                        }
-                        else
-                        {
-                            size_t i;
-                            for (i = 0; i < _buffUsedNum; i++)
-                            {
-                                if (_buffUsed[i] == _buffID)
-                                {
-                                    break;
-                                }
-                            }
-                            if (i == (_buffUsedNum - 1))
-                            {
-                                length = _buffAdd[C::SWAPBLOCK] - _buffAdd[_buffID];
-                            }
-                            else
-                            {
-                                length = _buffAdd[_buffID + 1] - _buffAdd[_buffID];
-                            }
-                        }
-                        start_add = _buffAdd[_buffID];
-                    }
-                    else
-                    {
-                        length = _buffAdd[C::LINKBLOCK] - _buffAdd[C::SWAPBLOCK];
-                        start_add = _buffAdd[C::SWAPBLOCK];
-                    }
-
-                    if (add < length)
-                    {
-                        return add + start_add;
-                    }
-
-                    _shared->lastError = C::OUTADDINBUFF;
-                    return 0;
-                }
-
-                gboolean updateBuff(guint8 type, guint8 *buffer)
-                {
-                    guint8 cmdTemp[4];
-                    guint8 ret;
-
-                    _shared->lastError = 0;
-                    ret = getAbsAdd(buffer[0], buffer[1]);
-                    if (ret == 0)
-                    {
-                        return FALSE;
-                    }
-                    cmdTemp[0] = ret;
-
-                    if ((type == C::INVERT_DATA) || 
-                        (type == C::DEC_DATA) || 
-                        (type == C::INC_DATA))
-                    {
-                    }
-                    else if ((type == C::UPDATE_1BYTE) || 
-                        (type == C::SUB_BYTE))
-                    {
-                        cmdTemp[1] = buffer[2];
-                    }
-                    else if (type == C::INC_2DATA)
-                    {
-                        ret = getAbsAdd(buffer[2], buffer[3]);
-                        if (ret == 0)
-                        {
-                            return FALSE;
-                        }
-                        cmdTemp[1] = ret;
-                    }
-                    else if ((type == C::COPY_DATA) || 
-                        (type == C::ADD_1BYTE))
-                    {
-                        ret = getAbsAdd(buffer[2], buffer[3]);
-                        if (ret == 0)
-                        {
-                            return FALSE;
-                        }
-                        cmdTemp[1] = ret;
-                        cmdTemp[2] = buffer[4];
-                    }
-                    else if ((type == C::UPDATE_2BYTE) || 
-                        (type == C::ADD_2BYTE))
-                    {
-                        ret = getAbsAdd(buffer[3], buffer[4]);
-                        if (ret == 0)
-                        {
-                            return FALSE;
-                        }
-                        cmdTemp[1] = buffer[2];
-                        cmdTemp[2] = ret;
-                        cmdTemp[3] = buffer[5];
-
-                    }
-                    else if ((type == C::ADD_DATA) || 
-                        (type == C::SUB_DATA))
-                    {
-                        ret = getAbsAdd(buffer[2], buffer[3]);
-                        if (ret == 0)
-                        {
-                            return FALSE;
-                        }
-                        cmdTemp[1] = ret;
-                        ret = getAbsAdd(buffer[4], buffer[5]);
-                        if (ret == 0)
-                        {
-                            return FALSE;
-                        }
-                        cmdTemp[2] = ret;
-
-                    }
-                    else
-                    {
-                        _shared->lastError = C::UNDEFINE_CMD;
-                        return FALSE;
-
-                    }
-                    return sendToBox(type - type % 4, type % 4 + 1, cmdTemp);
-                }
-
-                gboolean commboxDelay(guint32 time)
-                {
-                    guint8 timeBuff[2];
-                    guint8 delayWord = C::DELAYSHORT;
-
-                    time = time / (_timeUnit / 1000000.0);
-                    if (time == 0)
-                    {
-                        _shared->lastError = C::SETTIME_ERROR;
-                        return FALSE;
-                    }
-                    if (time > 65535)
-                    {
-                        time = time / _timeBaseDB;
-                        if (time > 65535)
-                        {
-                            time = time / _timeBaseDB;
-                            if (time > 65535)
-                            {
-                                _shared->lastError = C::COMMTIME_OUT;
-                                return FALSE;
-                            }
-                            delayWord = C::DELAYLONG;
-                        }
-                        else
-                        {
-                            delayWord = C::DELAYTIME;
-                        }
-                    }
-                    timeBuff[0] = JM_HIGH_BYTE(time);
-                    timeBuff[1] = JM_LOW_BYTE(time);
-                    if (timeBuff[0] == 0)
-                    {
-                        if (_shared->isDoNow)
-                        {
-                            return commboxDo(delayWord, 1, timeBuff + 1);
-                        }
-                        return addToBuff(delayWord, 1, timeBuff + 1);
-                    }
-                    if (_shared->isDoNow)
-                    {
-                        return commboxDo(delayWord, 2, timeBuff);
-                    }
-                    return addToBuff(delayWord, 2, timeBuff);
-                }
-
-                gboolean sendOutData( const guint8 *buffer, size_t count)
-                {
-                    if (count == 0)
-                    {
-                        _shared->lastError = C::ILLIGICAL_LEN;
-                        return FALSE;
-                    }
-                    if (_shared->isDoNow)
-                    {
-                        return commboxDo(C::SEND_DATA, count, buffer);
-                    }
-                    else
-                    {
-                        return addToBuff(C::SEND_DATA, count, buffer);
-                    }
-                }
-
-                gboolean runBatch(guint8 *buffID, size_t count, gboolean isExecuteMany)
-                {
-                    guint8 commandWord = C::D0_BAT;
-                    size_t i;
-
-                    for (i = 0; i < count; i++)
-                    {
-                        if (_buffAdd[buffID[i]] == C::NULLADD)
-                        {
-                            _shared->lastError = C::NOUSED_BUFF;
-                            return FALSE;
-                        }
-                    }
-                    if (isExecuteMany)
-                    {
-                        commandWord = C::D0_BAT_FOR;
-                    }
-                    if (commandWord == C::D0_BAT && 
-                        buffID[0] == _buffUsed[0])
-                    {
-                        commandWord = C::DO_BAT_00;
-                        return commboxDo(commandWord, 0, NULL);
-                    }
-
-                    return commboxDo(commandWord, count, buffID);
-                }
-
-                size_t readData(guint8 *buff, size_t count, gint64 microseconds)
-                {
-                    jm_commbox_port_set_read_timeout(microseconds);
-
-                    return jm_commbox_port_read(buff, count);
-                }
-
-                size_t readBytes(guint8 *buff, size_t count)
-                {
-                    return readData(buff, count, _shared->resWaitTime);
-                }
-
-                gboolean checkResult(gint64 microseconds)
-                {
-                    guint8 receiveBuffer;
-
-                    jm_commbox_port_set_read_timeout(microseconds);
-
-                    if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
-                    {
-                        _shared->lastError = C::TIMEOUT_ERROR;
-                    }
-
-                    if (receiveBuffer == C::SUCCESS)
-                    {
-                        return TRUE;
-                    }
-
-                    while (jm_commbox_port_read(&receiveBuffer, 1) == 1);
-                    _shared->lastError = receiveBuffer;
-                    return FALSE;
-                }
-
-                gboolean stopNow(gboolean isStopExecute)
-                {
-                    if (isStopExecute)
-                    {
-                        guint8 receiveBuffer = 0;
-                        guint32 times = C::REPLAYTIMES;
-                        while (times--)
-                        {
-                            if (!commboxDo(C::STOP_EXECUTE, 0, NULL))
-                            {
-                                return FALSE;
-                            }
-                            if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
-                            {
-                                _shared->lastError = C::TIMEOUT_ERROR;
-                            }
-                            if (receiveBuffer == C::RUN_ERR)
-                            {
-                                return TRUE;
-                            }
-                            _shared->lastError = C::TIMEOUT_ERROR;
-                        }
-                        return FALSE;
-                    }
-                    return commboxDo(C::STOP_REC, 0, NULL);
-                }
-            private:
-                gboolean checkIdle()
-                {
-                    guint8 receiveBuffer = C::SUCCESS;
-                    size_t avail;
-
-                    avail = jm_commbox_port_bytes_available();
-
-                    if (avail > 240)
-                    {
-                        jm_commbox_port_discard_in_buffer();
-                        jm_commbox_port_discard_out_buffer();
-                        return TRUE;
-                    }
-
-                    while (avail)
-                    {
-                        jm_commbox_port_read(&receiveBuffer, 1);
-                        avail--;
-                    }
-
-                    if (receiveBuffer == C::SUCCESS)
-                    {
-                        return TRUE;
-                    }
-
-                    jm_commbox_port_set_read_timeout(JM_TIMER_TO_MS(200));
-
-                    if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
-                    {
-                        _shared->lastError = C::KEEPLINK_ERROR;
-                        return FALSE;
-                    }
-
-                    if (receiveBuffer == C::SUCCESS)
-                    {
-                        return TRUE;
-                    }
-
-                    _shared->lastError = receiveBuffer;
-                    return FALSE;
-                }
-
-                gboolean sendOK(gint64 microseconds)
-                {
-                    guint8 receiveBuffer = 0;
-
-                    jm_commbox_port_set_read_timeout(microseconds);
-
-                    while (TRUE)
-                    {
-                        if (jm_commbox_port_read(&receiveBuffer, 1) != 1)
-                        {
-                            _shared->lastError = C::TIMEOUT_ERROR;
-                            return FALSE;
-                        }
-
-                        if (receiveBuffer == C::SEND_OK)
-                        {
-                            return TRUE;
-                        }
-                        else if (receiveBuffer >= C::UP_TIMEOUT && 
-                            receiveBuffer <= C::ERROR_REC)
-                        {
-                            _shared->lastError = C::SENDDATA_ERROR;
-                            return FALSE;
-                        }
-                    }
-
-                    _shared->lastError = C::SENDDATA_ERROR;
-                    return FALSE;
-                }
-
-                guint32 getBoxVer()
-                {
-                    return (_version[0] << 8) | (_version[1]);
-                }
-
-                size_t bufferSize()
-                {
-                    return _buffAdd[C::LINKBLOCK] - _buffAdd[C::SWAPBLOCK];
-                }
-
-                gboolean sendDataToEcuNew(size_t count, const guint8 *buff)
-                {
-                    size_t i;
-                    size_t checksum = count + 5;
-                    size_t size = count + 6;
-                    guint8 *command = (guint8*)g_malloc(size);
-
-                    command[0] = C::WR_DATA + _headPassword;
-                    command[1] = JM_LOW_BYTE(count + 3);
-                    command[2] = _buffAdd[C::SWAPBLOCK];
-                    command[3] = C::SEND_CMD;
-                    command[4] = JM_LOW_BYTE(count - 1);
-
-                    command[checksum] = C::WR_DATA + command[1] + command[2] + command[3] + command[4];
-
-                    memcpy(command + 5, buff, count);
-
-                    for(i = 0; i < count; i++)
-                    {
-                        command[checksum] += buff[i];
-                    }
-
-                    for (i = 0; i < 3; i++)
-                    {
-                        if (!checkIdle() || 
-                            (jm_commbox_port_write(command, size) != size))
-                        {
-                            _shared->lastError = C::SENDDATA_ERROR;
-                            continue;
-                        }
-
-                        if (sendOK(20 * (count + 12)))
-                        {
-                            g_free(command);
-                            return TRUE;
-                        }
-                    }
-
-                    g_free(command);
-                    return FALSE;
-                }
-
-                gboolean sendDataToEcuOld(size_t count, const guint8 *buff)
-                {
-                    size_t i;
-                    size_t checksum = count + 4;
-                    size_t size = count + 5;
-                    guint8 *command = (guint8*)g_malloc(size);
-
-                    command[0] = C::WR_DATA + _headPassword;
-                    command[1] = JM_LOW_BYTE(count + 2);
-                    command[2] = _buffAdd[C::SWAPBLOCK];
-                    command[3] = JM_LOW_BYTE(count - 1);
-
-                    command[checksum] = C::WR_DATA + command[1] + command[2] + command[3];
-
-                    memcpy(command + 4, buff, count);
-
-                    for (i = 0; i < count; i++)
-                    {
-                        command[checksum] += buff[i];
-                    }
-
-                    for (i = 0; i < 3; i++)
-                    {
-                        if (!checkIdle() || 
-                            (jm_commbox_port_write(command, size) != size))
-                        {
-                            _shared->lastError = C::SENDDATA_ERROR;
-                            continue;
-                        }
-
-                        if (sendOK(20 * (size + 6)))
-                        {
-                            g_free(command);
-                            return TRUE;
-                        }
-                    }
-
-                    g_free(command);
-                    return FALSE;
-
-                }
-
-                gboolean sendDataToEcu(guint8 commandWord, size_t count, const guint8 *buff)
-                {
-                    if (commandWord == C::SEND_DATA && 
-                        count <= C::SEND_LEN)
-                    {
-                        if (bufferSize() < (count + 1))
-                        {
-                            _shared->lastError = C::NOBUFF_TOSEND;
-                            return FALSE;
-                        }
-
-                        if (getBoxVer() > 0x400)
-                        {
-                            // Ôö¼Ó·¢ËÍ³¤ÃüÁî 
-                            if (!sendDataToEcuNew(count, buff))
-                            {
-                                return FALSE;
-                            }
-                        }
-                        else
-                        {
-                            // ±£³ÖÓë¾ÉºÐ×Ó¼æÈÝ 
-                            if (!sendDataToEcuOld(count, buff))
-                            {
-                                return FALSE;
-                            }
-                        }
-                        return commboxDo(C::D0_BAT, 1, _buffAdd + C::SWAPBLOCK);
-                    }
-                    _shared->lastError = C::ILLIGICAL_LEN;
-                    return FALSE;
-                }
-
-                gboolean commboxCommand(guint8 commandWord, size_t count, const guint8 *buff)
-                {
-                    size_t size = count + 2;
-                    size_t csPos = count + 1;
-                    size_t i;
-                    guint8 *command = (guint8*)g_malloc(size);
-                    guint8 *checksum = &command[csPos];
-
-                    *checksum = JM_LOW_BYTE(commandWord + count);
-
-                    if (commandWord < C::WR_DATA)
-                    {
-                        if (count == 0)
-                        {
-                            _shared->lastError = C::ILLIGICAL_LEN;
-                            g_free(command);
-                            return FALSE;
-                        }
-                        (*checksum)--;
-                    }
-                    else
-                    {
-                        if (count != 0)
-                        {
-                            _shared->lastError = C::ILLIGICAL_LEN;
-                            g_free(command);
-                            return FALSE;
-                        }
-                    }
-
-                    command[0] = *checksum + _headPassword;
-                    memcpy(command + 1, buff, count);
-
-                    for (i = 0; i < count; i++)
-                    {
-                        *checksum += buff[i];
-                    }
-
-                    for (i = 0; i < 3; i++)
-                    {
-                        if (commandWord != C::STOP_REC && 
-                            commandWord != C::STOP_EXECUTE)
-                        {
-                            if (!checkIdle() || 
-                                (jm_commbox_port_write(command, size) != size))
-                            {
-                                _shared->lastError = C::SENDDATA_ERROR;
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            if (jm_commbox_port_write(command, size) != size)
-                            {
-                                _shared->lastError = C::SENDDATA_ERROR;
-                                continue;
-                            }
-                        }
-
-                        if (sendOK(JM_TIMER_TO_MS(200) * size))
-                        {
-                            g_free(command);
-                            return TRUE;
-                        }
-                    }
-
-                    g_free(command);
-                    return FALSE;
-                }
-
-                gboolean commboxDo(guint8 commandWord, size_t count, const guint8 *buff)
-                {
-                    if (count > C::CMD_DATALEN)
-                    {
-                        return sendDataToEcu(commandWord, count, buff);
-                    }
-                    else
-                    {
-                        return commboxCommand(commandWord, count, buff);
-                    }
-                }
-
-                gboolean doSet(guint8 commandWord, size_t count, const guint8 *buff)
-                {
-                    guint32 times = C::REPLAYTIMES;
-
-                    while (times--)
-                    {
-                        if (!commboxDo(commandWord, count, buff))
-                        {
-                            continue;
-                        }
-                        if (checkResult(JM_TIMER_TO_MS(50)))
-                        {
-                            return TRUE;
-                        }
-                        stopNow(TRUE);
-                    }
-                    return FALSE;
-                }
-
-                size_t getCmdData(guint8 command, guint8 *receiveBuffer)
-                {
-                    guint8 checksum = command;
-                    guint8 cmdInfo[2];
-                    size_t i;
-
-                    if (readData(cmdInfo, 2, JM_TIMER_TO_MS(150)) != 2)
-                    {
-                        return 0;
-                    }
-
-                    if (cmdInfo[0] != command)
-                    {
-                        _shared->lastError = cmdInfo[0];
-                        jm_commbox_port_discard_in_buffer();
-                        return 0;
-                    }
-
-                    if ((readData(receiveBuffer, cmdInfo[1], JM_TIMER_TO_MS(150)) != cmdInfo[1]) ||
-                        (readData(cmdInfo, 1, JM_TIMER_TO_MS(150)) != 1))
-                    {
-                        return 0;
-                    }
-
-                    checksum += cmdInfo[1];
-
-                    for (i = 0; i < cmdInfo[1]; i++)
-                    {
-                        checksum += receiveBuffer[i];
-                    }
-
-                    if (checksum != cmdInfo[0])
-                    {
-                        _shared->lastError = C::CHECKSUM_ERROR;
-                        return 0;
-                    }
-                    return cmdInfo[1];
-                }
-
-                gboolean checkBox()
-                {
-                    static guint8 password[] = {0x0C, 0x22, 0x17, 0x41, 0x57, 0x2D, 0x43, 0x17, 0x2D, 0x4D};
-                    guint8 temp[5];
-                    size_t i;
-                    guint8 checksum;
-
-                    srand((guint32)time(NULL));
-
-                    temp[4] = 0x00;
-                    i = 0;
-                    while (i < 4)
-                    {
-                        temp[i] = JM_LOW_BYTE(rand());
-                        temp[4] += temp[i];
-                        i++;
-                    }
-
-                    if (jm_commbox_port_write(temp, 5) != 5)
-                    {
-                        _shared->lastError = C::SENDDATA_ERROR;
-                        return FALSE;
-                    }
-
-                    i = 0;
-                    checksum = temp[4] + temp[4];
-
-                    while (i < sizeof(password))
-                    {
-                        checksum += password[i] ^ temp[i % 5];
-                        i++;
-                    }
-
-                    g_usleep(JM_TIMER_TO_MS(20));
-
-                    if (getCmdData(C::GETINFO, temp) <= 0)
-                    {
-                        return FALSE;
-                    }
-
-                    _headPassword = temp[0];
-
-                    if (checksum != _headPassword)
-                    {
-                        _shared->lastError = C::CHECKSUM_ERROR;
-                        return FALSE;
-                    }
-                    if (_headPassword == 0)
-                    {
-                        _headPassword = 0x55;
-                    }
-                    return TRUE;
-                }
-
-                gboolean initBox()
-                {
-                    guint32 length;
-                    size_t pos = 0;
-                    size_t i;
+	namespace V1
+	{
+		namespace C168
+		{
+			class Box : public V1::Box<C168::Constant>
+			{
+			public:
+				Box(const boost::shared_ptr<V1::Shared> &shared)
+					: V1::Box<C168::Constant>(shared)
+					, _buffUsedNum(0)
+					, _timeUnit(0)
+					, _timeBaseDB(0)
+					, _timeExternDB(0)
+					, _cmdBuffLen(0)
+					, _buffID(0)
+					, _headPassword(0)
+				{
+					memset(_buffAdd, 0, Constant::MAXIM_BLOCK + 2);
+					memset(_buffUsed, 0, Constant::MAXIM_BLOCK);
+					memset(_version, 0, Constant::VERSIONLEN);
+					memset(_boxID, 0, Constant::COMMBOXIDLEN);
+					memset(_port, 0, Constant::COMMBOXPORTNUM);
+					memset(_cmdTemp, 0, sizeof(_cmdTemp));
+				}
+
+				bool openComm()
+				{
+					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
+					{
+						JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
+						if (_port == NULL)
+							return false;
+
+						std::vector<std::string> vec = JM::SerialPort::getSystemPorts();
+
+						for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+						{
+							port->setPortName(*it);
+							port->setBaudrate(9600);
+							port->setParity(JM_SP_PAR_NONE);
+							port->setStopbits(JM_SP_SB_ONE);
+							port->setFlowControl(JM_SP_FC_NONE);
+							port->setDatabits(8);
+							if (port->open() == JM_ERROR_SUCCESS)
+							{
+								port->setDtr(true);
+								if (openBox())
+									return true;
+							}
+							port->close();
+						}
+					}
+					return false;
+				}
+
+				bool closeComm()
+				{
+					stopNow(true);
+					doSet(Constant::RESET, NULL, 0);
+					setRF(Constant::RESET_RF, 0);
+					if  (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
+					{
+						((JM::SerialPort*)commboxPort().pointer())->close();
+					}
+					return true;
+				}
+
+				bool delBatch(boost::uint8_t buffID)
+				{
+					if (buffID > Constant::MAXIM_BLOCK)
+					{
+						// æ•°æ®å—ä¸å­˜åœ¨
+						_shared->lastError = Constant::NODEFINE_BUFF;
+						return false;
+					}
+
+					if (_buffID == buffID)
+					{
+						_buffID = Constant::NULLADD;
+						return true;
+					}
+
+					if (_buffAdd[buffID] == Constant::NULLADD)
+					{
+						// æ•°æ®å—æ ‡è¯†ç™»è®°æ˜¯å¦æœ‰ç”³è¯·?
+						_shared->lastError = Constant::NOUSED_BUFF;
+						return false;
+					}
+
+					if (buffID == Constant::LINKBLOCK)
+					{
+						_buffAdd[Constant::LINKBLOCK] = _cmdBuffLen;
+					}
+					else
+					{
+						std::size_t i = 0;
+						boost::uint8_t data[3];
+						boost::uint8_t deleteBuffLen;
+
+						for (; i < _buffUsedNum; i++)
+						{
+							if (_buffUsed[i] == buffID)
+							{
+								break;
+							}
+						}
+						data[0] = _buffAdd[buffID];
+						if (i < _buffUsedNum - 1)
+						{
+							data[1] = _buffAdd[_buffUsed[i + 1]];
+							data[2] = _buffAdd[Constant::SWAPBLOCK] - data[1];
+
+							if (!doSet(Constant::COPY_DATA - Constant::COPY_DATA % 4, data, 3))
+							{
+								return false;
+							}
+						}
+						else
+						{
+							data[1] = _buffAdd[Constant::SWAPBLOCK];
+						}
+
+						deleteBuffLen = data[1] - data[0];
+						for (i = i + 1; i < _buffUsedNum; i++)
+						{
+							_buffUsed[i - 1] = _buffUsed[i];
+							_buffAdd[_buffUsed[i]] = _buffAdd[_buffUsed[i]] - deleteBuffLen;
+						}
+						_buffUsedNum--;
+						_buffAdd[Constant::SWAPBLOCK] = _buffAdd[Constant::SWAPBLOCK] - deleteBuffLen;
+						_buffAdd[_buffID] = Constant::NULLADD;
+					}
+					return true;
+				}
+
+				bool newBatch(boost::uint8_t buffID)
+				{
+					if (buffID > Constant::MAXIM_BLOCK)
+					{
+						_shared->lastError = Constant::NODEFINE_BUFF;
+						return false;
+					}
+					if (_buffID != Constant::NULLADD)
+					{
+						_shared->lastError = Constant::APPLICATION_NOW;
+						return false;
+					}
+
+					if ((_buffAdd[buffID] != Constant::NULLADD && 
+						(buffID != Constant::LINKBLOCK) && 
+						!delBatch(buffID)))
+					{
+						return false;;
+					}
+
+					_cmdTemp[0] = Constant::WR_DATA;
+					_cmdTemp[1] = 0x01;
+					if (_buffID == Constant::LINKBLOCK)
+					{
+						_cmdTemp[2] = 0xFF;
+						_buffAdd[Constant::LINKBLOCK] = _cmdBuffLen;
+					}
+					else
+					{
+						_cmdTemp[2] = _buffAdd[Constant::SWAPBLOCK];
+					}
+
+					if (bufferSize() <= 1)
+					{
+						_shared->lastError = Constant::BUFFFLOW;
+						return false;
+					}
+					_cmdTemp[3] = Constant::WR_DATA + 0x01 + _cmdTemp[2];
+					_cmdTemp[0] += _headPassword;
+					_buffID = buffID;
+					_shared->isDoNow = false;
+					return true;
+				}
+
+				bool addToBuff(boost::uint8_t commandWord, const boost::uint8_t *data, std::size_t count)
+				{
+					std::size_t i;
+					boost::uint8_t checksum;
+
+					checksum = _cmdTemp[_cmdTemp[1] + 2];
+
+					_shared->nextAddress = _cmdTemp[1] + count + 1;
+
+					if (_buffID == Constant::NULLADD)
+					{
+						// æ•°æ®å—æ ‡è¯†ç™»è®°æ˜¯å¦æœ‰ç”³è¯·?
+						_shared->lastError = Constant::NOAPPLICATBUFF;
+						_shared->isDoNow = true;
+						return false;
+					}
+
+					if (bufferSize() < _shared->nextAddress)
+					{
+						// æ£€æŸ¥æ˜¯å¦æœ‰è¶³å¤Ÿçš„ç©ºé—´å­˜å‚¨?
+						_shared->lastError = Constant::BUFFFLOW;
+						_shared->isDoNow = true;
+						return false;
+					}
+
+					if (commandWord < Constant::RESET && 
+						commandWord != Constant::CLR_LINK &&
+						commandWord != Constant::DO_BAT_00 && 
+						commandWord != Constant::D0_BAT &&
+						commandWord != Constant::D0_BAT_FOR && 
+						commandWord != Constant::WR_DATA)
+					{
+						// æ˜¯å¦ä¸ºç¼“å†²åŒºå‘½ä»¤?
+						if ((count < Constant::CMD_DATALEN) ||
+							(commandWord == Constant::SEND_DATA && 
+							count < Constant::SEND_LEN))
+						{
+							// æ˜¯å¦åˆæ³•å‘½ä»¤?
+							if (commandWord == Constant::SEND_DATA && 
+								getBoxVer() > 0x400)
+							{
+								// å¢žåŠ å‘é€é•¿å‘½ä»¤
+								_cmdTemp[_cmdTemp[1] + 2] = Constant::SEND_CMD;
+								checksum += Constant::SEND_CMD;
+								_cmdTemp[1]++;
+								_cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
+								if (count > 0)
+								{
+									_cmdTemp[_cmdTemp[1] + 2]--;
+								}
+								checksum += _cmdTemp[_cmdTemp[1] + 2];
+								_cmdTemp[1]++;
+								for (i = 0; i < count; i++, _cmdTemp[1]++)
+								{
+									_cmdTemp[_cmdTemp[1] + 2] = data[i];
+									checksum += data[i];
+								}
+								_cmdTemp[_cmdTemp[1] + 2] = checksum + count + 2;
+								_shared->nextAddress++;
+							}
+							else
+							{
+								_cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
+								if (count > 0)
+								{
+									_cmdTemp[_cmdTemp[1] + 2]--;
+								}
+								checksum += _cmdTemp[_cmdTemp[1] + 2];
+								_cmdTemp[1]++;
+								for (i = 0; i < count; i++, _cmdTemp[1]++)
+								{
+									_cmdTemp[_cmdTemp[1] + 2] = data[i];
+									checksum += data[i];
+								}
+								_cmdTemp[_cmdTemp[1] + 2] = checksum + count + 1;
+								_shared->nextAddress++; // Rocky Add
+							}
+							return true;
+						}
+						_shared->lastError = Constant::ILLIGICAL_LEN;
+						_shared->isDoNow = true;
+						return false;
+					}
+					_shared->lastError = Constant::UNBUFF_CMD;
+					_shared->isDoNow = true;
+					return false;
+				}
+
+				bool endBatch()
+				{
+					boost::uint32_t times = Constant::REPLAYTIMES;
+
+					_shared->isDoNow = true;
+
+					if (_buffID == Constant::NULLADD)
+					{
+						// æ•°æ®å—æ ‡è¯†ç™»è®°æ˜¯å¦æœ‰ç”³è¯·?
+						_shared->lastError = Constant::NOAPPLICATBUFF;
+						return false;
+					}
+
+					if (_cmdTemp[1] == 0x01)
+					{
+						_buffID = Constant::NULLADD;
+						_shared->lastError = Constant::NOADDDATA;
+						return false;
+					}
+
+					while (times--)
+					{
+						if (times == 0)
+						{
+							_buffID = Constant::NULLADD;
+							return false;
+						}
+						if (!checkIdle() || 
+							(commboxPort().write(boost::asio::const_buffer(_cmdTemp, _cmdTemp[1] + 3)) != (_cmdTemp[1] + 3)))
+						{
+							continue;
+						}
+						else if (sendOK(MilliSeconds(20 * (_cmdTemp[1] + 10)).total_microseconds()))
+						{
+							break;
+						}
+						if (!stopNow(true))
+						{
+							_buffID = Constant::NULLADD;
+							return false;
+						}
+					}
+
+					if (_buffID == Constant::LINKBLOCK)
+					{
+						_buffAdd[Constant::LINKBLOCK] = _cmdBuffLen - _cmdTemp[1];
+					}
+					else
+					{
+						_buffAdd[_buffID] = _buffAdd[Constant::SWAPBLOCK];
+						_buffUsed[_buffUsedNum] = _buffID;
+						_buffUsedNum++;
+						_buffAdd[Constant::SWAPBLOCK] = _buffAdd[Constant::SWAPBLOCK] + _cmdTemp[1];
+					}
+					_buffID = Constant::NULLADD;
+					return true;
+				}
+
+				bool sendToBox(boost::uint8_t commandWord, const boost::uint8_t *buff, std::size_t count)
+				{
+					if (_shared->isDoNow)
+					{
+						return doSet(commandWord, buff, count);
+					}
+					else
+					{
+						return addToBuff(commandWord, buff, count);
+					}
+				}
+
+				bool setLineLevel(boost::uint8_t valueLow, boost::uint8_t valueHigh)
+				{
+					// åªæœ‰ä¸€ä¸ªå­—èŠ‚çš„æ•°æ®ï¼Œè®¾å®šç«¯å£1
+					_port[1] &= ~valueLow;
+					_port[1] |= valueHigh;
+					return sendToBox(Constant::SETPORT1, _port + 1, 1);
+				}
+
+				bool setCommCtrl(boost::uint8_t valueOpen, boost::uint8_t valueClose)
+				{
+					// åªæœ‰ä¸€ä¸ªå­—èŠ‚çš„æ•°æ®ï¼Œè®¾å®šç«¯å£2
+					_port[2] &= ~valueOpen;
+					_port[2] |= valueClose;
+					return sendToBox(Constant::SETPORT2, _port + 2, 1);
+				}
+
+				bool setCommLine(boost::uint8_t sendLine, boost::uint8_t recvLine)
+				{
+					// åªæœ‰ä¸€ä¸ªå­—èŠ‚çš„æ•°æ®ï¼Œè®¾å®šç«¯å£0
+					if (sendLine > 7)
+					{
+						sendLine = 0x0F;
+					}
+					if (recvLine > 7)
+					{
+						recvLine = 0x0F;
+					}
+					_port[0] = sendLine + (recvLine << 4);
+					return sendToBox(Constant::SETPORT0, _port, 1);
+				}
+
+				bool turnOverOneByOne()
+				{
+					// å°†åŽŸæœ‰çš„æŽ¥å—ä¸€ä¸ªå‘é€ä¸€ä¸ªçš„æ ‡å¿—ç¿»è½¬
+					return sendToBox(Constant::SET_ONEBYONE, NULL, 0);
+				}
+
+				bool setEchoData(boost::uint8_t *echoBuff, std::size_t echoLen)
+				{
+					if (echoBuff == NULL || echoLen == 0 || echoLen > 4)
+					{
+						_shared->lastError = Constant::ILLIGICAL_LEN;
+						return false;
+					}
+					if (_shared->isDoNow)
+					{
+						boost::uint8_t receiveBuff[6];
+						std::size_t i;
+						if (!commboxDo(Constant::ECHO, echoBuff, echoLen) || 
+							(readData(receiveBuff, echoLen, MilliSeconds(100).total_microseconds()) != echoLen))
+						{
+							return false;
+						}
+						for (i = 0; i < echoLen; i++)
+						{
+							if (receiveBuff[i] != echoBuff[i])
+							{
+								_shared->lastError = Constant::CHECKSUM_ERROR;
+								return false;
+							}
+						}
+						return checkResult(MilliSeconds(100).total_microseconds());
+					}
+					return addToBuff(Constant::ECHO, echoBuff, echoLen);
+				}
+
+				bool keepLink(bool isRunLink)
+				{
+					if (isRunLink)
+					{
+						return sendToBox(Constant::RUNLINK, NULL, 0);
+					}
+					return sendToBox(Constant::STOPLINK, NULL, 0);
+				}
+
+				bool setCommLink(boost::uint8_t ctrlWord1, boost::uint8_t ctrlWord2, boost::uint8_t ctrlWord3)
+				{
+					boost::uint8_t ctrlWord[3]; // é€šè®¯æŽ§åˆ¶å­—3
+					boost::uint8_t modeControl = ctrlWord1 & 0xE0;
+					std::size_t length = 3;
+
+					ctrlWord[0] = ctrlWord1;
+
+					if ((ctrlWord1 & 0x04) != 0)
+					{
+						_shared->isDB20 = true;
+					}
+					else
+					{
+						_shared->isDB20 = false;
+					}
+
+					if (modeControl == Constant::SET_VPW || 
+						modeControl == Constant::SET_PWM)
+					{
+						return sendToBox(Constant::SETTING, ctrlWord, 1);
+					}
+
+					ctrlWord[1] = ctrlWord2;
+					ctrlWord[2] = ctrlWord3;
+					if (ctrlWord3 == 0)
+					{
+						length--;
+						if (ctrlWord2 == 0)
+						{
+							length--;
+						}
+					}
+					if (modeControl == Constant::EXRS_232 && length < 2)
+					{
+						_shared->lastError = Constant::UNSET_EXRSBIT;
+						return false;
+					}
+
+					return sendToBox(Constant::SETTING, ctrlWord, length);
+				}
+
+				bool setCommBaud(boost::uint32_t baud)
+				{
+					boost::uint8_t baudTime[2];
+					double instructNum;
+
+					instructNum = ((1000000.0 / (_timeUnit)) * 1000000) / baud;
+
+					if (_shared->isDB20)
+					{
+						instructNum /= 20;
+					}
+
+					instructNum += 0.5;
+					if (instructNum > 65535 || instructNum < 10)
+					{
+						_shared->lastError = Constant::COMMBAUD_OUT;
+						return false;
+					}
+					baudTime[0] = JM_HIGH_BYTE(instructNum);
+					baudTime[1] = JM_LOW_BYTE(instructNum);
+					if (baudTime[0] == 0)
+					{
+						return sendToBox(Constant::SETBAUD, baudTime + 1, 1);
+					}
+					else
+					{
+						return sendToBox(Constant::SETBAUD, baudTime, 2);
+					}
+				}
+
+				bool setCommTime(boost::uint8_t type, boost::int64_t time)
+				{
+					boost::uint8_t timeBuff[2];
+
+					getLinkTime(type, time);
+
+					if (type == Constant::SETVPWSTART || 
+						type == Constant::SETVPWRECS)
+					{
+						if (Constant::SETVPWRECS == type)
+						{
+							time = (time * 2) / 3;
+						}
+						type = type + (Constant::SETBYTETIME & 0xF0);
+						time = time / ((_timeUnit / 1000000.0));
+					}
+					else
+					{
+						time = ((time / _timeBaseDB) / (_timeUnit / 1000000.0));
+					}
+
+					if (time > 65535)
+					{
+						_shared->lastError = Constant::COMMTIME_OUT;
+						return false;
+					}
+
+					if (type == Constant::SETBYTETIME ||
+						type == Constant::SETWAITTIME ||
+						type == Constant::SETRECBBOUT ||
+						type == Constant::SETRECFROUT ||
+						type == Constant::SETLINKTIME)
+					{
+						timeBuff[0] = JM_HIGH_BYTE(time);
+						timeBuff[1] = JM_LOW_BYTE(time);
+						if (timeBuff[0] == 0)
+						{
+							return sendToBox(type, timeBuff + 1, 1);
+						}
+						return sendToBox(type, timeBuff, 2);
+					}
+					_shared->lastError = Constant::UNDEFINE_CMD;
+					return false;
+				}
+
+				bool runReceive(boost::uint8_t type)
+				{
+					if (type == Constant::GET_PORT1)
+					{
+						_shared->isDB20 = false;
+					}
+
+					if (type == Constant::GET_PORT1 || 
+						type == Constant::SET55_BAUD || 
+						(type >= Constant::REC_FR && type <= Constant::RECEIVE))
+					{
+						if (_shared->isDoNow)
+						{
+							return commboxDo(type, NULL, 0);
+						}
+						return addToBuff(type, NULL, 0);
+					}
+					_shared->lastError = Constant::UNDEFINE_CMD;
+					return false;
+				}
+
+				boost::uint8_t getAbsAdd(boost::uint8_t _buffID, boost::uint8_t add)
+				{
+					std::size_t length = 0;
+					boost::uint8_t start_add = 0;
+
+					if (_buffID != _buffID)
+					{
+						if (_buffAdd[_buffID] == Constant::NULLADD)
+						{
+							_shared->lastError = Constant::NOUSED_BUFF;
+							return 0;
+						}
+
+						if (_buffID == Constant::LINKBLOCK)
+						{
+							length = _cmdBuffLen - _buffAdd[Constant::LINKBLOCK];
+						}
+						else
+						{
+							std::size_t i;
+							for (i = 0; i < _buffUsedNum; i++)
+							{
+								if (_buffUsed[i] == _buffID)
+								{
+									break;
+								}
+							}
+							if (i == (_buffUsedNum - 1))
+							{
+								length = _buffAdd[Constant::SWAPBLOCK] - _buffAdd[_buffID];
+							}
+							else
+							{
+								length = _buffAdd[_buffID + 1] - _buffAdd[_buffID];
+							}
+						}
+						start_add = _buffAdd[_buffID];
+					}
+					else
+					{
+						length = _buffAdd[Constant::LINKBLOCK] - _buffAdd[Constant::SWAPBLOCK];
+						start_add = _buffAdd[Constant::SWAPBLOCK];
+					}
+
+					if (add < length)
+					{
+						return add + start_add;
+					}
+
+					_shared->lastError = Constant::OUTADDINBUFF;
+					return 0;
+				}
+
+				bool updateBuff(boost::uint8_t type, boost::uint8_t *buffer)
+				{
+					boost::uint8_t cmdTemp[4];
+					boost::uint8_t ret;
+
+					_shared->lastError = 0;
+					ret = getAbsAdd(buffer[0], buffer[1]);
+					if (ret == 0)
+					{
+						return false;
+					}
+					cmdTemp[0] = ret;
+
+					if ((type == Constant::INVERT_DATA) || 
+						(type == Constant::DEC_DATA) || 
+						(type == Constant::INC_DATA))
+					{
+					}
+					else if ((type == Constant::UPDATE_1BYTE) || 
+						(type == Constant::SUB_BYTE))
+					{
+						cmdTemp[1] = buffer[2];
+					}
+					else if (type == Constant::INC_2DATA)
+					{
+						ret = getAbsAdd(buffer[2], buffer[3]);
+						if (ret == 0)
+						{
+							return false;
+						}
+						cmdTemp[1] = ret;
+					}
+					else if ((type == Constant::COPY_DATA) || 
+						(type == Constant::ADD_1BYTE))
+					{
+						ret = getAbsAdd(buffer[2], buffer[3]);
+						if (ret == 0)
+						{
+							return false;
+						}
+						cmdTemp[1] = ret;
+						cmdTemp[2] = buffer[4];
+					}
+					else if ((type == Constant::UPDATE_2BYTE) || 
+						(type == Constant::ADD_2BYTE))
+					{
+						ret = getAbsAdd(buffer[3], buffer[4]);
+						if (ret == 0)
+						{
+							return false;
+						}
+						cmdTemp[1] = buffer[2];
+						cmdTemp[2] = ret;
+						cmdTemp[3] = buffer[5];
+
+					}
+					else if ((type == Constant::ADD_DATA) || 
+						(type == Constant::SUB_DATA))
+					{
+						ret = getAbsAdd(buffer[2], buffer[3]);
+						if (ret == 0)
+						{
+							return false;
+						}
+						cmdTemp[1] = ret;
+						ret = getAbsAdd(buffer[4], buffer[5]);
+						if (ret == 0)
+						{
+							return false;
+						}
+						cmdTemp[2] = ret;
+
+					}
+					else
+					{
+						_shared->lastError = Constant::UNDEFINE_CMD;
+						return false;
+
+					}
+					return sendToBox(type - type % 4, cmdTemp, type % 4 + 1);
+				}
+
+				bool commboxDelay(boost::int64_t time)
+				{
+					boost::uint8_t timeBuff[2];
+					boost::uint8_t delayWord = Constant::DELAYSHORT;
+
+					time = time / (_timeUnit / 1000000.0);
+					if (time == 0)
+					{
+						_shared->lastError = Constant::SETTIME_ERROR;
+						return false;
+					}
+					if (time > 65535)
+					{
+						time = time / _timeBaseDB;
+						if (time > 65535)
+						{
+							time = time / _timeBaseDB;
+							if (time > 65535)
+							{
+								_shared->lastError = Constant::COMMTIME_OUT;
+								return false;
+							}
+							delayWord = Constant::DELAYLONG;
+						}
+						else
+						{
+							delayWord = Constant::DELAYTIME;
+						}
+					}
+					timeBuff[0] = JM_HIGH_BYTE(time);
+					timeBuff[1] = JM_LOW_BYTE(time);
+					if (timeBuff[0] == 0)
+					{
+						if (_shared->isDoNow)
+						{
+							return commboxDo(delayWord, timeBuff + 1, 1);
+						}
+						return addToBuff(delayWord, timeBuff + 1, 1);
+					}
+					if (_shared->isDoNow)
+					{
+						return commboxDo(delayWord, timeBuff, 2);
+					}
+					return addToBuff(delayWord, timeBuff, 2);
+				}
+
+				bool sendOutData( const boost::uint8_t *buffer, std::size_t count)
+				{
+					if (count == 0)
+					{
+						_shared->lastError = Constant::ILLIGICAL_LEN;
+						return false;
+					}
+					if (_shared->isDoNow)
+					{
+						return commboxDo(Constant::SEND_DATA, buffer, count);
+					}
+					else
+					{
+						return addToBuff(Constant::SEND_DATA, buffer, count);
+					}
+				}
+
+				bool runBatch(boost::uint8_t *buffID, std::size_t count, bool isExecuteMany)
+				{
+					boost::uint8_t commandWord = Constant::D0_BAT;
+					std::size_t i;
+
+					for (i = 0; i < count; i++)
+					{
+						if (_buffAdd[buffID[i]] == Constant::NULLADD)
+						{
+							_shared->lastError = Constant::NOUSED_BUFF;
+							return false;
+						}
+					}
+					if (isExecuteMany)
+					{
+						commandWord = Constant::D0_BAT_FOR;
+					}
+					if (commandWord == Constant::D0_BAT && 
+						buffID[0] == _buffUsed[0])
+					{
+						commandWord = Constant::DO_BAT_00;
+						return commboxDo(commandWord, NULL, 0);
+					}
+
+					return commboxDo(commandWord, buffID, count);
+				}
+
+				std::size_t readData(boost::uint8_t *buff, std::size_t count, boost::int64_t microseconds)
+				{
+					commboxPort().setReadTimeout(MicroSeconds(microseconds));
+
+					return commboxPort().read(MutableBuffer(buff, count));
+				}
+
+				std::size_t readBytes(boost::uint8_t *buff, std::size_t count)
+				{
+					return readData(buff, count, _shared->resWaitTime);
+				}
+
+				bool checkResult(boost::int64_t microseconds)
+				{
+					boost::uint8_t receiveBuffer;
+
+					commboxPort().setReadTimeout(MicroSeconds(microseconds));
+
+					if (commboxPort().read(MutableBuffer(&receiveBuffer, 1)) != 1)
+					{
+						_shared->lastError = Constant::TIMEOUT_ERROR;
+					}
+
+					if (receiveBuffer == Constant::SUCCESS)
+					{
+						return true;
+					}
+
+					while (commboxPort().read(MutableBuffer(&receiveBuffer, 1)) == 1);
+					_shared->lastError = receiveBuffer;
+					return false;
+				}
+
+				bool stopNow(bool isStopExecute)
+				{
+					if (isStopExecute)
+					{
+						boost::uint8_t receiveBuffer = 0;
+						boost::uint32_t times = Constant::REPLAYTIMES;
+						while (times--)
+						{
+							if (!commboxDo(Constant::STOP_EXECUTE, NULL, 0))
+							{
+								return false;
+							}
+							if (commboxPort().read(MutableBuffer(&receiveBuffer, 1)) != 1)
+							{
+								_shared->lastError = Constant::TIMEOUT_ERROR;
+							}
+							if (receiveBuffer == Constant::RUN_ERR)
+							{
+								return true;
+							}
+							_shared->lastError = Constant::TIMEOUT_ERROR;
+						}
+						return false;
+					}
+					return commboxDo(Constant::STOP_REC, NULL, 0);
+				}
+			private:
+				bool checkIdle()
+				{
+					boost::uint8_t receiveBuffer = Constant::SUCCESS;
+					std::size_t avail;
+
+					avail = commboxPort().bytesAvailable();
+
+					if (avail > 240)
+					{
+						commboxPort().discardInBuffer();
+						commboxPort().discardOutBuffer();
+						return true;
+					}
+
+					while (avail)
+					{
+						commboxPort().read(MutableBuffer(&receiveBuffer, 1));
+						avail--;
+					}
+
+					if (receiveBuffer == Constant::SUCCESS)
+					{
+						return true;
+					}
+
+					commboxPort().setReadTimeout(MilliSeconds(200));
+
+					if (commboxPort().read(MutableBuffer(&receiveBuffer, 1)) != 1)
+					{
+						_shared->lastError = Constant::KEEPLINK_ERROR;
+						return false;
+					}
+
+					if (receiveBuffer == Constant::SUCCESS)
+					{
+						return true;
+					}
+
+					_shared->lastError = receiveBuffer;
+					return false;
+				}
+
+				bool sendOK(boost::int64_t microseconds)
+				{
+					boost::uint8_t receiveBuffer = 0;
+
+					commboxPort().setReadTimeout(MicroSeconds(microseconds));
+
+					while (true)
+					{
+						if (commboxPort().read(MutableBuffer(&receiveBuffer, 1)) != 1)
+						{
+							_shared->lastError = Constant::TIMEOUT_ERROR;
+							return false;
+						}
+
+						if (receiveBuffer == Constant::SEND_OK)
+						{
+							return true;
+						}
+						else if (receiveBuffer >= Constant::UP_TIMEOUT && 
+							receiveBuffer <= Constant::ERROR_REC)
+						{
+							_shared->lastError = Constant::SENDDATA_ERROR;
+							return false;
+						}
+					}
+
+					_shared->lastError = Constant::SENDDATA_ERROR;
+					return false;
+				}
+
+				boost::uint32_t getBoxVer()
+				{
+					return (_version[0] << 8) | (_version[1]);
+				}
+
+				std::size_t bufferSize()
+				{
+					return _buffAdd[Constant::LINKBLOCK] - _buffAdd[Constant::SWAPBLOCK];
+				}
+
+				bool sendDataToEcuNew(const boost::uint8_t *buff, std::size_t count)
+				{
+					std::size_t i;
+					std::size_t checksum = count + 5;
+					std::size_t size = count + 6;
+					boost::scoped_array<boost::uint8_t> command(new boost::uint8_t[size]);
+
+					command[0] = Constant::WR_DATA + _headPassword;
+					command[1] = JM_LOW_BYTE(count + 3);
+					command[2] = _buffAdd[Constant::SWAPBLOCK];
+					command[3] = Constant::SEND_CMD;
+					command[4] = JM_LOW_BYTE(count - 1);
+
+					command[checksum] = Constant::WR_DATA + command[1] + command[2] + command[3] + command[4];
+
+					memcpy(command.get() + 5, buff, count);
+
+					for(i = 0; i < count; i++)
+					{
+						command[checksum] += buff[i];
+					}
+
+					for (i = 0; i < 3; i++)
+					{
+						if (!checkIdle() || 
+							(commboxPort().write(ConstBuffer(command.get(), size)) != size))
+						{
+							_shared->lastError = Constant::SENDDATA_ERROR;
+							continue;
+						}
+
+						if (sendOK(MilliSeconds(20 * (count + 12)).total_microseconds()))
+						{
+							return true;
+						}
+					}
+					return false;
+				}
+
+				bool sendDataToEcuOld(const boost::uint8_t *buff, std::size_t count)
+				{
+					std::size_t i;
+					std::size_t checksum = count + 4;
+					std::size_t size = count + 5;
+					boost::scoped_array<boost::uint8_t> command(new boost::uint8_t[size]);
+
+					command[0] = Constant::WR_DATA + _headPassword;
+					command[1] = JM_LOW_BYTE(count + 2);
+					command[2] = _buffAdd[Constant::SWAPBLOCK];
+					command[3] = JM_LOW_BYTE(count - 1);
+
+					command[checksum] = Constant::WR_DATA + command[1] + command[2] + command[3];
+
+					memcpy(command.get() + 4, buff, count);
+
+					for (i = 0; i < count; i++)
+					{
+						command[checksum] += buff[i];
+					}
+
+					for (i = 0; i < 3; i++)
+					{
+						if (!checkIdle() || 
+							(commboxPort().write(ConstBuffer(command.get(), size)) != size))
+						{
+							_shared->lastError = Constant::SENDDATA_ERROR;
+							continue;
+						}
+
+						if (sendOK(MilliSeconds(20 * (size + 6)).total_microseconds()))
+						{
+							return true;
+						}
+					}
+					return false;
+
+				}
+
+				bool sendDataToEcu(boost::uint8_t commandWord, const boost::uint8_t *buff, std::size_t count)
+				{
+					if (commandWord == Constant::SEND_DATA && 
+						count <= Constant::SEND_LEN)
+					{
+						if (bufferSize() < (count + 1))
+						{
+							_shared->lastError = Constant::NOBUFF_TOSEND;
+							return false;
+						}
+
+						if (getBoxVer() > 0x400)
+						{
+							// å¢žåŠ å‘é€é•¿å‘½ä»¤ 
+							if (!sendDataToEcuNew(buff, count))
+							{
+								return false;
+							}
+						}
+						else
+						{
+							// ä¿æŒä¸Žæ—§ç›’å­å…¼å®¹ 
+							if (!sendDataToEcuOld(buff, count))
+							{
+								return false;
+							}
+						}
+						return commboxDo(Constant::D0_BAT, _buffAdd + Constant::SWAPBLOCK, 1);
+					}
+					_shared->lastError = Constant::ILLIGICAL_LEN;
+					return false;
+				}
+
+				bool commboxCommand(boost::uint8_t commandWord, const boost::uint8_t *buff, std::size_t count)
+				{
+					std::size_t size = count + 2;
+					std::size_t csPos = count + 1;
+					std::size_t i;
+					boost::scoped_array<boost::uint8_t> command(new boost::uint8_t[size]);
+					boost::uint8_t *checksum = &(command.get()[csPos]);
+
+					*checksum = JM_LOW_BYTE(commandWord + count);
+
+					if (commandWord < Constant::WR_DATA)
+					{
+						if (count == 0)
+						{
+							_shared->lastError = Constant::ILLIGICAL_LEN;
+							return false;
+						}
+						(*checksum)--;
+					}
+					else
+					{
+						if (count != 0)
+						{
+							_shared->lastError = Constant::ILLIGICAL_LEN;
+							return false;
+						}
+					}
+
+					command[0] = *checksum + _headPassword;
+					memcpy(command.get() + 1, buff, count);
+
+					for (i = 0; i < count; i++)
+					{
+						*checksum += buff[i];
+					}
+
+					for (i = 0; i < 3; i++)
+					{
+						if (commandWord != Constant::STOP_REC && 
+							commandWord != Constant::STOP_EXECUTE)
+						{
+							if (!checkIdle() || 
+								(commboxPort().write(ConstBuffer(command.get(), size)) != size))
+							{
+								_shared->lastError = Constant::SENDDATA_ERROR;
+								continue;
+							}
+						}
+						else
+						{
+							if (commboxPort().write(ConstBuffer(command.get(), size)) != size)
+							{
+								_shared->lastError = Constant::SENDDATA_ERROR;
+								continue;
+							}
+						}
+
+						if (sendOK(toMicroSeconds(MilliSeconds(200 * size))))
+						{
+							return true;
+						}
+					}
+					return false;
+				}
+
+				bool commboxDo(boost::uint8_t commandWord, const boost::uint8_t *buff, std::size_t count)
+				{
+					if (count > Constant::CMD_DATALEN)
+					{
+						return sendDataToEcu(commandWord, buff, count);
+					}
+					else
+					{
+						return commboxCommand(commandWord, buff, count);
+					}
+				}
+
+				bool doSet(boost::uint8_t commandWord, const boost::uint8_t *buff, std::size_t count)
+				{
+					boost::uint32_t times = Constant::REPLAYTIMES;
+
+					while (times--)
+					{
+						if (!commboxDo(commandWord, buff, count))
+						{
+							continue;
+						}
+						if (checkResult(toMicroSeconds(MilliSeconds(50))))
+						{
+							return true;
+						}
+						stopNow(true);
+					}
+					return false;
+				}
+
+				std::size_t getCmdData(boost::uint8_t command, boost::uint8_t *receiveBuffer)
+				{
+					boost::uint8_t checksum = command;
+					boost::uint8_t cmdInfo[2];
+					std::size_t i;
+
+					if (readData(cmdInfo, 2, toMicroSeconds(MilliSeconds(150))) != 2)
+					{
+						return 0;
+					}
+
+					if (cmdInfo[0] != command)
+					{
+						_shared->lastError = cmdInfo[0];
+						commboxPort().discardInBuffer();
+						return 0;
+					}
+
+					if ((readData(receiveBuffer, cmdInfo[1], toMicroSeconds(MilliSeconds(150))) != cmdInfo[1]) ||
+						(readData(cmdInfo, 1, toMicroSeconds(MilliSeconds(150))) != 1))
+					{
+						return 0;
+					}
+
+					checksum += cmdInfo[1];
+
+					for (i = 0; i < cmdInfo[1]; i++)
+					{
+						checksum += receiveBuffer[i];
+					}
+
+					if (checksum != cmdInfo[0])
+					{
+						_shared->lastError = Constant::CHECKSUM_ERROR;
+						return 0;
+					}
+					return cmdInfo[1];
+				}
+
+				bool checkBox()
+				{
+					static boost::uint8_t password[] = {0x0C, 0x22, 0x17, 0x41, 0x57, 0x2D, 0x43, 0x17, 0x2D, 0x4D};
+					boost::uint8_t temp[5];
+					std::size_t i;
+					boost::uint8_t checksum;
+
+					srand((boost::uint32_t)time(NULL));
+
+					temp[4] = 0x00;
+					i = 0;
+					while (i < 4)
+					{
+						temp[i] = JM_LOW_BYTE(rand());
+						temp[4] += temp[i];
+						i++;
+					}
+
+					if (commboxPort().write(ConstBuffer(temp, 5)) != 5)
+					{
+						_shared->lastError = Constant::SENDDATA_ERROR;
+						return false;
+					}
+
+					i = 0;
+					checksum = temp[4] + temp[4];
+
+					while (i < sizeof(password))
+					{
+						checksum += password[i] ^ temp[i % 5];
+						i++;
+					}
+
+					sleep(MilliSeconds(20));
+
+					if (getCmdData(Constant::GETINFO, temp) <= 0)
+					{
+						return false;
+					}
+
+					_headPassword = temp[0];
+
+					if (checksum != _headPassword)
+					{
+						_shared->lastError = Constant::CHECKSUM_ERROR;
+						return false;
+					}
+					if (_headPassword == 0)
+					{
+						_headPassword = 0x55;
+					}
+					return true;
+				}
+
+				bool initBox()
+				{
+					boost::uint32_t length;
+					std::size_t pos = 0;
+					std::size_t i;
 
 					_headPassword = 0x00;
-                    _shared->isDB20 = FALSE;
+					_shared->isDB20 = false;
 
-                    if (!commboxDo(C::GETINFO, 0, NULL))
-                    {
-                        return FALSE;
-                    }
+					if (!commboxDo(Constant::GETINFO, NULL, 0))
+					{
+						return false;
+					}
 
-                    length = getCmdData(C::GETINFO, _cmdTemp);
-                    if (length < C::COMMBOXIDLEN)
-                    {
-                        _shared->lastError = C::LOST_VERSIONDATA;
-                        return FALSE;
-                    }
+					length = getCmdData(Constant::GETINFO, _cmdTemp);
+					if (length < Constant::COMMBOXIDLEN)
+					{
+						_shared->lastError = Constant::LOST_VERSIONDATA;
+						return false;
+					}
 
-                    _timeUnit = 0;
-                    for (i = 0; i < C::MINITIMELEN; i++)
-                    {
-                        _timeUnit = (_timeUnit << 8) | _cmdTemp[pos++];
-                    }
-                    _timeBaseDB = _cmdTemp[pos++];
-                    _timeExternDB = _cmdTemp[pos++];
-                    _cmdBuffLen = _cmdTemp[pos++];
-                    if (_timeBaseDB == 0 ||
-                        _timeUnit == 0 ||
-                        _cmdBuffLen == 0)
-                    {
-                        _shared->lastError = C::COMMTIME_ZERO;
-                        return FALSE;
-                    }
+					_timeUnit = 0;
+					for (i = 0; i < Constant::MINITIMELEN; i++)
+					{
+						_timeUnit = (_timeUnit << 8) | _cmdTemp[pos++];
+					}
+					_timeBaseDB = _cmdTemp[pos++];
+					_timeExternDB = _cmdTemp[pos++];
+					_cmdBuffLen = _cmdTemp[pos++];
+					if (_timeBaseDB == 0 ||
+						_timeUnit == 0 ||
+						_cmdBuffLen == 0)
+					{
+						_shared->lastError = Constant::COMMTIME_ZERO;
+						return false;
+					}
 
-                    for (i = 0; i < C::COMMBOXIDLEN; i++)
-                    {
-                        _boxID[i] = _cmdTemp[pos++];
-                    }
+					for (i = 0; i < Constant::COMMBOXIDLEN; i++)
+					{
+						_boxID[i] = _cmdTemp[pos++];
+					}
 
-                    for (i = 0; i < C::VERSIONLEN; i++)
-                    {
-                        _version[i] = _cmdTemp[pos++];
-                    }
+					for (i = 0; i < Constant::VERSIONLEN; i++)
+					{
+						_version[i] = _cmdTemp[pos++];
+					}
 
-                    _port[0] = C::NULLADD;
-                    _port[1] = C::NULLADD;
-                    _port[2] = C::NULLADD;
-                    _port[3] = C::NULLADD;
+					_port[0] = Constant::NULLADD;
+					_port[1] = Constant::NULLADD;
+					_port[2] = Constant::NULLADD;
+					_port[3] = Constant::NULLADD;
 
-                    _buffID = C::NULLADD;
-                    _buffUsedNum = 0;
+					_buffID = Constant::NULLADD;
+					_buffUsedNum = 0;
 
-                    memset(_buffAdd, C::NULLADD, C::MAXIM_BLOCK);
-                    _buffAdd[C::LINKBLOCK] = _cmdBuffLen;
-                    _buffAdd[C::SWAPBLOCK] = 0;
-                    return TRUE;
-                }
+					memset(_buffAdd, Constant::NULLADD, Constant::MAXIM_BLOCK);
+					_buffAdd[Constant::LINKBLOCK] = _cmdBuffLen;
+					_buffAdd[Constant::SWAPBLOCK] = 0;
+					return true;
+				}
 
-                gboolean setRF(guint8 cmd, guint8 cmdInfo)
-                {
-                    size_t times = C::REPLAYTIMES;
+				bool setRF(boost::uint8_t cmd, boost::uint8_t cmdInfo)
+				{
+					std::size_t times = Constant::REPLAYTIMES;
 
-                    cmdInfo += cmd;
-                    if (cmd == C::SETRFBAUD)
-                    {
-                        times = 2;
-                    }
+					cmdInfo += cmd;
+					if (cmd == Constant::SETRFBAUD)
+					{
+						times = 2;
+					}
 
-                    g_usleep(JM_TIMER_TO_MS(6));
-                    while (times--)
-                    {
-                        if (checkIdle() && 
-                            (jm_commbox_port_write(&cmdInfo, 1) == 1))
-                        {
-                            if (!sendOK(JM_TIMER_TO_MS(500)))
-                            {
-                                continue;
-                            }
+					sleep(MilliSeconds(6));
 
-                            if ((jm_commbox_port_write(&cmdInfo, 1) != 1) ||
-                                !checkResult(JM_TIMER_TO_MS(500)))
-                            {
-                                continue;
-                            }
-                            g_usleep(JM_TIMER_TO_MS(500));
-                            return TRUE;
-                        }
-                    }
-                    return FALSE;
-                }
+					while (times--)
+					{
+						if (checkIdle() && 
+							(commboxPort().write(ConstBuffer(&cmdInfo, 1)) == 1))
+						{
+							if (!sendOK(toMicroSeconds(MilliSeconds(500))))
+							{
+								continue;
+							}
 
-                gboolean doSetPCBaud(guint8 baud)
-                {
-                    JM::SerialPort *port = (JM::SerialPort*)jm_commbox_port_get_pointer();
+							if ((commboxPort().write(ConstBuffer(&cmdInfo, 1)) != 1) ||
+								!checkResult(toMicroSeconds(MilliSeconds(500))))
+							{
+								continue;
+							}
+							sleep(MilliSeconds(500));
+							return true;
+						}
+					}
+					return false;
+				}
 
-                    if (!commboxDo(C::SET_UPBAUD, 1, &baud))
-                    {
-                        return FALSE;
-                    }
+				bool doSetPCBaud(boost::uint8_t baud)
+				{
+					JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
 
-                    g_usleep(JM_TIMER_TO_MS(500));
-                    checkResult(JM_TIMER_TO_MS(500));
-                    setRF(C::SETRFBAUD, baud);
-                    checkResult(JM_TIMER_TO_MS(500));
+					if (!commboxDo(Constant::SET_UPBAUD, &baud, 1))
+					{
+						return false;
+					}
 
-                    switch (baud)
-                    {
-                    case C::UP_9600BPS:
-                        _shared->lastError = port->setBaudrate(9600);
-                        break;
-                    case C::UP_19200BPS:
-                        _shared->lastError = port->setBaudrate(19200);
-                        break;
-                    case C::UP_38400BPS:
-                        _shared->lastError = port->setBaudrate(38400);
-                        break;
-                    case C::UP_57600BPS:
-                        _shared->lastError = port->setBaudrate(57600);
-                        break;
-                    case C::UP_115200BPS:
-                        _shared->lastError = port->setBaudrate(115200);
-                        break;
-                    default:
-                        _shared->lastError = C::ILLIGICAL_CMD;
-                        return FALSE;
-                        break;
-                    }
-                    if (_shared->lastError)
-                    {
-                        _shared->lastError = C::DISCONNECT_COMM;
-                        return FALSE;
-                    }
-                    setRF(C::SETRFBAUD, baud);
-                    if (!commboxDo(C::SET_UPBAUD, 1,&baud))
-                        return FALSE;
-                    if (!checkResult(JM_TIMER_TO_MS(500)))
-                        return FALSE;
-                    jm_commbox_port_discard_in_buffer();
-                    return TRUE;
-                }
+					sleep(MilliSeconds(500));
+					checkResult(toMicroSeconds(MilliSeconds(500)));
+					setRF(Constant::SETRFBAUD, baud);
+					checkResult(toMicroSeconds(MilliSeconds(500)));
 
-                gboolean setPCBaud(guint8 baud)
-                {
-                    size_t times = C::REPLAYTIMES;
-                    while (times--)
-                    {
-                        if (times == 0)
-                            return FALSE;
-                        if (doSetPCBaud(baud))
-                            break;
-                    }
-                    return TRUE;
-                }
+					switch (baud)
+					{
+					case Constant::UP_9600BPS:
+						_shared->lastError = port->setBaudrate(9600);
+						break;
+					case Constant::UP_19200BPS:
+						_shared->lastError = port->setBaudrate(19200);
+						break;
+					case Constant::UP_38400BPS:
+						_shared->lastError = port->setBaudrate(38400);
+						break;
+					case Constant::UP_57600BPS:
+						_shared->lastError = port->setBaudrate(57600);
+						break;
+					case Constant::UP_115200BPS:
+						_shared->lastError = port->setBaudrate(115200);
+						break;
+					default:
+						_shared->lastError = Constant::ILLIGICAL_CMD;
+						return false;
+						break;
+					}
+					if (_shared->lastError)
+					{
+						_shared->lastError = Constant::DISCONNECT_COMM;
+						return false;
+					}
+					setRF(Constant::SETRFBAUD, baud);
+					if (!commboxDo(Constant::SET_UPBAUD, &baud, 1))
+						return false;
+					if (!checkResult(toMicroSeconds(MilliSeconds(500))))
+						return false;
+					commboxPort().discardInBuffer();
+					return true;
+				}
 
-                gboolean openBox()
-                {
-                    size_t i;
+				bool setPCBaud(boost::uint8_t baud)
+				{
+					std::size_t times = Constant::REPLAYTIMES;
+					while (times--)
+					{
+						if (times == 0)
+							return false;
+						if (doSetPCBaud(baud))
+							break;
+					}
+					return true;
+				}
 
-                    for (i = 0; i < 3; i++)
-                    {
-                        setRF(C::RESET_RF, 0);
-                        setRF(C::SETDTR_L, 0);
-                        if (initBox() && checkBox())
-                        {
-                            jm_commbox_port_discard_in_buffer();
-                            if (jm_commbox_port_get_type() == JM_COMMBOX_PORT_SERIAL_PORT)
-                            {
-                                return setPCBaud(C::UP_57600BPS);
-                            }
-                            return TRUE;
-                        }
-                    }
+				bool openBox()
+				{
+					std::size_t i;
 
-                    return FALSE;
-                }
+					for (i = 0; i < 3; i++)
+					{
+						setRF(Constant::RESET_RF, 0);
+						setRF(Constant::SETDTR_L, 0);
+						if (initBox() && checkBox())
+						{
+							commboxPort().discardInBuffer();
+							if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
+							{
+								return setPCBaud(Constant::UP_57600BPS);
+							}
+							return true;
+						}
+					}
 
-            private:
-                guint32 _buffUsedNum;
-                guint32 _timeUnit;
-                guint32 _timeBaseDB;
-                guint32 _timeExternDB;
-                guint32 _cmdBuffLen;
-                guint8 _buffID;
-                guint8 _headPassword;
-                guint8 _buffAdd[C::MAXIM_BLOCK + 2];
-                guint8 _buffUsed[C::MAXIM_BLOCK];
-                guint8 _version[C::VERSIONLEN];
-                guint8 _boxID[C::COMMBOXIDLEN];
-                guint8 _port[C::COMMBOXPORTNUM];
-                guint8 _cmdTemp[256]; // Ð´ÈëÃüÁî»º³åÇø 
-            };
-        }
-    }
+					return false;
+				}
+
+			private:
+				boost::uint32_t _buffUsedNum;
+				boost::uint32_t _timeUnit;
+				boost::uint32_t _timeBaseDB;
+				boost::uint32_t _timeExternDB;
+				boost::uint32_t _cmdBuffLen;
+				boost::uint8_t _buffID;
+				boost::uint8_t _headPassword;
+				boost::uint8_t _buffAdd[Constant::MAXIM_BLOCK + 2];
+				boost::uint8_t _buffUsed[Constant::MAXIM_BLOCK];
+				boost::uint8_t _version[Constant::VERSIONLEN];
+				boost::uint8_t _boxID[Constant::COMMBOXIDLEN];
+				boost::uint8_t _port[Constant::COMMBOXPORTNUM];
+				boost::uint8_t _cmdTemp[256]; // Write Command to buffer
+			};
+		}
+	}
 }
 
 #endif

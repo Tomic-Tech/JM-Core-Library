@@ -30,7 +30,7 @@ static int _lua_jm_comm_send_frames(lua_State *L)
 static int _lua_jm_comm_read_one_frame(lua_State *L) {
     static guint8 data[0xFFFF];
 
-    size_t ret = jm_link_read_one_frame(data);
+    size_t ret = jm_link_read_one_frame(data, 0xFFFF);
 
     if (ret == 0)
     {
@@ -55,7 +55,7 @@ static int _lua_jm_comm_read_one_frame(lua_State *L) {
 static int _lua_jm_comm_read_frames(lua_State *L) {
     static guint8 data[0xFFFFFFF];
 
-    size_t ret = jm_link_read_frames(data);
+    size_t ret = jm_link_read_frames(data, 0xFFFFFFF);
 
     if (ret == 0)
     {
@@ -83,7 +83,7 @@ static int _lua_jm_comm_send_and_recv(lua_State *L)
     const guint8 *send = (const guint8*)luaL_checklstring(L, 1, &l);
     static guint8 recv[0xFFFFFFF];
 
-    size_t ret = jm_link_send_and_recv(send, l, recv);
+    size_t ret = jm_link_send_and_recv(send, l, recv, 0xFFFFFFF);
 
     if (ret == 0)
     {

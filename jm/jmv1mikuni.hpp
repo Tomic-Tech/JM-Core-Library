@@ -1,7 +1,6 @@
 #ifndef __JM_V1_MIKUNI_HPP__
 #define __JM_V1_MIKUNI_HPP__
 
-#include "jmtimer.h"
 #include "jmmikuni.hpp"
 #include "jmv1default.hpp"
 
@@ -9,38 +8,37 @@ namespace JM
 {
     namespace V1
     {
-        template<typename BOX>
+        template<typename BoxType>
         class Mikuni : public JM::Mikuni
         {
         public:
-            Mikuni(BOX *box, Shared *shared)
+            Mikuni(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &shared)
                 : _box(box)
                 , _shared(shared)
-                , _default(NULL)
+                , _default()
             {
-                _default = new JM::V1::Default<BOX, JM::V1::Mikuni<BOX> >(_box, _shared, this);
+                _default.reset(new JM::V1::Default<BoxType, JM::V1::Mikuni<BoxType> >(_box, _shared, this));
             }
 
             ~Mikuni()
             {
-                delete _default;
             }
 
-            gint32 init()
+            boost::int32_t init()
             {
-                guint8 valueOpen;
-                guint8 valueClose;
-                guint8 sendLine;
-                guint8 recvLine;
-                guint8 ctrlWord1;
-                guint8 ctrlWord2;
-                guint8 ctrlWord3;
+                boost::uint8_t valueOpen;
+                boost::uint8_t valueClose;
+                boost::uint8_t sendLine;
+                boost::uint8_t recvLine;
+                boost::uint8_t ctrlWord1;
+                boost::uint8_t ctrlWord2;
+                boost::uint8_t ctrlWord3;
 
-                valueOpen = BOX::C::PWC | BOX::C::RZFC | BOX::C::CK | BOX::C::REFC;
-                valueClose = BOX::C::SET_NULL;
-                sendLine = BOX::C::SK_NO;
-                recvLine = BOX::C::RK1;
-                ctrlWord1 = BOX::C::RS_232 | BOX::C::BIT9_MARK | BOX::C::SEL_SL | BOX::C::UN_DB20;
+                valueOpen = BoxType::Constant::PWC | BoxType::Constant::RZFC | BoxType::Constant::CK | BoxType::Constant::REFC;
+                valueClose = BoxType::Constant::SET_NULL;
+                sendLine = BoxType::Constant::SK_NO;
+                recvLine = BoxType::Constant::RK1;
+                ctrlWord1 = BoxType::Constant::RS_232 | BoxType::Constant::BIT9_MARK | BoxType::Constant::SEL_SL | BoxType::Constant::UN_DB20;
                 ctrlWord2 = 0xFF;
                 ctrlWord3 = 2;
 
@@ -48,74 +46,74 @@ namespace JM
                     !_box->setCommLine(sendLine, recvLine) ||
                     !_box->setCommLink(ctrlWord1, ctrlWord2, ctrlWord3) ||
                     !_box->setCommBaud(19200) ||
-                    !_box->setCommTime(BOX::C::SETBYTETIME, JM_TIMER_TO_MS(100)) ||
-                    !_box->setCommTime(BOX::C::SETWAITTIME, JM_TIMER_TO_MS(1)) ||
-                    !_box->setCommTime(BOX::C::SETRECBBOUT, JM_TIMER_TO_MS(400)) ||
-                    !_box->setCommTime(BOX::C::SETRECFROUT, JM_TIMER_TO_MS(500)) ||
-                    !_box->setCommTime(BOX::C::SETLINKTIME, JM_TIMER_TO_MS(500)))
+                    !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(100))) ||
+                    !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(1))) ||
+                    !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(400))) ||
+                    !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))) ||
+                    !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
                 {
                     return JM_ERROR_GENERIC;
                 }
 
-                g_usleep(JM_TIMER_TO_SEC(1));
+				BoxType::sleep(BoxType::Seconds(1));
                 return JM_ERROR_SUCCESS;
 
             }
 
-            void finishExecute(gboolean isFinish)
+            void finishExecute(bool isFinish)
             {
                 if (isFinish)
                 {
-                    _box->stopNow(TRUE);
+                    _box->stopNow(true);
                     _box->delBatch(_shared->buffID);
-                    _box->checkResult(JM_TIMER_TO_MS(500));
+                    _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500)));
                 }
             }
 
-            size_t sendOneFrame(const guint8 *data, size_t count)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count)
             {
-                return sendOneFrame(data, count, FALSE);
+                return sendOneFrame(data, count, false);
             }
 
-            size_t sendFrames(const guint8 *data, size_t count)
+            std::size_t sendFrames(const boost::uint8_t *data, std::size_t count)
             {
                 return sendOneFrame(data, count);
             }
 
-            size_t readOneFrame(guint8 *data)
+            std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength)
             {
-                return readOneFrame(data, TRUE);
+                return readOneFrame(data, maxLength, true);
             }
 
-            size_t readFrames(guint8 *data)
+            std::size_t readFrames(boost::uint8_t *data, std::size_t maxLength)
             {
-                return readOneFrame(data);
+                return readOneFrame(data, maxLength);
             }
 
-            gint32 setKeepLink(const guint8 *data, size_t count)
+            boost::int32_t setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
-                guint8 buff[256];
-                size_t length;
+				boost::array<boost::uint8_t, 256> buff;
+                std::size_t length;
 
-                length = pack(data, count, buff);
+                length = pack(data, count, buff.data(), buff.size());
 
                 if (length <= 0)
                     return JM_ERROR_GENERIC;
 
-                return _default->setKeepLink(buff, length);
+                return _default->setKeepLink(buff.data(), length);
             }
         private:
-            size_t sendOneFrame(const guint8 *data, size_t count, gboolean needRecv)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count, bool needRecv)
             {
                 return _default->sendOneFrame(data, count, needRecv);
             }
 
-            size_t readOneFrame(guint8 *data, gboolean isFinish)
+            std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength, bool isFinish)
             {
-                size_t tempLength = 0;
-                guint8 temp[256] = {0};
-                guint8 before = 0;
-                guint8 *p = temp;
+                std::size_t tempLength = 0;
+                boost::uint8_t temp[256] = {0};
+                boost::uint8_t before = 0;
+                boost::uint8_t *p = temp;
 
                 while (_box->readBytes(p++, 1) == 1)
                 {
@@ -130,7 +128,7 @@ namespace JM
                 if (before == 0x0D && *p == 0x0A)
                 {
                     // break normal
-                    tempLength = unpack(temp, tempLength, data);
+                    tempLength = unpack(temp, tempLength, data, maxLength);
                 }
                 else
                 {
@@ -142,9 +140,9 @@ namespace JM
 
 
         private:
-            BOX *_box;
-            Shared *_shared;
-            Default<BOX, JM::V1::Mikuni<BOX> > *_default;
+            boost::shared_ptr<BoxType> _box;
+            boost::shared_ptr<Shared> _shared;
+            boost::shared_ptr<Default<BoxType, JM::V1::Mikuni<BoxType> > > _default;
         };
     }
 }

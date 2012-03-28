@@ -156,7 +156,7 @@ namespace JM
 		}
 	}
 
-	size_t LiveDataVector::globalSize()
+	std::size_t LiveDataVector::globalSize()
 	{
 		boost::mutex::scoped_lock(_mutex);
 		if (_ldVector.get() != NULL)
@@ -165,12 +165,12 @@ namespace JM
 		return 0;
 	}
 
-	size_t LiveDataVector::enabledSize_()
+	std::size_t LiveDataVector::enabledSize_()
 	{
 		return _enabledIndexes.size();
 	}
 
-	size_t LiveDataVector::enabledSize()
+	std::size_t LiveDataVector::enabledSize()
 	{
 		boost::mutex::scoped_lock(_mutex);
 		if (_ldVector.get() != NULL)
@@ -179,12 +179,12 @@ namespace JM
 		return 0;
 	}
 
-	size_t LiveDataVector::showedSize_()
+	std::size_t LiveDataVector::showedSize_()
 	{
 		return _showIndexes.size();
 	}
 
-	size_t LiveDataVector::showedSize()
+	std::size_t LiveDataVector::showedSize()
 	{
 		boost::mutex::scoped_lock(_mutex);
 		if (_ldVector.get() != NULL)

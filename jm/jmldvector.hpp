@@ -19,9 +19,9 @@ namespace JM
 		static boost::int32_t getShowedIndex(boost::int32_t index);
 		static void deployEnabledIndex();
 		static void deployShowedIndex();
-		static size_t globalSize();
-		static size_t enabledSize();
-		static size_t showedSize();
+		static std::size_t globalSize();
+		static std::size_t enabledSize();
+		static std::size_t showedSize();
 		static LiveDataPtr globalAt(boost::int32_t index);
 	public:
 		LiveDataVector();
@@ -33,8 +33,8 @@ namespace JM
 		boost::int32_t getShowedIndex_(boost::int32_t index);
 		void deployEnabledIndex_();
 		void deployShowedIndex_();
-		size_t enabledSize_();
-		size_t showedSize_();
+		std::size_t enabledSize_();
+		std::size_t showedSize_();
 
 	private:
 		std::vector<boost::int32_t> _showIndexes;

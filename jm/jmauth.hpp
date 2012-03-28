@@ -63,6 +63,7 @@ namespace JM
 		void setPath(const std::string &path)
 		{
 			_datPath = path;
+			_datPath += "demo.dat";
 		}
 
 		void saveReg(const std::string &reg)
@@ -139,7 +140,7 @@ namespace JM
     private:
         BasicAuth()
             : _rsa(NULL)
-            , _datPath(NULL)
+            , _datPath()
         {
 			std::string n;
 			std::string e;
@@ -214,7 +215,8 @@ namespace JM
 				delete[] recovered;
 			}
 
-			std::vector<std::string> result = boost::algorithm::split(result, recovered, boost::is_any_of("\n"));
+			std::vector<std::string> result;
+			boost::algorithm::split(result, std::string(recovered), boost::is_any_of("\n"));
 
 			delete[] cipher;
 			delete[] recovered;

@@ -5,153 +5,47 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmcanbusbaud.h>
+#include <jm/jmcanbusfiltermask.h>
+#include <jm/jmcanbusframetype.h>
+#include <jm/jmcanbusidmode.h>
+#include <vector>
+#include <boost/cstdint.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/array.hpp>
+#include <jm/jmprotocol.hpp>
 
 namespace JM
 {
-    class Canbus
+    class Canbus : public Protocol
     {
     public:
-        Canbus()
-        {
-            _flowControl[0] = 0x30;
-            _flowControl[1] = 0x00;
-            _flowControl[2] = 0x00;
-            _flowControl[3] = 0x00;
-            _flowControl[4] = 0x00;
-            _flowControl[5] = 0x00;
-            _flowControl[6] = 0x00;
-            _flowControl[7] = 0x00;
-            _idArray = g_ptr_array_new();
-        }
+        Canbus();
+        virtual ~Canbus();
 
-        virtual ~Canbus()
-        {
-            g_ptr_array_free(_idArray, TRUE);
-        }
+		virtual std::size_t pack(const boost::uint8_t *src,
+			std::size_t srcLength,
+			boost::uint8_t *tar,
+			std::size_t tarMaxLength);
+		virtual std::size_t unpack(const boost::uint8_t *src,
+			std::size_t srcLength,
+			boost::uint8_t *tar,
+			std::size_t tarMaxLength);
 
-        virtual size_t pack(const guint8 *src, size_t count, guint8 *tar)
-        {
-            if (count > 8 || count <= 0)
-            {
-                return 0;
-            }
+        virtual boost::int32_t setLines(boost::int32_t high, boost::int32_t low);
+		virtual boost::int32_t setFilter(const std::vector<boost::int32_t> &idVector);
+		virtual boost::int32_t setOptions(boost::int32_t id, JMCanbusBaud baud, JMCanbusIDMode idMode, JMCanbusFilterMask mask, JMCanbusFrameType frame);
 
-            if (_idMode == JM_CANBUS_ID_MODE_STD)
-            {
-                tar[1] = JM_HIGH_BYTE(JM_LOW_WORD(_targetID));
-                tar[2] = JM_LOW_BYTE(JM_LOW_WORD(_targetID));
-                if (_frameType == JM_CANBUS_FRAME_TYPE_DATA)
-                {
-                    tar[0] = JM_LOW_BYTE(count | JM_CANBUS_ID_MODE_STD | 
-                        JM_CANBUS_FRAME_TYPE_DATA);
-                }
-                else
-                {
-                    tar[0] = JM_LOW_BYTE(count | JM_CANBUS_ID_MODE_STD | 
-                        JM_CANBUS_FRAME_TYPE_REMOTE);
-                }
-                memcpy(tar + 3, src, count);
-                return count + 3;
-            }
-            if (_idMode == JM_CANBUS_ID_MODE_EXT)
-            {
-                tar[1] = JM_HIGH_BYTE(JM_HIGH_WORD(_targetID));
-                tar[2] = JM_LOW_BYTE(JM_HIGH_WORD(_targetID));
-                tar[3] = JM_HIGH_BYTE(JM_LOW_WORD(_targetID));
-                tar[4] = JM_LOW_BYTE(JM_LOW_WORD(_targetID));
-                if (_frameType == JM_CANBUS_FRAME_TYPE_DATA)
-                {
-                    tar[0] = JM_LOW_BYTE(count | JM_CANBUS_ID_MODE_EXT |
-                        JM_CANBUS_FRAME_TYPE_DATA);
-                }
-                else
-                {
-                    tar[0] = JM_LOW_BYTE(count | JM_CANBUS_ID_MODE_EXT | 
-                        JM_CANBUS_FRAME_TYPE_REMOTE);
-                }
-                memcpy(tar + 5, src, count);
-                return count + 5;
-            }
-            return 0;
-        }
-
-        virtual size_t unpack(const guint8 *src, size_t count, guint8 *tar)
-        {
-            guint32 mode;
-            size_t length = 0;
-
-            if (count <= 0)
-            {
-                return 0;
-            }
-
-            mode = (src[0] & (JM_CANBUS_ID_MODE_EXT | 
-                JM_CANBUS_FRAME_TYPE_REMOTE));
-            if (mode == (JM_CANBUS_ID_MODE_STD | JM_CANBUS_FRAME_TYPE_DATA))
-            {
-                length = src[0] & 0x0F;
-                if (length != count - 3)
-                {
-                    return 0;
-                }
-                memcpy(tar, src + 3, length);
-                return length;
-            }
-
-            if (mode == (JM_CANBUS_ID_MODE_EXT | JM_CANBUS_FRAME_TYPE_DATA))
-            {
-                length = src[0] & 0x0F;
-                if (length != count - 5)
-                {
-                    return 0;
-                }
-                memcpy(tar, src + 5, length);
-            }
-            return length;
-        }
-
-        virtual gint32 setLines(gint32 high, gint32 low)
-        {
-            _high = high;
-            _low = low;
-
-            return JM_ERROR_SUCCESS;
-        }
-
-        virtual gint32 setFilter(const gint32 *idArray, size_t count)
-        {
-            size_t i;
-            g_ptr_array_set_size(_idArray, 0);
-
-            for (i = 0; i < count; i++)
-            {
-                g_ptr_array_add(_idArray, GINT_TO_POINTER(idArray[i]));
-            }
-            return JM_ERROR_SUCCESS;
-        }
-        virtual gint32 setOptions(gint32 id, JMCanbusBaud baud,
-            JMCanbusIDMode idMode,
-            JMCanbusFilterMask mask,
-            JMCanbusFrameType frame)
-        {
-            _baud = baud;
-            _idMode = idMode;
-            _filterMask = mask;
-            _frameType = frame;
-            _targetID = id;
-            return JM_ERROR_SUCCESS;
-        }
     protected:
-        gint32 _targetID;
+        boost::int32_t _targetID;
         JMCanbusBaud _baud;
         JMCanbusIDMode _idMode;
         JMCanbusFilterMask _filterMask;
         JMCanbusFrameType _frameType;
-        gint32 _high;
-        gint32 _low;
-        GPtrArray *_idArray;
-        guint8 _flowControl[8];
+        boost::int32_t _high;
+        boost::int32_t _low;
+        std::vector<boost::int32_t> _idVector;
+		boost::array<boost::uint8_t, 8> _flowControl;
     };
 }
 

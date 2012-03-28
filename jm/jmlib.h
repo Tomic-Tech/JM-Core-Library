@@ -41,35 +41,8 @@ gboolean jm_auth_check_reg(void);
 /************************************************************************/
 /* Message Log                                                                     */
 /************************************************************************/
-typedef enum _JMLogLevel JMLogLevel;
-
-enum _JMLogLevel
-{
-#ifdef G_PLATFORM_ANDROID
-    JM_LOG_UNKNOW = ANDROID_LOG_UNKNOWN,
-    JM_LOG_DEFAULT = ANDROID_LOG_DEFAULT,
-    JM_LOG_VERBOSE = ANDROID_LOG_VERBOSE,
-    JM_LOG_DEBUG = ANDROID_LOG_DEBUG,
-    JM_LOG_INFO = ANDROID_LOG_INFO,
-    JM_LOG_WARN = ANDROID_LOG_WARN,
-    JM_LOG_ERROR = ANDROID_LOG_ERROR,
-    JM_LOG_FATAL = ANDROID_LOG_FATAL,
-    JM_LOG_SILENT = ANDROID_LOG_SILENT
-#else
-    JM_LOG_UNKNOW,
-    JM_LOG_DEFAULT,
-    JM_LOG_VERBOSE,
-    JM_LOG_DEBUG,
-    JM_LOG_INFO,
-    JM_LOG_WARN,
-    JM_LOG_ERROR,
-    JM_LOG_FATAL,
-    JM_LOG_SILENT
-#endif
-};
-
-void jm_log_write(JMLogLevel l, const gchar *tag, const gchar *msg);
-void jm_log_write_hex(JMLogLevel l, const gchar *tag, const guint8 *data, size_t count);
+void jm_log_write(const gchar *tag, const gchar *msg);
+void jm_log_write_hex(const gchar *tag, const guint8 *data, size_t count);
 
 /************************************************************************/
 /* Database                                                             */
@@ -99,12 +72,12 @@ JMProtocolType jm_link_protocol_type(void);
 gpointer jm_link_get_protocol(void);
 size_t jm_link_send_one_frame(const guint8 *data, size_t count);
 size_t jm_link_send_frames(const guint8 *data, size_t count);
-size_t jm_link_read_one_frame(guint8 *data);
-size_t jm_link_read_frames(guint8 *data);
-size_t jm_link_send_and_recv(const guint8 *send, size_t send_count, guint8 *recv);
+size_t jm_link_read_one_frame(guint8 *data, size_t max_length);
+size_t jm_link_read_frames(guint8 *data, size_t max_length);
+size_t jm_link_send_and_recv(const guint8 *send, size_t send_count, guint8 *recv, size_t max_length);
 gint32 jm_link_start_keep_link(gboolean run);
 gint32 jm_link_set_keep_link(const guint8 *data, size_t count);
-gint32 jm_link_set_timeout(gint32 tx_b2b, gint32 rx_b2b, gint32 tx_f2f, gint32 rx_f2f, gint32 total);
+gint32 jm_link_set_timeout(gint64 tx_b2b, gint64 rx_b2b, gint64 tx_f2f, gint64 rx_f2f, gint64 total);
 
 /************************************************************************/
 /* Commbox                                                              */
@@ -133,7 +106,7 @@ size_t jm_commbox_port_write(const guint8 *data, size_t count);
 
 void jm_commbox_port_push_in_deque(const guint8 *data, size_t count);
 gboolean jm_commbox_port_out_deque_available(void);
-gboolean jm_commbox_port_pop_out_deque(GByteArray **data);
+gboolean jm_commbox_port_pop_out_deque(guint8 *data, size_t count);
 
 /************************************************************************/
 /* Commbox Factory                                                      */
@@ -144,8 +117,8 @@ void jm_commbox_factory_set_commbox_version(JMCommboxVersion ver);
 /* Canbus                                                               */
 /************************************************************************/
 void jm_canbus_set_handler(gpointer handle);
-size_t jm_canbus_pack(const guint8 *src, size_t count, guint8 *tar);
-size_t jm_canbus_unpack(const guint8 *src, size_t count, guint8 *tar);
+size_t jm_canbus_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
+size_t jm_canbus_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
 gint32 jm_canbus_set_lines(gint32 high, gint32 low);
 gint32 jm_canbus_set_filter(const gint32 *id_array, size_t count);
 gint32 jm_canbus_set_options(gint32 id, JMCanbusBaud baud, JMCanbusIDMode id_mode, JMCanbusFilterMask mask, JMCanbusFrameType frame);
@@ -154,8 +127,8 @@ gint32 jm_canbus_set_options(gint32 id, JMCanbusBaud baud, JMCanbusIDMode id_mod
 /* KWP2000                                                              */
 /************************************************************************/
 void jm_kwp2000_set_handler(gpointer handle);
-size_t jm_kwp2000_pack(const guint8 *src, size_t count, guint8 *tar);
-size_t jm_kwp2000_unpack(const guint8 *src, size_t count, guint8 *tar);
+size_t jm_kwp2000_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
+size_t jm_kwp2000_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
 gint32 jm_kwp2000_addr_init(guint8 addr_code);
 gint32 jm_kwp2000_fast_init(const guint8 *data, size_t count);
 gint32 jm_kwp2000_set_lines(gint32 com_line, gboolean l_line);
@@ -167,8 +140,8 @@ gint32 jm_kwp2000_set_address(guint8 target, guint8 source);
 /* KWP1281                                                              */
 /************************************************************************/
 void jm_kwp1281_set_handler(gpointer handle);
-size_t jm_kwp1281_pack(const guint8 *src, size_t count, guint8 *tar);
-size_t jm_kwp1281_unpack(const guint8 *src, size_t count, guint8 *tar);
+size_t jm_kwp1281_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
+size_t jm_kwp1281_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
 gint32 jm_kwp1281_addr_init(guint8 addr_code);
 gint32 jm_kwp1281_set_lines(gint32 com_line, gboolean l_line);
 
@@ -176,8 +149,8 @@ gint32 jm_kwp1281_set_lines(gint32 com_line, gboolean l_line);
 /* Mikuni Protocol                                                      */
 /************************************************************************/
 void jm_mikuni_set_handler(gpointer handle);
-size_t jm_mikuni_pack(const guint8 *src, size_t count, guint8 *tar);
-size_t jm_mikuni_unpack(const guint8 *src, size_t count, guint8 *tar);
+size_t jm_mikuni_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
+size_t jm_mikuni_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length);
 gint32 jm_mikuni_init(void);
 
 /************************************************************************/

@@ -1,43 +1,28 @@
 #ifndef __JM_MIKUNI_HPP__
 #define __JM_MIKUNI_HPP__
 
-#include <glib.h>
-#include <string.h>
+#include <boost/cstdint.hpp>
+#include <boost/asio/buffer.hpp>
+#include <jm/jmprotocol.hpp>
 
 namespace JM
 {
-    class Mikuni
+    class Mikuni : public Protocol
     {
     public:
-        static const guint8 HEAD_FORMAT = 0x48;
+        static const boost::uint8_t HEAD_FORMAT = 0x48;
     public:
-        Mikuni()
-        {
+        Mikuni();
+		virtual std::size_t pack(const boost::uint8_t *src,
+			std::size_t srcLength,
+			boost::uint8_t *tar,
+			std::size_t tarLength);
+		virtual std::size_t unpack(const boost::uint8_t *src,
+			std::size_t srcLength,
+			boost::uint8_t *tar,
+			std::size_t tarLength);
 
-        }
-
-        virtual size_t pack(const guint8 *src, size_t count, guint8 *tar)
-        {
-            if (count <= 0)
-                return 0;
-
-            tar[0] = HEAD_FORMAT;
-            memcpy(tar + 1, src, count);
-            tar[count + 1] = 0x0D;
-            tar[count + 2] = 0x0A;
-            return count + 3;
-        }
-
-        virtual size_t unpack(const guint8 *src, size_t count, guint8 *tar)
-        {
-            if (count <= 0)
-                return 0;
-
-            memcpy(tar, src + 1, count - 3);
-            return count - 3;
-        }
-
-        virtual gint32 init() = 0;
+        virtual boost::int32_t init() = 0;
     };
 }
 

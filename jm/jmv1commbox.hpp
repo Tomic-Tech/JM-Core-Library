@@ -1,7 +1,7 @@
 #ifndef __JM_V1_COMMBOX_HPP__
 #define __JM_V1_COMMBOX_HPP__
 
-#include "jmlib.h"
+#include <hash_map>
 #include "jmcommbox.hpp"
 #include "jmv1shared.hpp"
 #include "jmv1box.hpp"
@@ -18,54 +18,55 @@ namespace JM
 {
     namespace V1
     {
-        inline void commboxFree(gpointer data)
-        {            
-            JM::Link *comm = (JM::Link*)data;
-            g_return_if_fail(data != NULL);
-
-            delete comm;
-        }
-
         class Commbox : public JM::Commbox
         {
         public:
             Commbox()
-                : _shared()
-                , _w80(&_shared)
-                , _c168(&_shared)
-                , _currentBox(&_c168)
-                , _w80PrcHash(g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, commboxFree))
-                , _c168PrcHash(g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, commboxFree))
+                : _shared(new Shared())
+                , _w80(new JM::V1::W80::Box(_shared))
+                , _c168(new JM::V1::C168::Box(_shared))
+                , _currentBox(_c168.get())
+                , _w80PrcHash()
+                , _c168PrcHash()
             {
 
             }
 
             ~Commbox()
             {
-                g_hash_table_unref(_w80PrcHash);
-                g_hash_table_unref(_c168PrcHash);
+				for (std::hash_map<JMProtocolType, JM::Link*>::iterator it = _w80PrcHash.begin();
+					it != _w80PrcHash.end(); ++it)
+				{
+					delete it->second;
+				}
+
+				for (std::hash_map<JMProtocolType, JM::Link*>::iterator it = _c168PrcHash.begin();
+					it != _c168PrcHash.end(); ++it)
+				{
+					delete it->second;
+				}
             }
 
-            gint32 open()
+            boost::int32_t open()
             {
-				while (TRUE)
+				while (true)
 				{
-					if (_currentBox == &_c168)
+					if (_currentBox == _c168.get())
 					{
-						if (!_c168.openComm())
+						if (!_c168->openComm())
 						{
-							_currentBox = &_w80;
-							_c168.closeComm();
+							_currentBox = _w80.get();
+							_c168->closeComm();
 							continue;
 						}
 						break;
 					}
 					else
 					{
-						if (!_w80.openComm())
+						if (!_w80->openComm())
 						{
-							_currentBox = &_c168;
-							_w80.closeComm();
+							_currentBox = _c168.get();
+							_w80->closeComm();
 							return JM_ERROR_COMMBOX_OPEN_FAIL;
 						}
 						break;
@@ -74,18 +75,18 @@ namespace JM
 				return JM_ERROR_SUCCESS;
             }
 
-            gint32 close()
+            boost::int32_t close()
             {
-                if (_currentBox == &_c168)
+                if (_currentBox == _c168.get())
                 {
-                    if (_c168.closeComm())
+                    if (_c168->closeComm())
                     {
                         return JM_ERROR_SUCCESS;
                     }
                 }
                 else
                 {
-                    if (_w80.closeComm())
+                    if (_w80->closeComm())
                     {
                         return JM_ERROR_SUCCESS;
                     }
@@ -96,54 +97,60 @@ namespace JM
             JM::Link* configure(JMProtocolType type)
             {
                 JM::Link *comm = NULL;
-                if (_currentBox == &_c168)
+                if (_currentBox == _c168.get())
                 {
-                    comm = (JM::Link*)g_hash_table_lookup(_c168PrcHash, GINT_TO_POINTER(type));
+					if (_c168PrcHash.find(type) != _c168PrcHash.end())
+					{
+						comm = _c168PrcHash[type];
+					}
                     if (comm == NULL)
                     {
-                        comm = makeProtocol(&_c168, type);
-                        g_hash_table_insert(_c168PrcHash, GINT_TO_POINTER(type), comm);
+                        comm = makeProtocol(_c168, type);
+						_c168PrcHash[type] = comm;
                     }
                 }
-                else if (_currentBox == &_w80)
+                else if (_currentBox == _w80.get())
                 {
-                    comm = (JM::Link*)g_hash_table_lookup(_w80PrcHash, GINT_TO_POINTER(type));
-                    if (comm == NULL)
-                    {
-                        comm = makeProtocol(&_c168, type);
-                        g_hash_table_insert(_w80PrcHash, GINT_TO_POINTER(type), comm);
-                    }
+					if (_w80PrcHash.find(type) != _w80PrcHash.end())
+					{
+						comm = _w80PrcHash[type];
+					}
+					if (comm == NULL)
+					{
+						comm = makeProtocol(_w80, type);
+						_w80PrcHash[type] = comm;
+					}
                 }
                 return comm;
             }
 
-            gint32 setConnector(JMConnector type)
+            boost::int32_t setConnector(JMConnector type)
             {
-                _shared.connector = type;
+                _shared->connector = type;
                 return JM_ERROR_SUCCESS;
             }
 
         private:
-            template<typename BOX>
-            JM::Link* makeProtocol(BOX *box, JMProtocolType type)
+            template<typename BoxType>
+            JM::Link* makeProtocol(const boost::shared_ptr<BoxType> &box, JMProtocolType type)
             {
                 JM::Link *ret = NULL;
                 switch(type)
                 {
                 case JM_PRC_ISO14230:
-                    ret = new JM::V1::Link<BOX, JM::V1::ISO14230<BOX> >(box, &_shared);
+                    ret = new JM::V1::Link<BoxType, JM::V1::ISO14230<BoxType> >(box, _shared);
                     jm_kwp2000_set_handler(ret->protocol());
                     break;
                 case JM_PRC_ISO15765:
-                    ret = new JM::V1::Link<BOX, JM::V1::ISO15765<BOX> >(box, &_shared);
+                    ret = new JM::V1::Link<BoxType, JM::V1::ISO15765<BoxType> >(box, _shared);
                     jm_canbus_set_handler(ret->protocol());
                     break;
                 case JM_PRC_KWP1281:
-                    ret = new JM::V1::KWP1281Link<BOX>(box, &_shared);
+                    ret = new JM::V1::KWP1281Link<BoxType>(box, _shared);
                     jm_kwp1281_set_handler(ret->protocol());
                     break;
                 case JM_PRC_MIKUNI:
-                    ret = new JM::V1::Link<BOX, JM::V1::Mikuni<BOX> >(box, &_shared);
+                    ret = new JM::V1::Link<BoxType, JM::V1::Mikuni<BoxType> >(box, _shared);
                     jm_mikuni_set_handler(ret->protocol());
                     break;
                 default:
@@ -152,12 +159,12 @@ namespace JM
                 return ret;
             }
         private:
-            Shared _shared;
-            JM::V1::W80::Box _w80;
-            JM::V1::C168::Box _c168;
-            gpointer _currentBox;
-            GHashTable *_w80PrcHash;
-            GHashTable *_c168PrcHash;
+            boost::shared_ptr<Shared> _shared;
+            boost::shared_ptr<JM::V1::W80::Box> _w80;
+            boost::shared_ptr<JM::V1::C168::Box> _c168;
+            void* _currentBox;
+			std::hash_map<JMProtocolType, JM::Link*> _w80PrcHash;
+			std::hash_map<JMProtocolType, JM::Link*> _c168PrcHash;
         };
     }
 }

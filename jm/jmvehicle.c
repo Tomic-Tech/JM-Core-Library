@@ -76,9 +76,29 @@ static void _jm_open_commbox_second(void)
     g_free(text);
     jm_ui_msg_box_show();
 
-    jm_commbox_open();
+    if (jm_commbox_open() != JM_ERROR_SUCCESS)
+	{
+		jm_log_write("Commbox", "Open Fail!");
+	}
 
     jm_ui_msg_box_hide();
+}
+
+static gpointer _jm_commbox_close(gpointer data)
+{
+	gchar *text = jm_sys_text("CloseCommbox");
+	jm_ui_msg_box_btn_clr();
+	jm_ui_msg_box_set_msg(text);
+	g_free(text);
+	jm_ui_msg_box_show();
+
+	if (jm_commbox_close() != JM_ERROR_SUCCESS)
+	{
+		jm_log_write("Commbox", "Close Fail!");
+	}
+
+	jm_ui_msg_box_hide();
+	return NULL;
 }
 
 #undef LUA_BUILD_AS_DLL
@@ -606,20 +626,6 @@ static gboolean _jm_load_lua_script(const gchar* name, const gchar *path)
     g_string_free(file_path, TRUE);
 
     return (result && status == LUA_OK ? TRUE : FALSE);
-}
-
-static gpointer _jm_commbox_close(gpointer data)
-{
-	gchar *text = jm_sys_text("CloseCommbox");
-	jm_ui_msg_box_btn_clr();
-	jm_ui_msg_box_set_msg(text);
-	g_free(text);
-	jm_ui_msg_box_show();
-
-    jm_commbox_close();
-
-	jm_ui_msg_box_hide();
-    return NULL;
 }
 
 gboolean jm_vehicle_load_script(const gchar *name, const gchar *path, const gchar *db_name)

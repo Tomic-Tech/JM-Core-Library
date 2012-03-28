@@ -1,20 +1,20 @@
-#include "jmserialport.hpp"
 #include "jmserialport.h"
+#include "jmserialport.hpp"
+#include <boost/array.hpp>
 
 namespace JM
 {
 	void SerialPort::init()
 	{
 		_portName = "";
-		_readTimeout = 500;
-		_writeTimeout = 500;
+		_readTimeout = boost::posix_time::milliseconds(500);
+		_writeTimeout = boost::posix_time::milliseconds(500);
 		_parity = JM_SP_PAR_NONE;
 		_stopbits = JM_SP_SB_ONE;
 		_flowControl = JM_SP_FC_NONE;
 		_baudrate = 57600;
 		_databits = 8;
-		_isMultiSetting = FALSE;
-		_mutex = g_mutex_new();
+		_isMultiSetting = false;
 	}
 
 	SerialPort::SerialPort()
@@ -38,7 +38,6 @@ namespace JM
 		}
 
 		platformDestroy();
-		g_mutex_free(_mutex);
 	}
 
 	std::string SerialPort::portName() const
@@ -46,44 +45,44 @@ namespace JM
 		return _portName;
 	}
 
-	gint32 SerialPort::baudrate()
+	boost::int32_t SerialPort::baudrate()
 	{
 		return _baudrate;
 	}
 
-	guint8 SerialPort::databits()
+	boost::uint8_t SerialPort::databits()
 	{
 		return _databits;
 	}
 
-	gint32 SerialPort::stopbits()
+	boost::int32_t SerialPort::stopbits()
 	{
 		return _stopbits;
 	}
 
-	gint32 SerialPort::parity()
+	boost::int32_t SerialPort::parity()
 	{
 		return _parity;
 	}
 
-	gint32 SerialPort::flowControl()
+	boost::int32_t SerialPort::flowControl()
 	{
 		return _flowControl;
 	}
 
-	gint64 SerialPort::readTimeout()
+	boost::posix_time::time_duration SerialPort::readTimeout()
 	{
 		return _readTimeout;
 	}
 
-	gint64 SerialPort::writeTimeout()
+	boost::posix_time::time_duration SerialPort::writeTimeout()
 	{
 		return _writeTimeout;
 	}
 
 
-#ifdef G_OS_WIN32
-	gint32 SerialPort::fullNameWin(const std::string &name, std::string &result)
+#ifdef BOOST_WINDOWS
+	boost::int32_t SerialPort::fullNameWin(const std::string &name, std::string &result)
 	{
 		result.clear();
 		if (name[0] != '\\')
@@ -98,9 +97,9 @@ namespace JM
 		return JM_ERROR_SUCCESS;
 	}
 
-	JMStringArray* SerialPort::enumerateDeviceWin(const GUID* guid)
+	std::vector<std::string> SerialPort::enumerateDeviceWin(const GUID* guid)
 	{
-		JMStringArray *arr = jm_string_array_new();
+		std::vector<std::string> arr;
 		HDEVINFO dev_info;
 		if ((dev_info = SetupDiGetClassDevsA(guid, NULL, NULL, DIGCF_PRESENT)) != INVALID_HANDLE_VALUE)
 		{
@@ -112,12 +111,12 @@ namespace JM
 				HKEY dev_key = SetupDiOpenDevRegKey(dev_info, &dev_info_data, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
 				std::string name = getRegKeyValue(dev_key, "PortName");
 				std::string fullName;
-				gint32 ret = fullNameWin(name, fullName);
+				boost::int32_t ret = fullNameWin(name, fullName);
 				if (ret)
 				{
 					continue;
 				}
-				jm_string_array_append(arr, fullName.c_str());
+				arr.push_back(fullName);
 			}
 		}
 		return arr;
@@ -142,7 +141,7 @@ namespace JM
 
 #else
 
-	gint32 SerialPort::_setBaudrate(tcflag_t baud)
+	boost::int32_t SerialPort::_setBaudrate(tcflag_t baud)
 	{
 #ifdef CBAUD
 		_commConfig.c_cflag &= (~CBAUD);
@@ -156,7 +155,7 @@ namespace JM
 		return tcsetattr(_fd, TCSAFLUSH, &_commConfig);
 	}
 
-	gint32 _jm_serial_port_set_databits(tcflag bits)
+	boost::int32_t _jm_serial_port_set_databits(tcflag bits)
 	{
 		_commConfig.c_cflag &= (~CSIZE);
 		_commConfig.c_cflag |= bits;
@@ -168,6 +167,7 @@ namespace JM
 #endif
 }
 
+#include "jmserialport.h"
 JMSerialPort* jm_serial_port_new(void)
 {
 	JMSerialPort *obj = (JMSerialPort*)g_malloc(sizeof(JMSerialPort));
@@ -264,49 +264,45 @@ gint32 jm_serial_port_set_flow_control(JMSerialPort *self,
 	return ((JM::SerialPort*)(self->_handle))->setFlowControl(flow_control);
 }
 
-size_t jm_serial_port_write(JMSerialPort *self, const guint8 *data, 
-	size_t count)
+size_t jm_serial_port_write(JMSerialPort *self, const guint8 *data, size_t count)
 {
 	g_return_val_if_fail(self != NULL, 0);
-	return ((JM::SerialPort*)(self->_handle))->write(data, count);
+	return ((JM::SerialPort*)(self->_handle))->write(boost::asio::const_buffer(data, count));
 }
 
-size_t jm_serial_port_read(JMSerialPort *self, guint8 *data, 
-	size_t count)
+size_t jm_serial_port_read(JMSerialPort *self, guint8 *data, size_t count)
 {
 	g_return_val_if_fail(self != NULL, 0);
-	return ((JM::SerialPort*)(self->_handle))->read(data, count);
+	return ((JM::SerialPort*)(self->_handle))->read(boost::asio::mutable_buffer(data, count));
 }
 
 gint64 jm_serial_port_get_read_timeout(JMSerialPort *self)
 {
 	g_return_val_if_fail(self != NULL, 0);
-	return ((JM::SerialPort*)(self->_handle))->readTimeout();
+	return ((JM::SerialPort*)(self->_handle))->readTimeout().total_microseconds();
 }
 
-gint32 jm_serial_port_set_read_timeout(JMSerialPort *self, 
-	gint64 millic)
+gint32 jm_serial_port_set_read_timeout(JMSerialPort *self, gint64 microseconds)
 {
 	g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
-	return ((JM::SerialPort*)(self->_handle))->setReadTimeout(millic);
+	return ((JM::SerialPort*)(self->_handle))->setReadTimeout(boost::posix_time::microseconds(microseconds));
 }
 
 gint64 jm_serial_port_get_write_timeout(JMSerialPort *self)
 {
 	g_return_val_if_fail(self != NULL, 0);
-	return ((JM::SerialPort*)(self->_handle))->writeTimeout();
+	return ((JM::SerialPort*)(self->_handle))->writeTimeout().total_microseconds();
 }
 
-gint32 jm_serial_port_set_write_timeout(JMSerialPort *self, 
-	gint64 millic)
+gint32 jm_serial_port_set_write_timeout(JMSerialPort *self, gint64 microseconds)
 {
 	g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
-	return ((JM::SerialPort*)(self->_handle))->setWriteTimeout(millic);
+	return ((JM::SerialPort*)(self->_handle))->setWriteTimeout(boost::posix_time::microseconds(microseconds));
 }
 
 gboolean jm_serial_port_is_open(JMSerialPort *self)
 {
-	g_return_val_if_fail(self != NULL, FALSE);
+	g_return_val_if_fail(self != NULL, false);
 	return ((JM::SerialPort*)(self->_handle))->isOpen();
 }
 
@@ -349,17 +345,23 @@ size_t jm_serial_port_bytes_available(JMSerialPort *self)
 gint32 jm_serial_port_set_dtr(JMSerialPort *self, gboolean set)
 {
 	g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
-	return ((JM::SerialPort*)(self->_handle))->setDtr(set);
+	return ((JM::SerialPort*)(self->_handle))->setDtr(set ? true : false);
 }
 
 gint32 jm_serial_port_set_rts(JMSerialPort *self, gboolean set)
 {
 	g_return_val_if_fail(self != NULL, JM_ERROR_GENERIC);
-	return ((JM::SerialPort*)(self->_handle))->setRts(set);
+	return ((JM::SerialPort*)(self->_handle))->setRts(set ? true : false);
 }
 
 JMStringArray* jm_serial_port_get_system_ports(void)
 {
-	return JM::SerialPort::getSystemPorts();
+	JMStringArray *arr = jm_string_array_new();
+	std::vector<std::string> vec = JM::SerialPort::getSystemPorts();
+	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+	{
+		jm_string_array_append(arr, it->c_str());
+	}
+	return arr;
 }
 

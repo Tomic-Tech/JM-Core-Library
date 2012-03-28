@@ -5,7 +5,8 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmconnector.h>
+#include <boost/cstdint.hpp>
 #include <jm/jmlink.hpp>
 
 namespace JM
@@ -13,10 +14,10 @@ namespace JM
     class Commbox
     {
     public:
-        virtual gint32 open() = 0;
-        virtual gint32 close() = 0;
+        virtual boost::int32_t open() = 0;
+        virtual boost::int32_t close() = 0;
         virtual Link* configure(JMProtocolType type) = 0;
-        virtual gint32 setConnector(JMConnector cnn) = 0;
+        virtual boost::int32_t setConnector(JMConnector cnn) = 0;
     };
 }
 

@@ -8,68 +8,66 @@ namespace JM
 {
     namespace V1
     {
-        template<typename BOX>
+        template<typename BoxType>
         class KWP1281 : public JM::KWP1281
         {
         public:
-            KWP1281(BOX *box, Shared *_shared)
+            KWP1281(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &_shared)
                 : _box(box)
                 , _shared(_shared)
-                , _default(NULL)
+                , _default()
             {
-                _default = new JM::V1::Default<BOX, JM::V1::KWP1281<BOX> >(_box, _shared, this);
+                _default.reset(new JM::V1::Default<BoxType, JM::V1::KWP1281<BoxType> >(_box, _shared, this));
             }
 
             ~KWP1281()
             {
-                delete _default;
             }
-            void finishExecute(gboolean isFinish)
+            void finishExecute(bool isFinish)
             {
                 if (isFinish)
                 {
                     _box->delBatch(_shared->buffID);
-                    _box->checkResult(JM_TIMER_TO_MS(500));
+                    _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500)));
                 }
             }
 
-            gint32 addrInit(guint8 addrCode)
+            boost::int32_t addrInit(boost::uint8_t addrCode)
             {
-                gboolean dl0;
-                guint8 temp[256];
-                size_t length;
-                guint8 valueOpen;
-                guint8 valueClose;
-                guint8 ctrlWord1;
-                guint8 ctrlWord2;
-                guint8 ctrlWord3;
+                bool dl0;
+                boost::uint8_t temp[255];
+                std::size_t length;
+                boost::uint8_t valueOpen;
+                boost::uint8_t valueClose;
+                boost::uint8_t ctrlWord1;
+                boost::uint8_t ctrlWord2;
+                boost::uint8_t ctrlWord3;
 
                 _shared->buffID = 0;
-                _box->stopNow(TRUE);
-                _box->checkResult(JM_TIMER_TO_MS(50));
+                _box->stopNow(true);
+                _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(50)));
 
-                dl0 = (_lLine == BOX::C::SK_NO && 
-                    _kLine == BOX::C::RK_NO) ? TRUE : FALSE;
-                valueOpen = BOX::C::PWC | BOX::C::REFC | BOX::C::RZFC | (dl0 ? BOX::C::DLC0 : BOX::C::CK);
-                valueClose = BOX::C::SET_NULL;
-                ctrlWord1 = BOX::C::RS_232 | BOX::C::BIT9_MARK | (dl0 ? BOX::C::SEL_DL0 : BOX::C::SEL_SL) | BOX::C::SET_DB20;
+                dl0 = (_lLine == BoxType::Constant::SK_NO && _kLine == BoxType::Constant::RK_NO) ? true : false;
+                valueOpen = BoxType::Constant::PWC | BoxType::Constant::REFC | BoxType::Constant::RZFC | (dl0 ? BoxType::Constant::DLC0 : BoxType::Constant::CK);
+                valueClose = BoxType::Constant::SET_NULL;
+                ctrlWord1 = BoxType::Constant::RS_232 | BoxType::Constant::BIT9_MARK | (dl0 ? BoxType::Constant::SEL_DL0 : BoxType::Constant::SEL_SL) | BoxType::Constant::SET_DB20;
                 ctrlWord2 = 0xFF;
-                ctrlWord3 = BOX::C::INVERTBYTE | 1;
+                ctrlWord3 = BoxType::Constant::INVERTBYTE | 1;
 
                 if (!_box->setCommCtrl(valueOpen, valueClose) ||
                     !_box->setCommLine(_lLine, _kLine) ||
                     !_box->setCommLink(ctrlWord1, ctrlWord2, ctrlWord3) ||
                     !_box->setCommBaud(5) ||
-                    !_box->setCommTime(BOX::C::SETBYTETIME, 0) ||
-                    !_box->setCommTime(BOX::C::SETWAITTIME, JM_TIMER_TO_MS(25)) ||
-                    !_box->setCommTime(BOX::C::SETRECBBOUT, JM_TIMER_TO_MS(610)) ||
-                    !_box->setCommTime(BOX::C::SETRECFROUT, JM_TIMER_TO_MS(610)) ||
-                    !_box->setCommTime(BOX::C::SETLINKTIME, JM_TIMER_TO_MS(710)))
+                    !_box->setCommTime(BoxType::Constant::SETBYTETIME, 0) ||
+                    !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(25))) ||
+                    !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(610))) ||
+                    !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(610))) ||
+                    !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(710))))
                 {
                     return JM_ERROR_GENERIC;
                 }
 
-                g_usleep(JM_TIMER_TO_MS(1));
+				BoxType::sleep(BoxType::Seconds(1));
 
                 if (!_box->newBatch(_shared->buffID))
                 {
@@ -77,40 +75,40 @@ namespace JM
                 }
 
                 if (!_box->sendOutData(&addrCode, 1) ||
-                    !_box->setCommLine(_kLine == BOX::C::RK1 ? BOX::C::SK_NO : _lLine, _kLine) ||
-                    !_box->runReceive(BOX::C::SET55_BAUD) ||
-                    !_box->runReceive(BOX::C::REC_LEN_1) ||
+                    !_box->setCommLine(_kLine == BoxType::Constant::RK1 ? BoxType::Constant::SK_NO : _lLine, _kLine) ||
+                    !_box->runReceive(BoxType::Constant::SET55_BAUD) ||
+                    !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
                     !_box->turnOverOneByOne() ||
-                    !_box->runReceive(BOX::C::REC_LEN_1) ||
-                    !_box->setCommTime(BOX::C::SETBYTETIME, JM_TIMER_TO_MS(2)) ||
-                    !_box->setCommTime(BOX::C::SETWAITTIME, JM_TIMER_TO_MS(2)) ||
-                    !_box->runReceive(BOX::C::REC_FR) ||
+                    !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
+                    !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(2))) ||
+                    !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(2))) ||
+                    !_box->runReceive(BoxType::Constant::REC_FR) ||
                     !_box->turnOverOneByOne() ||
-                    !_box->runReceive(BOX::C::REC_LEN_1) ||
+                    !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
                     !_box->endBatch())
                 {
                     _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
-                if (!_box->runBatch(&_shared->buffID, 1,  FALSE))
+                if (!_box->runBatch(&_shared->buffID, 1,  false))
                 {
                     _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                if (_box->readData(temp, 2, JM_TIMER_TO_MS(3500)) != 2)
+                if (_box->readData(temp, 2, BoxType::toMicroSeconds(BoxType::MilliSeconds(3500))) != 2)
                 {
                     _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                length = readOneFrame(temp);
+                length = readOneFrame(temp, 255);
                 if (length <= 0)
                 {
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->checkResult(JM_TIMER_TO_MS(500)))
+                if (!_box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
                 {
                     _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
@@ -126,26 +124,26 @@ namespace JM
                 return JM_ERROR_SUCCESS;
             }
 
-            gint32 setLines(gint32 comLine, gboolean lLine)
+            boost::int32_t setLines(boost::int32_t comLine, bool lLine)
             {
                 if (_shared->connector == JM_CN_AUDI_4 ||
                     _shared->connector == JM_CN_OBDII_16)
                 {
                     if (comLine != 0)
                     {
-                        _kLine = BOX::C::RK1;
+                        _kLine = BoxType::Constant::RK1;
                     }
                     else
                     {
-                        _kLine = BOX::C::RK_NO;
+                        _kLine = BoxType::Constant::RK_NO;
                     }
                     if (lLine)
                     {
-                        _lLine = BOX::C::SK2;
+                        _lLine = BoxType::Constant::SK2;
                     }
                     else
                     {
-                        _lLine = BOX::C::SK_NO;
+                        _lLine = BoxType::Constant::SK_NO;
                     }
                 }
                 else
@@ -155,10 +153,10 @@ namespace JM
                 return JM_ERROR_SUCCESS;
             }
 
-            size_t sendOneFrame(const guint8 *data, size_t count, gboolean needRecv)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count, bool needRecv)
             {
-                guint8 sendBuff[256];
-                size_t length;
+                boost::uint8_t sendBuff[255];
+                std::size_t length;
 
                 _shared->buffID = 0;
 
@@ -167,7 +165,7 @@ namespace JM
                     return 0;
                 }
 
-                length = pack(data, count, sendBuff);
+                length = pack(data, count, sendBuff, 255);
 
                 if (length <= 0)
                 {
@@ -178,18 +176,18 @@ namespace JM
                 {
                     if (!_box->turnOverOneByOne() ||
                         !_box->sendOutData(sendBuff, length) ||
-                        !_box->updateBuff(BOX::C::INC_DATA, _buffIDAddr) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
                         !_box->turnOverOneByOne() ||
-                        !_box->runReceive(BOX::C::REC_FR) ||
+                        !_box->runReceive(BoxType::Constant::REC_FR) ||
                         !_box->turnOverOneByOne() ||
-                        !_box->runReceive(BOX::C::REC_LEN_1) ||
-                        !_box->updateBuff(BOX::C::INC_DATA, _buffIDAddr) ||
+                        !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
                         !_box->turnOverOneByOne() ||
-                        !_box->runReceive(BOX::C::REC_FR) ||
+                        !_box->runReceive(BoxType::Constant::REC_FR) ||
                         !_box->turnOverOneByOne() ||
-                        !_box->runReceive(BOX::C::REC_LEN_1) ||
+                        !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
                         !_box->endBatch() ||
-                        !_box->runBatch(&_shared->buffID, 1, FALSE))
+                        !_box->runBatch(&_shared->buffID, 1, false))
                     {
                         _box->delBatch(_shared->buffID);
                         return 0;
@@ -201,14 +199,14 @@ namespace JM
                 {
                     if (!_box->turnOverOneByOne() ||
                         !_box->sendOutData(sendBuff, length) ||
-                        !_box->updateBuff(BOX::C::INC_DATA, _buffIDAddr) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
                         !_box->turnOverOneByOne() ||
-                        !_box->runReceive(BOX::C::REC_FR) ||
+                        !_box->runReceive(BoxType::Constant::REC_FR) ||
                         !_box->turnOverOneByOne() ||
-                        !_box->runReceive(BOX::C::REC_LEN_1) ||
-                        !_box->updateBuff(BOX::C::INC_DATA, _buffIDAddr) ||
+                        !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
                         !_box->endBatch() ||
-                        !_box->runBatch(&_shared->buffID, 1, FALSE))
+                        !_box->runBatch(&_shared->buffID, 1, false))
                     {
                         _box->delBatch(_shared->buffID);
                         return 0;
@@ -221,22 +219,21 @@ namespace JM
                 return count;
             }
 
-            size_t sendOneFrame(const guint8 *data, 
-                size_t count)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count)
             {
-                return sendOneFrame(data, count, FALSE);
+                return sendOneFrame(data, count, false);
             }
 
-            size_t sendFrames(const guint8 *data, size_t count)
+            std::size_t sendFrames(const boost::uint8_t *data, std::size_t count)
             {
                 return sendOneFrame(data, count);
             }
 
-            size_t readOneFrame(guint8 *data, gboolean isFinish)
+            std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength, bool isFinish)
             {
-                size_t pos = 0;
-                size_t len;
-                guint8 temp[256];
+                std::size_t pos = 0;
+                std::size_t len;
+                boost::uint8_t temp[255];
 
                 if (_box->readBytes(temp, 1) != 1)
                 {
@@ -254,27 +251,27 @@ namespace JM
                 pos += len;
                 finishExecute(isFinish);
 
-                return unpack(temp, pos, data);
+                return unpack(temp, pos, data, maxLength);
             }
 
-            size_t readOneFrame(guint8 *data)
+            std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength)
             {
-                return readOneFrame(data, TRUE);
+                return readOneFrame(data, maxLength, true);
             }
 
-            size_t readFrames(guint8 *data)
+            std::size_t readFrames(boost::uint8_t *data, std::size_t maxLength)
             {
-                return readOneFrame(data);
+                return readOneFrame(data, maxLength);
             }
 
-            gint32 setKeepLink(const guint8 *data, size_t count)
+            boost::int32_t setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
-                guint8 add1 = 0;
-                guint8 add2 = 0;
-                guint8 tempBuff[3];
+                boost::uint8_t add1 = 0;
+                boost::uint8_t add2 = 0;
+                boost::uint8_t tempBuff[3];
 
-                _buffIDAddr[0] = BOX::C::LINKBLOCK;
-                if (_box->newBatch(BOX::C::LINKBLOCK))
+                _buffIDAddr[0] = BoxType::Constant::LINKBLOCK;
+                if (_box->newBatch(BoxType::Constant::LINKBLOCK))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -289,34 +286,34 @@ namespace JM
 
                 if (!_box->turnOverOneByOne() ||
                     !_box->sendOutData(data, 1) ||
-                    !((add1 = _box->updateBuff(BOX::C::INC_DATA, _buffIDAddr)) == 0) ||
+                    !((add1 = _box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr)) == 0) ||
                     !_box->turnOverOneByOne() ||
-                    !_box->runReceive(BOX::C::REC_FR) ||
+                    !_box->runReceive(BoxType::Constant::REC_FR) ||
                     !_box->turnOverOneByOne() ||
-                    !_box->runReceive(BOX::C::REC_LEN_1) ||
-                    !((add2 = _box->updateBuff(BOX::C::INC_DATA, _buffIDAddr)) == 0) ||
+                    !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
+                    !((add2 = _box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr)) == 0) ||
                     !_box->endBatch())
                 {
                     return JM_ERROR_GENERIC;
                 }
 
-                tempBuff[0] = BOX::C::LINKBLOCK;
+                tempBuff[0] = BoxType::Constant::LINKBLOCK;
                 tempBuff[1] = add1;
                 tempBuff[2] = _buffIDAddr[1];
 
-                if (!_box->getAbsAdd(BOX::C::LINKBLOCK, tempBuff[2]))
+                if (!_box->getAbsAdd(BoxType::Constant::LINKBLOCK, tempBuff[2]))
                 {
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->updateBuff(BOX::C::UPDATE_1BYTE, tempBuff))
+                if (!_box->updateBuff(BoxType::Constant::UPDATE_1BYTE, tempBuff))
                 {
                     return JM_ERROR_GENERIC;
                 }
 
                 tempBuff[1] = add2;
 
-                if (!_box->updateBuff(BOX::C::UPDATE_1BYTE, tempBuff))
+                if (!_box->updateBuff(BoxType::Constant::UPDATE_1BYTE, tempBuff))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -324,12 +321,12 @@ namespace JM
                 return JM_ERROR_SUCCESS;
             }
         private:
-            BOX *_box;
-            Shared *_shared;
-            Default<BOX, JM::V1::KWP1281<BOX> > *_default;
-            guint8 _buffIDAddr[2]; // 0 == buffID, 1 == buffAddr
-            guint8 _kLine;
-            guint8 _lLine;
+            boost::shared_ptr<BoxType> _box;
+            boost::shared_ptr<Shared> _shared;
+            boost::shared_ptr<Default<BoxType, JM::V1::KWP1281<BoxType> > >_default;
+            boost::uint8_t _buffIDAddr[2]; // 0 == buffID, 1 == buffAddr
+            boost::uint8_t _kLine;
+            boost::uint8_t _lLine;
         };
     }
 }

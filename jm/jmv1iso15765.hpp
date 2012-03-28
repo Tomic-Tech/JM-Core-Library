@@ -12,7 +12,7 @@ namespace JM
 {
     namespace V1
     {
-        static const guint8 JM_V1_ISO15765_SJA_BTR_CODETABLE[30] =
+        static const boost::uint8_t JM_V1_ISO15765_SJA_BTR_CODETABLE[30] =
         {
             0xBF, 0xFF, // 5KBPS
             0xEF, 0xFF, // 10KBPS
@@ -31,76 +31,75 @@ namespace JM
             0x01, 0x12 // 1000KBPS
         };
 
-        template<typename BOX>
+        template<typename BoxType>
         class ISO15765 : public JM::Canbus
         {
         public:
-            static const guint8 SET_CANBEGIN = 0xF0;
-            static const guint8 SET_CANBAUD = 0xF1;
-            static const guint8 SET_CANACR = 0xF2;
-            static const guint8 SET_CANAMR = 0xF3;
-            static const guint8 SET_CANMODE = 0xF4;
-            static const guint8 SET_CANCHAN = 0xF5;
-            static const guint8 SET_CANPRIOR = 0xF6;
-            static const guint8 SET_CANEND = 0xFA;
-            static const guint8 SET_CANRESET = 0xFB;
+            static const boost::uint8_t SET_CANBEGIN = 0xF0;
+            static const boost::uint8_t SET_CANBAUD = 0xF1;
+            static const boost::uint8_t SET_CANACR = 0xF2;
+            static const boost::uint8_t SET_CANAMR = 0xF3;
+            static const boost::uint8_t SET_CANMODE = 0xF4;
+            static const boost::uint8_t SET_CANCHAN = 0xF5;
+            static const boost::uint8_t SET_CANPRIOR = 0xF6;
+            static const boost::uint8_t SET_CANEND = 0xFA;
+            static const boost::uint8_t SET_CANRESET = 0xFB;
 
-            static const guint8 CAN_ACR_ACF1 = 0x20;
-            static const guint8 CAN_ACR_ACF2 = 0x28;
-            static const guint8 CAN_ACR_ACF3 = 0x30;
-            static const guint8 CAN_ACR_ACF4 = 0x38;
+            static const boost::uint8_t CAN_ACR_ACF1 = 0x20;
+            static const boost::uint8_t CAN_ACR_ACF2 = 0x28;
+            static const boost::uint8_t CAN_ACR_ACF3 = 0x30;
+            static const boost::uint8_t CAN_ACR_ACF4 = 0x38;
 
-            static const guint8 CAN_AMR_ACF1 = 0x24;
-            static const guint8 CAN_AMR_ACF2 = 0x2C;
-            static const guint8 CAN_AMR_ACF3 = 0x34;
-            static const guint8 CAN_AMR_ACF4 = 0x3C;
+            static const boost::uint8_t CAN_AMR_ACF1 = 0x24;
+            static const boost::uint8_t CAN_AMR_ACF2 = 0x2C;
+            static const boost::uint8_t CAN_AMR_ACF3 = 0x34;
+            static const boost::uint8_t CAN_AMR_ACF4 = 0x3C;
 
-            static const guint8 ACF1_FT1_PRIO = 0x01;
-            static const guint8 ACF1_FT2_PRIO = 0x02;
-            static const guint8 ACF2_FT1_PRIO = 0x04;
-            static const guint8 ACF2_FT2_PRIO = 0x08;
-            static const guint8 ACF3_FT1_PRIO = 0x10;
-            static const guint8 ACF3_FT2_PRIO = 0x20;
-            static const guint8 ACF4_FT1_PRIO = 0x40;
-            static const guint8 ACF4_FT2_PRIO = 0x80;
+            static const boost::uint8_t ACF1_FT1_PRIO = 0x01;
+            static const boost::uint8_t ACF1_FT2_PRIO = 0x02;
+            static const boost::uint8_t ACF2_FT1_PRIO = 0x04;
+            static const boost::uint8_t ACF2_FT2_PRIO = 0x08;
+            static const boost::uint8_t ACF3_FT1_PRIO = 0x10;
+            static const boost::uint8_t ACF3_FT2_PRIO = 0x20;
+            static const boost::uint8_t ACF4_FT1_PRIO = 0x40;
+            static const boost::uint8_t ACF4_FT2_PRIO = 0x80;
 
-            static const guint8 ACF1_FT1_CHAN = 0x01;
-            static const guint8 ACF1_FT2_CHAN = 0x02;
-            static const guint8 ACF2_FT1_CHAN = 0x04;
-            static const guint8 ACF2_FT2_CHAN = 0x08;
-            static const guint8 ACF3_FT1_CHAN = 0x10;
-            static const guint8 ACF3_FT2_CHAN = 0x20;
-            static const guint8 ACF4_FT1_CHAN = 0x40;
-            static const guint8 ACF4_FT2_CHAN = 0x80;
+            static const boost::uint8_t ACF1_FT1_CHAN = 0x01;
+            static const boost::uint8_t ACF1_FT2_CHAN = 0x02;
+            static const boost::uint8_t ACF2_FT1_CHAN = 0x04;
+            static const boost::uint8_t ACF2_FT2_CHAN = 0x08;
+            static const boost::uint8_t ACF3_FT1_CHAN = 0x10;
+            static const boost::uint8_t ACF3_FT2_CHAN = 0x20;
+            static const boost::uint8_t ACF4_FT1_CHAN = 0x40;
+            static const boost::uint8_t ACF4_FT2_CHAN = 0x80;
 
-            static const guint8 STD_FRAMEID_LENGTH = 0x02;
-            static const guint8 EXT_FRAMEID_LENGTH = 0x04;
-            static const guint8 SJA_OK = 0;
+            static const boost::uint8_t STD_FRAMEID_LENGTH = 0x02;
+            static const boost::uint8_t EXT_FRAMEID_LENGTH = 0x04;
+            static const boost::uint8_t SJA_OK = 0;
         public:
-            ISO15765(BOX *box, Shared *shared)
+            ISO15765(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &shared)
                 : _box(box)
                 , _shared(shared)
-                , _default(NULL)
+                , _default()
             {
-                _default = new JM::V1::Default<BOX, JM::V1::ISO15765<BOX> >(_box, _shared, this);
+                _default.reset(new JM::V1::Default<BoxType, JM::V1::ISO15765<BoxType> >(_box, _shared, this));
             }
 
             ~ISO15765()
             {
-                delete _default;
             }
 
-            void finishExecute(gboolean isFinish)
+            void finishExecute(bool isFinish)
             {
                 if (isFinish)
                 {
-                    _box->stopNow(TRUE);
+                    _box->stopNow(true);
                     _box->delBatch(_shared->buffID);
-                    _box->checkResult(JM_TIMER_TO_MS(200));
+                    _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(200)));
                 }
             }
 
-            gint32 setOptions(gint32 id, JMCanbusBaud baud,
+            boost::int32_t setOptions(boost::int32_t id, JMCanbusBaud baud,
                 JMCanbusIDMode idMode,
                 JMCanbusFilterMask mask,
                 JMCanbusFrameType frame)
@@ -114,28 +113,29 @@ namespace JM
                 return JM_ERROR_GENERIC;
             }
 
-            gboolean prepare()
+            bool prepare()
             {
-                guint32 localID = 0;
-                guint8 ctrlWord1;
+                boost::uint32_t localID = 0;
+                boost::uint8_t ctrlWord1;
 
-                ctrlWord1 = C::RS_232 | C::BIT9_MARK | C::SEL_SL | C::UN_DB20;
+                ctrlWord1 = BoxType::Constant::RS_232 | BoxType::Constant::BIT9_MARK | BoxType::Constant::SEL_SL | BoxType::Constant::UN_DB20;
 
-                if (!_box->setCommCtrl(C::RZFC, C::SET_NULL) ||
-                    !_box->setCommLine(C::SK5, C::SK7) ||
-                    !_box->setCommLink(ctrlWord1, C::SET_NULL, C::SET_NULL) ||
+                if (!_box->setCommCtrl(BoxType::Constant::RZFC, BoxType::Constant::SET_NULL) ||
+                    !_box->setCommLine(BoxType::Constant::SK5, BoxType::Constant::SK7) ||
+                    !_box->setCommLink(ctrlWord1, BoxType::Constant::SET_NULL, BoxType::Constant::SET_NULL) ||
                     !_box->setCommBaud(57600) ||
-                    !_box->setCommTime(C::SETBYTETIME, 500) ||
-                    !_box->setCommTime(C::SETWAITTIME, JM_TIMER_TO_MS(55)) ||
-                    !_box->setCommTime(C::SETRECBBOUT, JM_TIMER_TO_MS(100)) ||
-                    !_box->setCommTime(C::SETRECFROUT, JM_TIMER_TO_MS(200)) ||
-                    !_box->setCommTime(C::SETLINKTIME, JM_TIMER_TO_MS(500)))
+                    !_box->setCommTime(BoxType::Constant::SETBYTETIME, 500) ||
+                    !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(55))) ||
+                    !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(100))) ||
+                    !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(200))) ||
+                    !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
                 {
-                    return FALSE;
+                    return false;
                 }
-                localID = GPOINTER_TO_UINT(g_ptr_array_index(_idArray, 0));
+                localID = _idVector[0];
 
-                g_usleep(JM_TIMER_TO_MS(100));
+				BoxType::sleep(BoxType::toMicroSeconds(BoxType::MilliSeconds(100)));
+
                 if (!beginSet() ||
                     !setBaud(JM_CANBUS_B500K) ||
                     !setAcr(CAN_ACR_ACF1, JM_HIGH_BYTE(JM_HIGH_WORD(localID << 21)), JM_LOW_BYTE(JM_HIGH_WORD(localID << 21)), JM_HIGH_BYTE(JM_LOW_WORD(localID << 21)), JM_LOW_BYTE(JM_LOW_WORD(localID << 21))) ||
@@ -145,22 +145,22 @@ namespace JM
                     !setChan(ACF1_FT1_CHAN) ||
                     !endSet())
                 {
-                    return FALSE;
+                    return false;
                 }
-                return TRUE;
+                return true;
             }
 
-            size_t sendOneFrame(const guint8 *data, size_t count, gboolean isFinish)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count, bool isFinish)
             {
                 return _default->sendOneFrame(data, count, isFinish);
             }
 
-            size_t sendOneFrame(const guint8 *data, size_t count)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count)
             {
-                return sendOneFrame(data, count, FALSE);
+                return sendOneFrame(data, count, false);
             }
 
-            size_t sendFrames(const guint8 *data, size_t count)
+            std::size_t sendFrames(const boost::uint8_t *data, std::size_t count)
             {
                 if (count <= 0 || count > 0x0FFF)
                 {
@@ -169,19 +169,19 @@ namespace JM
 
                 if (count < 8)
                 {
-                    guint8 temp[8] = {0};
+                    boost::uint8_t temp[8] = {0};
 
                     temp[0] = JM_LOW_BYTE(count);
                     memcpy(temp + 1, data, count);
-                    return sendOneFrame(temp, count, TRUE);
+                    return sendOneFrame(temp, count, true);
                 }
                 else
                 {
-                    size_t frame_count = (count + 1) / 7;
-                    size_t last_data = (count + 1) % 7;
-                    size_t pos = 0;
-                    guint8 seq = 0x21;
-                    size_t frame_index = 0;
+                    std::size_t frame_count = (count + 1) / 7;
+                    std::size_t last_data = (count + 1) % 7;
+                    std::size_t pos = 0;
+                    boost::uint8_t seq = 0x21;
+                    std::size_t frame_index = 0;
 
                     if (last_data != 0)
                         frame_count++;
@@ -190,36 +190,35 @@ namespace JM
                     {
                         if (0 == frame_index)
                         {
-                            guint8 temp[16];
+                            boost::uint8_t temp[16];
                             temp[0] = (0x10 | JM_HIGH_BYTE(JM_LOW_WORD(count)));
                             temp[1] = JM_LOW_BYTE(JM_LOW_WORD(count));
                             memcpy(temp + 2, data + pos, 6);
                             pos += 6;
-                            if (sendOneFrame(temp, 8, TRUE) != 8)
+                            if (sendOneFrame(temp, 8, true) != 8)
                             {
                                 return 0;
                             }
-                            if (readOneFrame(temp) <= 0)
+                            if (readOneFrame(temp, 16) <= 0)
                                 return 0;
                         }
                         else if (frame_index == (frame_count - 1))
                         {
-                            guint8 temp[8] = {0};
+                            boost::uint8_t temp[8] = {0};
                             temp[0] = seq;
 
                             memcpy(temp + 1, data + pos, count - pos);
-                            if (sendOneFrame(temp, count - pos + 1, TRUE) != 
-                                (count - pos + 1))
+                            if (sendOneFrame(temp, count - pos + 1, true) != (count - pos + 1))
                                 return 0;
                             return count;
                         }
                         else
                         {
-                            guint8 temp[8];
+                            boost::uint8_t temp[8];
                             temp[0] = seq;
                             memcpy(temp + 1, data + pos, 7);
                             pos += 7;
-                            if (sendOneFrame(temp, 8, FALSE) != 8)
+                            if (sendOneFrame(temp, 8, false) != 8)
                                 return 0;
 
                             if (seq == 0x2F)
@@ -232,21 +231,21 @@ namespace JM
                 return 0;
             }
 
-            size_t readOneFrame(guint8 *data)
+            std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength)
             {
-                return readOneFrame(data, TRUE);
+                return readOneFrame(data, maxLength, true);
             }
 
-            size_t readFrames(guint8 *data)
+            std::size_t readFrames(boost::uint8_t *data, std::size_t maxLength)
             {
-                guint8 firstFrame[16];
-                size_t length;
+                boost::uint8_t firstFrame[16];
+                std::size_t length;
 
-                length = readOneFrame(firstFrame, FALSE);
+                length = readOneFrame(firstFrame, false);
 
                 if (firstFrame[0] == 0x30)
                 {
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     memcpy(data, firstFrame, length);
                     return length;
                 }
@@ -254,28 +253,25 @@ namespace JM
                 if ((firstFrame[0] & 0x10) == 0x10)
                 {
                     // Multi-Frame
-                    static size_t userDataCount;
-                    static size_t resetFrameCount;
-                    static size_t dataLength;
-                    static size_t restDataCount;
-                    static size_t i;
-                    static size_t pos;
-                    static guint8 restFrames[0xFFF];
-                    static guint8 unpackedBuff[0xFF];
+                    static std::size_t userDataCount;
+                    static std::size_t resetFrameCount;
+                    static std::size_t dataLength;
+                    static std::size_t restDataCount;
+                    static std::size_t i;
+                    static std::size_t pos;
+                    static boost::uint8_t restFrames[0xFFF];
+                    static boost::uint8_t unpackedBuff[0xFF];
 
-                    finishExecute(TRUE);
+                    finishExecute(true);
 
-                    if (sendOneFrame(_flowControl, 8, 
-                        TRUE) != 8)
+                    if (sendOneFrame(_flowControl.data(), 8, true) != 8)
                     {
                         return 0;
                     }
 
                     pos = 0;
-                    userDataCount = ((firstFrame[0] & 0x0F) << 8) | 
-                        (firstFrame[1] & 0xFF);
-                    resetFrameCount = ((userDataCount - 6) / 7) + 
-                        (((userDataCount - 6) % 7) ? 1 : 0);
+                    userDataCount = ((firstFrame[0] & 0x0F) << 8) | (firstFrame[1] & 0xFF);
+                    resetFrameCount = ((userDataCount - 6) / 7) + (((userDataCount - 6) % 7) ? 1 : 0);
                     memcpy(data, firstFrame + 2, length - 2);
                     pos += length - 2;
 
@@ -290,18 +286,16 @@ namespace JM
 
                     restDataCount = dataLength * resetFrameCount;
 
-                    if (_box->readBytes(restFrames, restDataCount) != 
-                        restDataCount)
+                    if (_box->readBytes(restFrames, restDataCount) != restDataCount)
                     {
-                        finishExecute(TRUE);
+                        finishExecute(true);
                         return 0;
                     }
 
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     for (i = 0; i < resetFrameCount; i++)
                     {
-                        length = unpack(restFrames + 
-                            (i * dataLength), dataLength, unpackedBuff);
+                        length = unpack(restFrames + (i * dataLength), dataLength, unpackedBuff, 0xFF);
                         memcpy(data + pos, unpackedBuff, length);
                         pos += length;
                     }
@@ -310,27 +304,26 @@ namespace JM
                 {
                     while (firstFrame[1] == 0x7F && firstFrame[3] == 0x78)
                     {
-                        length = readOneFrame(firstFrame, 
-                            FALSE);
+                        length = readOneFrame(firstFrame, 16, false);
                     }
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     memcpy(data, firstFrame + 1, length - 1);
                     return length;
                 }
                 return 0;
             }
 
-            gint32 setKeepLink(const guint8 *data, size_t count)
+            boost::int32_t setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
-                static guint8 buff[256];
-                static size_t length;
+				boost::array<boost::uint8_t, 256> buff;
+                std::size_t length;
 
-                length = pack(data, count, buff);
+                length = pack(data, count, buff.data(), buff.size());
 
-                return _default->setKeepLink(buff, length);
+                return _default->setKeepLink(buff.data(), length);
             }
         private:
-            size_t sendCmd(const guint8 *data, size_t count)
+            std::size_t sendCmd(const boost::uint8_t *data, std::size_t count)
             {
                 _shared->buffID = 0;
                 if (_box->newBatch(_shared->buffID))
@@ -339,26 +332,25 @@ namespace JM
                 }
 
                 if (!_box->sendOutData(data, count) ||
-                    !_box->runReceive(C::RECEIVE) ||
+                    !_box->runReceive(BoxType::Constant::RECEIVE) ||
                     !_box->endBatch() ||
-                    !_box->runBatch(&_shared->buffID, 1, FALSE))
+                    !_box->runBatch(&_shared->buffID, 1, false))
                 {
                     _box->delBatch(_shared->buffID);
                     return 0;
                 }
 
-                g_usleep(count * _shared->reqByteToByte + 
-                    _shared->reqWaitTime);
+				BoxType::sleep(BoxType::MicroSeconds(count * _shared->reqByteToByte + _shared->reqWaitTime));
                 return count;
             }
 
-            size_t readCmd(guint8 *buff)
+            std::size_t readCmd(boost::uint8_t *buff, std::size_t maxLength)
             {
-                size_t length;
+                std::size_t length;
 
                 if (_box->readBytes(buff, 3) != 3)
                 {
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     return 0;
                 }
 
@@ -375,7 +367,7 @@ namespace JM
                     length += EXT_FRAMEID_LENGTH;
                     break;
                 default:
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     return 0;
                 }
 
@@ -384,7 +376,7 @@ namespace JM
                 {
                     if (_box->readBytes(buff + 3, length) != length)
                     {
-                        finishExecute(TRUE);
+                        finishExecute(true);
                         return length + 3;
                     }
                     else
@@ -392,62 +384,62 @@ namespace JM
                         return 0;
                     }
                 }
-                finishExecute(TRUE);
+                finishExecute(true);
                 return length + 3;
             }
 
-            gboolean doCmd(guint8 cmd, guint8 inf)
+            bool doCmd(boost::uint8_t cmd, boost::uint8_t inf)
             {
-                guint8 buff[256] = {0x20 | 2, 0x55, 0xAA, cmd, inf};
-                size_t length;
+                boost::uint8_t buff[256] = {0x20 | 2, 0x55, 0xAA, cmd, inf};
+                std::size_t length;
 
                 if (sendCmd(buff, 5) != 5)
                 {
-                    return FALSE;
+                    return false;
                 }
-                length = readCmd(buff);
+                length = readCmd(buff, 256);
 
                 if (length <= 0)
                 {
-                    return FALSE;
+                    return false;
                 }
 
                 if (buff[4] != SJA_OK)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                return TRUE;
+                return true;
             }
 
-            inline gboolean beginSet()
+            inline bool beginSet()
             {
                 return doCmd(SET_CANBEGIN, 0);
             }
 
-            inline gboolean setMode(guint8 mode)
+            inline bool setMode(boost::uint8_t mode)
             {
                 return doCmd(SET_CANMODE, mode);
             }
 
-            inline gboolean setPrior(guint8 prior)
+            inline bool setPrior(boost::uint8_t prior)
             {
                 return doCmd(SET_CANPRIOR, prior);
             }
 
-            inline gboolean setChan(guint8 chan)
+            inline bool setChan(boost::uint8_t chan)
             {
                 return doCmd(SET_CANCHAN, chan);
             }
 
-            inline gboolean endSet()
+            inline bool endSet()
             {
                 return doCmd(SET_CANEND, 0);
             }
 
-            gboolean setBaud(JMCanbusBaud baud)
+            bool setBaud(JMCanbusBaud baud)
             {
-                guint8 buff[256] = {0x20 | 5, 0x55, 0xAA, SET_CANBAUD};
+                boost::uint8_t buff[256] = {0x20 | 5, 0x55, 0xAA, SET_CANBAUD};
 
                 switch(baud)
                 {
@@ -512,90 +504,85 @@ namespace JM
                     buff[5] = JM_V1_ISO15765_SJA_BTR_CODETABLE[1];
                     break;
                 default:
-                    return FALSE;
+                    return false;
                     break;
                 }
 
                 if (sendCmd(buff, 6) != 6)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                if (!readCmd(buff) <= 0)
+                if (!readCmd(buff, 256) <= 0)
                 {
-                    return FALSE;
+                    return false;
                 }
 
                 if (buff[4] != SJA_OK)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                return TRUE;
+                return true;
             }
 
-            gboolean setAcr(guint8 acr, guint8 acr0, guint8 acr1, 
-                guint8 acr2, guint8 acr3)
+            bool setAcr(boost::uint8_t acr, boost::uint8_t acr0, boost::uint8_t acr1, boost::uint8_t acr2, boost::uint8_t acr3)
             {
-                guint8 buff[256] = {0x20 | 6, 0x55, 0xAA, SET_CANACR, 
-                    acr, acr0, acr1, acr2, acr3};
+                boost::uint8_t buff[256] = {0x20 | 6, 0x55, 0xAA, SET_CANACR, acr, acr0, acr1, acr2, acr3};
 
                 if (sendCmd(buff, 9) != 9)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                if (readCmd(buff) <= 0)
+                if (readCmd(buff, 256) <= 0)
                 {
-                    return FALSE;
+                    return false;
                 }
 
                 if (buff[4] != SJA_OK)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                return TRUE;
+                return true;
             }
 
-            static gboolean setAmr(guint8 amr, guint8 amr0, guint8 amr1, 
-                guint8 amr2, guint8 amr3)
+            static bool setAmr(boost::uint8_t amr, boost::uint8_t amr0, boost::uint8_t amr1, boost::uint8_t amr2, boost::uint8_t amr3)
             {
-                guint8 buff[256] = {0x20 | 6, 0x55, 0xAA, SET_CANAMR, 
-                    amr, amr0, amr1, amr2, amr3};
+                boost::uint8_t buff[256] = {0x20 | 6, 0x55, 0xAA, SET_CANAMR, amr, amr0, amr1, amr2, amr3};
 
                 if (sendCmd(buff, 9) != 9)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                if (readCmd(buff) <= 0)
+                if (readCmd(buff, 256) <= 0)
                 {
-                    return FALSE;
+                    return false;
                 }
 
                 if (buff[4] != SJA_OK)
                 {
-                    return FALSE;
+                    return false;
                 }
 
-                return TRUE;
+                return true;
             }
 
-            size_t readOneFrame(guint8 *buff, gboolean isFinish)
+            std::size_t readOneFrame(boost::uint8_t *buff, std::size_t maxLength, bool isFinish)
             {
-                static size_t length;
-                static size_t mode;
+                static std::size_t length;
+                static std::size_t mode;
 
                 if (_box->readBytes(buff, 3) != 3)
                 {
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     return 0;
                 }
 
                 length = buff[0] & 0x0F;
-                mode = buff[0] & (JM_CANBUS_ID_MODE_EXT | 
-                    JM_CANBUS_FRAME_TYPE_REMOTE);
+                mode = buff[0] & (JM_CANBUS_ID_MODE_EXT | JM_CANBUS_FRAME_TYPE_REMOTE);
 
                 switch(mode)
                 {
@@ -608,7 +595,7 @@ namespace JM
                     length += EXT_FRAMEID_LENGTH;
                     break;
                 default:
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     return 0;
                     break;
                 }
@@ -616,26 +603,26 @@ namespace JM
                 length -= 2;
                 if (length <= 0)
                 {
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     return 0;
                 }
                 else
                 {
                     if (_box->readBytes(buff + 3, length) != length)
                     {
-                        finishExecute(TRUE);
+                        finishExecute(true);
                         return 0;
                     }
-                    finishExecute(TRUE);
+                    finishExecute(true);
                     return length + 3;
                 }
                 return 0;
             }
 
         private:
-            BOX *_box;
-            Shared *_shared;
-            Default<BOX, JM::V1::ISO15765<BOX> > *_default;
+            boost::shared_ptr<BoxType> _box;
+            boost::shared_ptr<Shared> _shared;
+            boost::shared_ptr<Default<BoxType, JM::V1::ISO15765<BoxType> > > _default;
         };
     }
 }

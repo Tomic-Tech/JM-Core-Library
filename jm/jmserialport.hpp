@@ -5,12 +5,16 @@
 #pragma once
 #endif
 
-#include <glib.h>
-#include "jmstringarray.h"
 #include "jmerror.h"
 #include "jmserialport.h"
+#include <string>
+#include <vector>
+#include <boost/cstdint.hpp>
+#include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/asio/buffer.hpp>
 
-#ifdef G_OS_WIN32
+#ifdef BOOST_WINDOWS
 #include <Windows.h>
 #include <ObjBase.h>
 #include <InitGuid.h>
@@ -30,8 +34,6 @@
 #include <cstring>
 #endif
 
-#include <string>
-
 namespace JM
 {
     class SerialPort
@@ -41,59 +43,70 @@ namespace JM
         SerialPort(const std::string &name);
         virtual ~SerialPort();
         std::string portName() const;
-        gint32 setPortName(const std::string &name);
-        gint32 baudrate();
-        gint32 setBaudrate(gint32 baudrate);
-        guint8 databits();
-        gint32 setDatabits(guint8 databits);
-        gint32 parity();
-        gint32 setParity(gint32 parity);
-        gint32 stopbits();
-        gint32 setStopbits(gint32 stopbits);
-        gint32 flowControl();
-        gint32 setFlowControl(gint32 flowControl);
-        size_t write(const guint8 *data, size_t count);
-        size_t read(guint8 *data, size_t count);
-        gint64 readTimeout();
-        gint32 setReadTimeout(gint64 millic);
-        gint64 writeTimeout();
-        gint32 setWriteTimeout(gint64 millic);
-        gboolean isOpen();
-        gint32 open();
-        gint32 close();
-        gint32 flush();
-        gint32 discardInBuffer();
-        gint32 discardOutBuffer();
-        size_t bytesAvailable();
-        gint32 setDtr(gboolean set);
-        gint32 setRts(gboolean set);
-        static JMStringArray* getSystemPorts();
+        boost::int32_t setPortName(const std::string &name);
+        boost::int32_t baudrate();
+        boost::int32_t setBaudrate(boost::int32_t baudrate);
+        boost::uint8_t databits();
+        boost::int32_t setDatabits(boost::uint8_t databits);
+        boost::int32_t parity();
+        boost::int32_t setParity(boost::int32_t parity);
+        boost::int32_t stopbits();
+        boost::int32_t setStopbits(boost::int32_t stopbits);
+        boost::int32_t flowControl();
+        boost::int32_t setFlowControl(boost::int32_t flowControl);
+		
+		template<typename ConstBufferSequence>
+        std::size_t write(const ConstBufferSequence &data);
+
+		template<typename MutableBufferSequence>
+        std::size_t read(const MutableBufferSequence &data);
+
+        boost::posix_time::time_duration readTimeout();
+
+		template<typename DurationType>
+        boost::int32_t setReadTimeout(DurationType const &time);
+
+        boost::posix_time::time_duration writeTimeout();
+
+		template<typename DurationType>
+        boost::int32_t setWriteTimeout(DurationType const &time);
+
+        bool isOpen();
+        boost::int32_t open();
+        boost::int32_t close();
+        boost::int32_t flush();
+        boost::int32_t discardInBuffer();
+        boost::int32_t discardOutBuffer();
+        std::size_t bytesAvailable();
+        boost::int32_t setDtr(bool set);
+        boost::int32_t setRts(bool set);
+        static std::vector<std::string> getSystemPorts();
     private:
         void init();
         void platformInit();
         void platformDestroy();
-#ifdef G_OS_WIN32
-        static gint32 fullNameWin(const std::string &name, std::string &result);
-        static JMStringArray* enumerateDeviceWin(const GUID *guid);
+#ifdef BOOST_WINDOWS
+        static boost::int32_t fullNameWin(const std::string &name, std::string &result);
+        static std::vector<std::string> enumerateDeviceWin(const GUID *guid);
         static std::string getRegKeyValue(HKEY key, const std::string &property);
 #else
-        gint32 _setBaudrate(tcflag_t baud);
-        gint32 _setDatabits(tcflag_t bits);
+        boost::int32_t _setBaudrate(tcflag_t baud);
+        boost::int32_t _setDatabits(tcflag_t bits);
 #endif
     private:
         // Data
         std::string _portName;
-        gint64 _readTimeout;
-        gint64 _writeTimeout;
-        gint32 _parity;
-        gint32 _stopbits;
-        gint32 _flowControl;
-        gint32 _baudrate;
-        gboolean _isMultiSetting;
-        guint8 _databits;
-        GMutex *_mutex;
-#ifdef G_OS_WIN32
-        gint64 _bytesToWrite;
+        boost::posix_time::time_duration _readTimeout;
+        boost::posix_time::time_duration _writeTimeout;
+        boost::int32_t _parity;
+        boost::int32_t _stopbits;
+        boost::int32_t _flowControl;
+        boost::int32_t _baudrate;
+        bool _isMultiSetting;
+        boost::uint8_t _databits;
+		boost::mutex _mutex;
+#ifdef BOOST_WINDOWS
+        boost::int64_t _bytesToWrite;
         HANDLE _handle;
         COMMCONFIG _commConfig;
         COMMTIMEOUTS _commTimeouts;
@@ -107,5 +120,11 @@ namespace JM
 #endif
     };
 }
+
+#ifdef BOOST_WINDOWS
+#include <jm/jmserialportwin.hpp>
+#else
+#include <jm/jmserialportposix.hpp>
+#endif
 
 #endif

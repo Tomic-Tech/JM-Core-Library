@@ -12,21 +12,21 @@ namespace JM
 {
     namespace V1
     {
-        template<typename BOX>
-        class KWP1281Link : public Link<BOX, KWP1281<BOX> >
+        template<typename BoxType>
+        class KWP1281Link : public Link<BoxType, KWP1281<BoxType> >
         {
         public:
-            KWP1281Link(BOX *box, Shared *shared)
+            KWP1281Link(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &shared)
                 : Link(box, shared)
             {
 
             }
-            size_t sendAndRecv(const guint8 *send, size_t count, guint8 *recv)
+            std::size_t sendAndRecv(const boost::uint8_t *send, std::size_t count, boost::uint8_t *recv, std::size_t maxLength)
             {
-                size_t length = sendOneFrame(send, count);
+                std::size_t length = sendOneFrame(send, count);
                 if (length != count)
                     return 0;
-                return readOneFrame(recv);
+                return readOneFrame(recv, maxLength);
             }
         };
     }

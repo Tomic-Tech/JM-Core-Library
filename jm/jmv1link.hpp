@@ -9,71 +9,71 @@ namespace JM
 {
     namespace V1
     {
-        template<typename BOX, typename PROTOCOL>
+        template<typename BoxType, typename ProtocolType>
         class Link : public JM::Link
         {
         public:
-            Link(BOX *box, Shared *shared)
+            Link(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &shared)
                 : _box(box)
                 , _shared(shared)
-                , _protocol(box, shared)
+                , _protocol(boost::make_shared<ProtocolType>(box, shared))
             {
 
             }
 
-            size_t sendAndRecv(const guint8 *send, size_t count, guint8 *recv)
+            std::size_t sendAndRecv(const boost::uint8_t *send, std::size_t count, boost::uint8_t *recv, std::size_t maxLength)
             {
-                guint32 times = 3;
+                boost::uint32_t times = 3;
                 while (times--)
                 {
                     if (sendFrames(send, count) > 0)
                     {
-                        return readFrames(recv);
+                        return readFrames(recv, maxLength);
                     }
                 }
                 return 0;
             }
 
-            gint32 setTimeout(gint32 txB2B, gint32 rxB2B, gint32 txF2F, gint32 rxF2F, gint32 total)
+            boost::int32_t setTimeout(boost::int64_t txB2B, boost::int64_t rxB2B, boost::int64_t txF2F, boost::int64_t rxF2F, boost::int64_t total)
             {
                 return JM_ERROR_SUCCESS;
             }
 
-            gint32 startKeepLink(gboolean run)
+            gint32 startKeepLink(bool run)
             {
                 if (!_box->keepLink(run))
                     return JM_ERROR_GENERIC;
                 return JM_ERROR_SUCCESS;
             }
 
-            size_t sendOneFrame(const guint8 *data, size_t count)
+            std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count)
             {
-                return _protocol.sendOneFrame(data, count);
+                return _protocol->sendOneFrame(data, count);
             }
 
-            size_t sendFrames(const guint8 *data, size_t count)
+            std::size_t sendFrames(const boost::uint8_t *data, std::size_t count)
             {
-                return _protocol.sendFrames(data, count);
+                return _protocol->sendFrames(data, count);
             }
 
-            size_t readOneFrame(guint8 *data)
+            std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength)
             {
-                return _protocol.readOneFrame(data);
+                return _protocol->readOneFrame(data, maxLength);
             }
 
-            size_t readFrames(guint8 *data)
+            std::size_t readFrames(boost::uint8_t *data, std::size_t maxLength)
             {
-                return _protocol.readFrames(data);
+                return _protocol->readFrames(data, maxLength);
             }
 
-            gint32 setKeepLink(const guint8 *data, size_t count)
+            gint32 setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
-                return _protocol.setKeepLink(data, count);
+                return _protocol->setKeepLink(data, count);
             }
         private:
-            BOX *_box;
-            Shared *_shared;
-            PROTOCOL _protocol;
+            boost::shared_ptr<BoxType> _box;
+            boost::shared_ptr<Shared> _shared;
+            boost::shared_ptr<ProtocolType> _protocol;
         };
     }
 }

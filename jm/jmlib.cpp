@@ -11,6 +11,7 @@
 #include "jmcommboxfactory.hpp"
 #include "jmcanbus.hpp"
 #include "jmkwp1281.hpp"
+#include "jmkwp2000.hpp"
 #include "jmmikuni.hpp"
 #include "jmui.hpp"
 
@@ -19,7 +20,7 @@ static gchar* _jm_std_string_to_gchar(const std::string &text)
 	if (text.empty())
 		return NULL;
 
-	gchar* ret = (gchar*)g_malloc(text.size());
+	gchar* ret = (gchar*)g_malloc(text.length() + 1);
 	strcpy(ret, text.c_str());
 	return ret;
 }
@@ -101,15 +102,14 @@ extern "C"
     /************************************************************************/
     /* Message Log                                                          */
     /************************************************************************/
-    void jm_log_write(JMLogLevel l, const gchar *tag, const gchar *msg)
+    void jm_log_write(const gchar *tag, const gchar *msg)
     {
-        JM::Log::inst().write(l, tag, msg);
+        JM::Log::inst().write(std::string(tag), std::string(msg));
     }
 
-    void jm_log_write_hex(JMLogLevel l, const gchar *tag, const guint8 *data, 
-        size_t count)
+    void jm_log_write_hex(const gchar *tag, const guint8 *data, size_t count)
     {
-        JM::Log::inst().write(l, tag, data, count);
+        JM::Log::inst().write(std::string(tag), data, count);
     }
 
     /************************************************************************/
@@ -160,7 +160,7 @@ extern "C"
     GByteArray *jm_db_get_command(const gchar *name)
     {
 		GByteArray *result;
-		boost::asio::const_buffer buff = JM::Database::inst().getCommand(std::string(name));
+		boost::asio::const_buffer buff = JM::Database::inst().getCommand<boost::asio::const_buffer>(std::string(name));
 		result = g_byte_array_new();
 		result = g_byte_array_append(result, boost::asio::buffer_cast<const guint8*>(buff), boost::asio::buffer_size(buff));
 		return result;
@@ -169,7 +169,7 @@ extern "C"
     GByteArray *jm_db_get_command_by_id(gint32 id)
     {
 		GByteArray *result;
-		boost::asio::const_buffer buff = JM::Database::inst().getCommandByID(id);
+		boost::asio::const_buffer buff = JM::Database::inst().getCommandByID<boost::asio::const_buffer>(id);
 		result = g_byte_array_new();
 		result = g_byte_array_append(result, boost::asio::buffer_cast<const guint8*>(buff), boost::asio::buffer_size(buff));
 		return result;
@@ -225,32 +225,32 @@ extern "C"
         return ((JM::Link*)(_link_handle))->sendFrames(data, count);
     }
 
-    size_t jm_link_read_one_frame(guint8 *data)
+    size_t jm_link_read_one_frame(guint8 *data, size_t max_length)
     {
 
         g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
-        return ((JM::Link*)(_link_handle))->readOneFrame(data);
+        return ((JM::Link*)(_link_handle))->readOneFrame(boost::asio::mutable_buffer(data, max_length));
     }
 
-    size_t jm_link_read_frames(guint8 *data)
+    size_t jm_link_read_frames(guint8 *data, size_t max_length)
     {
 
         g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
-        return ((JM::Link*)(_link_handle))->readFrames(data);
+        return ((JM::Link*)(_link_handle))->readFrames(boost::asio::mutable_buffer(data, max_length));
     }
 
-    size_t jm_link_send_and_recv(const guint8 *send, size_t send_count, guint8 *recv)
+    size_t jm_link_send_and_recv(const guint8 *send, size_t send_count, guint8 *recv, size_t max_length)
     {
 
         g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
-        return ((JM::Link*)(_link_handle))->sendAndRecv(send, send_count, recv);
+        return ((JM::Link*)(_link_handle))->sendAndRecv(send, send_count, recv, max_length);
     }
 
     gint32 jm_link_start_keep_link(gboolean run)
     {
 
         g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, JM_ERROR_GENERIC);
-        return ((JM::Link*)(_link_handle))->startKeepLink(run);
+        return ((JM::Link*)(_link_handle))->startKeepLink(run ? true : false);
     }
 
     gint32 jm_link_set_keep_link(const guint8 *data, size_t count)
@@ -260,12 +260,15 @@ extern "C"
         return ((JM::Link*)(_link_handle))->setKeepLink(data, count);
     }
 
-    gint32 jm_link_set_timeout(gint32 tx_b2b, gint32 rx_b2b, gint32 tx_f2f, gint32 rx_f2f, gint32 total)
+    gint32 jm_link_set_timeout(gint64 tx_b2b, gint64 rx_b2b, gint64 tx_f2f, gint64 rx_f2f, gint64 total)
     {
 
         g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, JM_ERROR_GENERIC);
-        return ((JM::Link*)(_link_handle))->setTimeout(tx_b2b, rx_b2b, tx_f2f, rx_f2f, 
-            total);
+        return ((JM::Link*)(_link_handle))->setTimeout(boost::posix_time::microseconds(tx_b2b), 
+			boost::posix_time::microseconds(rx_b2b), 
+			boost::posix_time::microseconds(tx_f2f), 
+			boost::posix_time::microseconds(rx_f2f), 
+			boost::posix_time::microseconds(total));
     }
 
     /************************************************************************/
@@ -334,12 +337,12 @@ extern "C"
 
     gint32 jm_commbox_port_set_read_timeout(gint64 microseconds) 
     {
-        return JM::CommboxPort::inst().setReadTimeout(microseconds);
+        return JM::CommboxPort::inst().setReadTimeout(boost::posix_time::microseconds(microseconds));
     }
 
     gint32 jm_commbox_port_set_write_timeout(gint64 microseconds)
     {
-        return JM::CommboxPort::inst().setWriteTimeout(microseconds);
+        return JM::CommboxPort::inst().setWriteTimeout(boost::posix_time::microseconds(microseconds));
     }
 
     size_t jm_commbox_port_bytes_available(void)
@@ -359,17 +362,17 @@ extern "C"
 
     size_t jm_commbox_port_read(guint8 *data, size_t count)
     {
-        return JM::CommboxPort::inst().read(data, count);
+        return JM::CommboxPort::inst().read(boost::asio::mutable_buffer(data, count));
     }
 
     size_t jm_commbox_port_write(const guint8 *data, size_t count)
     {
-        return JM::CommboxPort::inst().write(data, count);
+        return JM::CommboxPort::inst().write(boost::asio::const_buffer(data, count));
     }
 
     void jm_commbox_port_push_in_deque(const guint8 *data, size_t count)
     {
-        JM::CommboxPort::inst().pushInDeque(data, count);
+        JM::CommboxPort::inst().pushInDeque(boost::asio::const_buffer(data, count));
     }
 
     gboolean jm_commbox_port_out_deque_available(void)
@@ -377,9 +380,9 @@ extern "C"
         return JM::CommboxPort::inst().outDequeAvailable();
     }
 
-    gboolean jm_commbox_port_pop_out_deque(GByteArray **data)
+    gboolean jm_commbox_port_pop_out_deque(guint8 *data, size_t count)
     {
-        return JM::CommboxPort::inst().popOutDeque(data);
+        return JM::CommboxPort::inst().popOutDeque(boost::asio::mutable_buffer(data, count));
     }
 
     /************************************************************************/
@@ -400,16 +403,16 @@ extern "C"
         _canbus_handle = (JM::Canbus*)handle;
     }
 
-    size_t jm_canbus_pack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_canbus_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, 0);
-        return ((JM::Canbus*)(_canbus_handle))->pack(src, count, tar);
+        return ((JM::Canbus*)(_canbus_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_canbus_unpack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_canbus_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, 0);
-        return ((JM::Canbus*)(_canbus_handle))->unpack(src, count, tar);
+        return ((JM::Canbus*)(_canbus_handle))->unpack(src, src_length, tar, tar_length);
     }
 
     gint32 jm_canbus_set_lines(gint32 high, gint32 low)
@@ -421,7 +424,8 @@ extern "C"
     gint32 jm_canbus_set_filter(const gint32 *id_array, size_t count)
     {
         g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, JM_ERROR_GENERIC);
-        return ((JM::Canbus*)(_canbus_handle))->setFilter(id_array, count);
+		std::vector<boost::int32_t> id_vector(id_array, id_array + count);
+        return ((JM::Canbus*)(_canbus_handle))->setFilter(id_vector);
     }
 
     gint32 jm_canbus_set_options(gint32 id, JMCanbusBaud baud, JMCanbusIDMode id_mode, JMCanbusFilterMask mask, JMCanbusFrameType frame)
@@ -440,18 +444,18 @@ extern "C"
         _kwp2000_handle = (JM::KWP2000*)handle;
     }
 
-    size_t jm_kwp2000_pack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_kwp2000_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, 0);
 
-        return ((JM::KWP2000*)(_kwp2000_handle))->pack(src, count, tar);
+        return ((JM::KWP2000*)(_kwp2000_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_kwp2000_unpack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_kwp2000_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, 0);
 
-        return ((JM::KWP2000*)(_kwp2000_handle))->unpack(src, count, tar);
+        return ((JM::KWP2000*)(_kwp2000_handle))->unpack(src, src_length, tar, tar_length);
     }
 
     gint32 jm_kwp2000_addr_init(guint8 addr_code)
@@ -472,7 +476,7 @@ extern "C"
     {
         g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, JM_ERROR_GENERIC);
 
-        return ((JM::KWP2000*)(_kwp2000_handle))->setLines(com_line, l_line);
+        return ((JM::KWP2000*)(_kwp2000_handle))->setLines(com_line, l_line ? true : false);
     }
 
     gint32 jm_kwp2000_set_options(JMKWPMode msg_mode, JMKWPMode link_mode, gint32 baud)
@@ -499,17 +503,17 @@ extern "C"
         _kwp1281_handle = (JM::KWP1281*)handle;
     }
 
-    size_t jm_kwp1281_pack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_kwp1281_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, 0);
-        return ((JM::KWP1281*)(_kwp1281_handle))->pack(src, count, tar);
+        return ((JM::KWP1281*)(_kwp1281_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_kwp1281_unpack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_kwp1281_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, 0);
 
-        return ((JM::KWP1281*)(_kwp1281_handle))->unpack(src, count, tar);
+        return ((JM::KWP1281*)(_kwp1281_handle))->unpack(src, src_length, tar, tar_length);
     }
 
     gint32 jm_kwp1281_addr_init(guint8 addr_code)
@@ -523,7 +527,7 @@ extern "C"
     {
         g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, JM_ERROR_GENERIC);
 
-        return ((JM::KWP1281*)(_kwp1281_handle))->setLines(com_line, l_line);
+        return ((JM::KWP1281*)(_kwp1281_handle))->setLines(com_line, l_line ? true : false);
     }
 
     /************************************************************************/
@@ -536,18 +540,18 @@ extern "C"
         _mikuni_handle = (JM::Mikuni*)handle;
     }
 
-    size_t jm_mikuni_pack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_mikuni_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::Mikuni*)(_mikuni_handle)) != NULL, 0);
 
-        return ((JM::Mikuni*)(_mikuni_handle))->pack(src, count, tar);
+        return ((JM::Mikuni*)(_mikuni_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_mikuni_unpack(const guint8 *src, size_t count, guint8 *tar)
+    size_t jm_mikuni_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
     {
         g_return_val_if_fail(((JM::Mikuni*)(_mikuni_handle)) != NULL, 0);
 
-        return ((JM::Mikuni*)(_mikuni_handle))->unpack(src, count, tar);
+        return ((JM::Mikuni*)(_mikuni_handle))->unpack(src, src_length, tar, tar_length);
     }
 
     gint32 jm_mikuni_init(void)

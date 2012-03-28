@@ -1,7 +1,5 @@
 #include "jmserialport.hpp"
 
-#ifdef G_OS_LINUX
-
 namespace JM
 {
     void _jm_serial_port_platform_destroy(JMSerialPort *self)
@@ -962,5 +960,3 @@ namespace JM
         return arr;
     }
 }
-
-#endif
