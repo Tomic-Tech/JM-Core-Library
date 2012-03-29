@@ -71,6 +71,12 @@ namespace JM
 
 				bool closeComm()
 				{
+					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
+					{
+						if (!((JM::SerialPort*)commboxPort().pointer())->isOpen())
+							return true;
+					}
+
 					stopNow(true);
 					doSet(Constant::RESET, NULL, 0);
 					setRF(Constant::RESET_RF, 0);
@@ -78,6 +84,7 @@ namespace JM
 					{
 						((JM::SerialPort*)commboxPort().pointer())->close();
 					}
+
 					return true;
 				}
 

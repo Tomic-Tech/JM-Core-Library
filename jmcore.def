@@ -5,8 +5,6 @@ luaU_dump
 luaP_opmodes
 luaP_opnames
 
-g_free
-
 jm_serial_port_new
 jm_serial_port_new_with_name
 jm_serial_port_free

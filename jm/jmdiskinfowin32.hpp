@@ -16,6 +16,8 @@
 #include <vector>
 #include <string>
 #include <boost/cstdint.hpp>
+#include <boost/array.hpp>
+#include <boost/smart_ptr.hpp>
 
 #ifdef BOOST_WINDOWS
 
@@ -47,7 +49,7 @@ namespace JM
 			//  function to decode the serial numbers of IDE hard drives
 			//  using the IOCTL_STORAGE_QUERY_PROPERTY command 
 			std::string flipAndCodeBytes(const std::string &str);
-			std::string ConvertToString(WORD diskdata [256], int firstIndex, int lastIndex);
+			std::string ConvertToString(PWORD diskdata, int firstIndex, int lastIndex);
 			BOOL ReadPhysicalDriveInNTUsingSmart();
 			BOOL ReadPhysicalDriveInNTWithAdminRights();
 			BOOL ReadPhysicalDriveInNTWithZeroRights();
@@ -55,8 +57,8 @@ namespace JM
 			BOOL ReadDrivePortsInWin9X();
 			BOOL ReadIdeDriveAsScsiDriveInNT();
 		private:
-			char HardDriveSerialNumber[1024];
-			std::vector<PWORD> m_list;
+			boost::array<char, 1024> HardDriveSerialNumber;
+			std::vector<boost::shared_array<WORD> > m_list;
 		};
 	}
 }

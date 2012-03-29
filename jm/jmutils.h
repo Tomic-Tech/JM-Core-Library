@@ -5,15 +5,15 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmtype.h>
 
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
-#define JM_HIGH_BYTE(value) (guint8)(((guint16)(value) >> 8) & 0xFF)
-#define JM_LOW_BYTE(value) (guint8)((guint16)(value) & 0xFF)
-#define JM_HIGH_WORD(value) (guint16)(((guint32)(value) >> 16) & 0xFFF)
-#define JM_LOW_WORD(value) (guint16)((guint32)(value) & 0xFFFF)
+#define JM_HIGH_BYTE(value) (uint8_t)(((uint16_t)(value) >> 8) & 0xFF)
+#define JM_LOW_BYTE(value) (uint8_t)((uint16_t)(value) & 0xFF)
+#define JM_HIGH_WORD(value) (uint16_t)(((uint32_t)(value) >> 16) & 0xFFF)
+#define JM_LOW_WORD(value) (uint16_t)((uint32_t)(value) & 0xFFFF)
 
-G_END_DECLS
+JM_END_DECLS
 
 #endif

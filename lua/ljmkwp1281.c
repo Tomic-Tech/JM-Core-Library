@@ -9,7 +9,7 @@
 
 static int _lua_jm_kwp1281_addr_init(lua_State *L) 
 {
-    guint8 addr_code = (guint8)luaL_checkinteger(L, 1);
+    uint8_t addr_code = (uint8_t)luaL_checkinteger(L, 1);
 
     if (jm_link_protocol_type() != JM_PRC_KWP1281)
     {
@@ -29,8 +29,8 @@ static int _lua_jm_kwp1281_addr_init(lua_State *L)
 
 static int _lua_jm_kwp1281_set_lines(lua_State *L) 
 {
-    gint32 com_line = luaL_checkinteger(L, 1);
-    gboolean l_line = lua_toboolean(L, 2);
+    int32_t com_line = luaL_checkinteger(L, 1);
+    boolean_t l_line = lua_toboolean(L, 2);
 
     if (jm_link_protocol_type() != JM_PRC_KWP1281)
     {

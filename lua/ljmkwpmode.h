@@ -9,7 +9,7 @@
 
 typedef struct _LuaJMKWPMode
 {
-    const gchar *name;
+    const char *name;
     JMKWPMode mode;
 } LuaJMKWPMode;
 

@@ -5,7 +5,6 @@
 #pragma once
 #endif
 
-#include <glib.h>
 #include <jm/jmlib.h>
 
 typedef struct _LuaJMCanbusBaud

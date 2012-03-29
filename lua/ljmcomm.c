@@ -10,7 +10,7 @@
 static int _lua_jm_comm_send_one_frame(lua_State *L)
 {
     size_t l = 0;
-    const guint8 *data = (const guint8*)luaL_checklstring(L, 1, &l);
+    const uint8_t *data = (const uint8_t*)luaL_checklstring(L, 1, &l);
     size_t ret = jm_link_send_one_frame(data, l);
 
     lua_pushinteger(L, ret);
@@ -20,7 +20,7 @@ static int _lua_jm_comm_send_one_frame(lua_State *L)
 static int _lua_jm_comm_send_frames(lua_State *L)
 {
     size_t l = 0;
-    const guint8 *data = (const guint8*)luaL_checklstring(L, 1, &l);
+    const uint8_t *data = (const uint8_t*)luaL_checklstring(L, 1, &l);
     size_t ret = jm_link_send_frames(data, l);
 
     lua_pushinteger(L, ret);
@@ -28,7 +28,7 @@ static int _lua_jm_comm_send_frames(lua_State *L)
 }
 
 static int _lua_jm_comm_read_one_frame(lua_State *L) {
-    static guint8 data[0xFFFF];
+    static uint8_t data[0xFFFF];
 
     size_t ret = jm_link_read_one_frame(data, 0xFFFF);
 
@@ -53,7 +53,7 @@ static int _lua_jm_comm_read_one_frame(lua_State *L) {
 }
 
 static int _lua_jm_comm_read_frames(lua_State *L) {
-    static guint8 data[0xFFFFFFF];
+    static uint8_t data[0xFFFFFFF];
 
     size_t ret = jm_link_read_frames(data, 0xFFFFFFF);
 
@@ -80,8 +80,8 @@ static int _lua_jm_comm_read_frames(lua_State *L) {
 static int _lua_jm_comm_send_and_recv(lua_State *L)
 {
     size_t l = 0;
-    const guint8 *send = (const guint8*)luaL_checklstring(L, 1, &l);
-    static guint8 recv[0xFFFFFFF];
+    const uint8_t *send = (const uint8_t*)luaL_checklstring(L, 1, &l);
+    static uint8_t recv[0xFFFFFFF];
 
     size_t ret = jm_link_send_and_recv(send, l, recv, 0xFFFFFFF);
 
@@ -109,7 +109,7 @@ static int _lua_jm_comm_send_and_recv(lua_State *L)
 static int _lua_jm_comm_start_keep_link(lua_State *L)
 {
 
-    gboolean run = lua_toboolean(L, 1);
+    boolean_t run = lua_toboolean(L, 1);
 
     if (jm_link_start_keep_link(run) == JM_ERROR_SUCCESS)
     {
@@ -125,7 +125,7 @@ static int _lua_jm_comm_start_keep_link(lua_State *L)
 
 static int _lua_jm_comm_set_keep_link(lua_State *L) {
     size_t l = 0;
-    const guint8 *data = (const guint8*)luaL_checklstring(L, 1, &l);
+    const uint8_t *data = (const uint8_t*)luaL_checklstring(L, 1, &l);
 
     if (jm_link_set_keep_link(data, l) == JM_ERROR_SUCCESS)
     {
@@ -140,11 +140,11 @@ static int _lua_jm_comm_set_keep_link(lua_State *L) {
 }
 
 static int _lua_jm_comm_set_timeout(lua_State *L) {
-    gint32 tx_b2b = luaL_checkinteger(L, 1);
-    gint32 tx_f2f = luaL_checkinteger(L, 2);
-    gint32 rx_b2b = luaL_checkinteger(L, 3);
-    gint32 rx_f2f = luaL_checkinteger(L, 4);
-    gint32 total = luaL_checkinteger(L, 5);
+    int64_t tx_b2b = luaL_checkinteger(L, 1);
+    int64_t tx_f2f = luaL_checkinteger(L, 2);
+    int64_t rx_b2b = luaL_checkinteger(L, 3);
+    int64_t rx_f2f = luaL_checkinteger(L, 4);
+    int64_t total = luaL_checkinteger(L, 5);
 
     if (jm_link_set_timeout(tx_b2b, rx_b2b, tx_f2f, rx_f2f, total) == JM_ERROR_SUCCESS)
     {

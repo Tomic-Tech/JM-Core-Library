@@ -5,9 +5,9 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmtype.h>
 
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
 typedef enum _JMCommboxVersion JMCommboxVersion;
 
@@ -20,6 +20,6 @@ enum _JMCommboxVersion
     JM_COMMBOX_UNKNOW
 };
 
-G_END_DECLS
+JM_END_DECLS
 
 #endif

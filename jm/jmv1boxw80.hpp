@@ -316,8 +316,19 @@ namespace JM
 
                 bool closeComm()
                 {
+					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
+					{
+						if (!((JM::SerialPort*)commboxPort().pointer())->isOpen())
+							return true;
+					}
+
                     reset();
                     setRF(Constant::RF_RESET, 0);
+
+					if  (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
+					{
+						((JM::SerialPort*)commboxPort().pointer())->close();
+					}
                     return true;
                 }
 

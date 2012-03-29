@@ -5,13 +5,13 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmtype.h>
 
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
 #define JM_TIMER_TO_MS(val) ((val) * 1000)
 #define JM_TIMER_TO_SEC(val) ((val) * 1000000)
 
-G_END_DECLS
+JM_END_DECLS
 
 #endif

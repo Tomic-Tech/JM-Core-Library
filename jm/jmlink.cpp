@@ -2,7 +2,7 @@
 
 namespace JM
 {
-	void* Link::protocol()
+	pointer_t Link::protocol()
 	{
 		return _prc;
 	}

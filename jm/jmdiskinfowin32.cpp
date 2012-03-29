@@ -1,4 +1,5 @@
 #include "jmdiskinfowin32.hpp"
+#include <sstream>
 
 #ifdef BOOST_WINDOWS
 
@@ -234,15 +235,12 @@ namespace JM
 		DiskInfo::DiskInfo()
 			: m_list()
 		{
-			memset(HardDriveSerialNumber, 0, sizeof(HardDriveSerialNumber));
+			memset(HardDriveSerialNumber.data(), 0, sizeof(HardDriveSerialNumber));
 		}
 
 		DiskInfo::~DiskInfo()
 		{
-			for (std::size_t i = 0; i < m_list.size(); i++)
-			{
-				delete [] m_list[i];
-			}
+
 		}
 
 
@@ -282,7 +280,7 @@ namespace JM
 			BOOL bAdd = TRUE;
 			for (UINT i = 0; i < m_list.size(); i++)
 			{
-				if (memcmp(pIdSector, m_list[i], 256 * sizeof(WORD)) == 0)
+				if (memcmp(pIdSector, m_list[i].get(), 256 * sizeof(WORD)) == 0)
 				{
 					bAdd = FALSE;
 					break;
@@ -293,7 +291,7 @@ namespace JM
 			{
 				PWORD diskdata = new WORD[256];
 				memcpy(diskdata, pIdSector, 256 * sizeof(WORD));
-				m_list.push_back(diskdata);
+				m_list.push_back(boost::shared_array<WORD>(diskdata));
 			}
 
 			return bAdd;
@@ -336,10 +334,10 @@ namespace JM
 
 					if (sum > 0)
 					{
-						char sub[2];
-						sub[0] = (char)sum;
-						sub[1] = 0;
-						flipped += sub;
+						//char sub[2];
+						//sub[0] = (char)sum;
+						//sub[1] = 0;
+						flipped += (char)sum;
 					}
 				}
 			}
@@ -347,7 +345,7 @@ namespace JM
 			return flipped;
 		}
 
-		std::string DiskInfo::ConvertToString(WORD diskdata [256], int firstIndex, int lastIndex)
+		std::string DiskInfo::ConvertToString(PWORD diskdata, int firstIndex, int lastIndex)
 		{
 			std::string str;
 
@@ -379,12 +377,11 @@ namespace JM
 
 				//  Try to get a handle to PhysicalDrive IOCTL, report failure
 				//  and exit if can't.
-
-				TCHAR driveName [256];
-				sprintf  (driveName, "\\\\.\\PhysicalDrive%d", drive);
+				std::stringstream driveName;
+				driveName << "\\\\.\\PhysicalDrive" << drive;
 
 				//  Windows NT, Windows 2000, Windows Server 2003, Vista
-				hPhysicalDriveIOCTL = CreateFile (driveName, GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,  NULL, OPEN_EXISTING, 0, NULL);
+				hPhysicalDriveIOCTL = CreateFileA(driveName.str().c_str(), GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,  NULL, OPEN_EXISTING, 0, NULL);
 
 				if (hPhysicalDriveIOCTL == INVALID_HANDLE_VALUE)
 				{
@@ -439,12 +436,11 @@ namespace JM
 
 				//  Try to get a handle to PhysicalDrive IOCTL, report failure
 				//  and exit if can't.
-				TCHAR driveName [256];
-
-				sprintf (driveName, "\\\\.\\PhysicalDrive%d", drive);
+				std::stringstream driveName;
+				driveName << "\\\\.\\PhysicalDrive" << drive;
 
 				//  Windows NT, Windows 2000, must have admin rights
-				hPhysicalDriveIOCTL = CreateFile (driveName, GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+				hPhysicalDriveIOCTL = CreateFileA(driveName.str().c_str(), GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 
 				if (hPhysicalDriveIOCTL != INVALID_HANDLE_VALUE)
 				{
@@ -500,12 +496,11 @@ namespace JM
 
 				//  Try to get a handle to PhysicalDrive IOCTL, report failure
 				//  and exit if can't.
-				TCHAR driveName [256];
-
-				sprintf (driveName, "\\\\.\\PhysicalDrive%d", drive);
+				std::stringstream driveName;
+				driveName << "\\\\.\\PhysicalDrive" << drive;
 
 				//  Windows NT, Windows 2000, Windows XP - admin rights not required
-				hPhysicalDriveIOCTL = CreateFile (driveName, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+				hPhysicalDriveIOCTL = CreateFileA (driveName.str().c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 
 
 				if (hPhysicalDriveIOCTL != INVALID_HANDLE_VALUE)
@@ -617,14 +612,14 @@ namespace JM
 				{
 					size_t j;
 					BOOL bAdd;
-					WORD* diskdata = new WORD[256];
+					boost::shared_array<WORD> diskdata(new WORD[256]);
 					for (j = 0; j < 256; j++) diskdata [j] = pOutBufVxD -> DisksRawInfo [i * 256 + j];
 
 					// process the information for this buffer
 					bAdd = TRUE;
 					for(j =0; j< m_list.size();j++)
 					{
-						if(memcmp(diskdata, m_list[j], 256 * sizeof(WORD)) == 0)
+						if(memcmp(diskdata.get(), m_list[j].get(), 256 * sizeof(WORD)) == 0)
 						{
 							bAdd = FALSE;
 							break;
@@ -632,8 +627,6 @@ namespace JM
 					}
 					if(bAdd)
 						m_list.push_back(diskdata);
-					else
-						delete[] diskdata;
 					done = TRUE;
 				}
 			}
@@ -652,14 +645,14 @@ namespace JM
 			for (controller = 0; controller < 16; controller++)
 			{
 				HANDLE hScsiDriveIOCTL = 0;
-				TCHAR   driveName [256];
+				std::stringstream driveName;
 
 				//  Try to get a handle to PhysicalDrive IOCTL, report failure
 				//  and exit if can't.
-				sprintf (driveName, "\\\\.\\Scsi%d:", controller);
+				driveName << "\\\\.\\Scsi" << controller << ":";
 
 				//  Windows NT, Windows 2000, any rights should do
-				hScsiDriveIOCTL = CreateFile (driveName, GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+				hScsiDriveIOCTL = CreateFileA (driveName.str().c_str(), GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 
 
 				if (hScsiDriveIOCTL != INVALID_HANDLE_VALUE)
@@ -720,17 +713,17 @@ namespace JM
 
 		std::string DiskInfo::modelNumber(size_t drive)
 		{
-			return ConvertToString(m_list[drive], 27, 46);
+			return ConvertToString(m_list[drive].get(), 27, 46);
 		}
 
 		std::string DiskInfo::serialNumber(size_t drive)
 		{
-			return ConvertToString(m_list[drive], 10, 19);
+			return ConvertToString(m_list[drive].get(), 10, 19);
 		}
 
 		std::string DiskInfo::revisionNumber(size_t drive)
 		{
-			return ConvertToString(m_list[drive], 23, 26);
+			return ConvertToString(m_list[drive].get(), 23, 26);
 		}
 
 		std::string DiskInfo::driveType(size_t drive)
@@ -775,10 +768,10 @@ namespace JM
 			version.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 			GetVersionEx(&version);
 
-			for (size_t i = 0; i < m_list.size(); i++)
-			{
-				delete[] m_list[i];
-			}
+			//for (size_t i = 0; i < m_list.size(); i++)
+			//{
+			//	delete[] m_list[i];
+			//}
 
 			m_list.clear();
 

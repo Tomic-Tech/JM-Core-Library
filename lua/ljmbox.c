@@ -1,4 +1,5 @@
 #include <jm/jmlib.h>
+#include <string.h>
 
 #define LUA_LIB
 
@@ -7,10 +8,12 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-static struct {
-    const gchar *name;
+static struct
+{
+    const char *name;
     JMProtocolType type;
-} _lua_jm_protocol_type[] = {
+} _lua_jm_protocol_type[] =
+{
     {"J1850VPW", JM_PRC_J1850VPW},
     {"J1850PWM", JM_PRC_J1850PWM},
     {"ISO9141_2", JM_PRC_ISO9141_2},
@@ -22,10 +25,12 @@ static struct {
     {NULL, JM_PRC_UNKNOW} /* sentinel */
 };
 
-static struct {
+static struct
+{
     const char *name;
     JMConnector connector;
-} _lua_jm_connector[] = {
+} _lua_jm_connector[] =
+{
     {"OBDII 16", JM_CN_OBDII_16},
     {"UNIVERSAL 3", JM_CN_UNIVERSAL_3},
     {"BENZ 38", JM_CN_BENZ_38},
@@ -71,12 +76,13 @@ static struct {
 //    return 1;
 //}
 
-static int _lua_jm_commbox_configure(lua_State *L) {
+static int _lua_jm_commbox_configure(lua_State *L)
+{
     size_t i = 0;
     size_t l = 0;
-    const gchar* prc = luaL_checklstring(L, 1, &l);
+    const char* prc = luaL_checklstring(L, 1, &l);
     while (_lua_jm_protocol_type[i].name != NULL &&
-        g_ascii_strncasecmp(prc, _lua_jm_protocol_type[i].name, l) != 0)
+        strncmp(prc, _lua_jm_protocol_type[i].name, l) != 0)
     {
         i++;
     }
@@ -100,10 +106,10 @@ static int _lua_jm_commbox_set_connector(lua_State *L)
     size_t i = 0;
     size_t l = 0;
 
-    const gchar *cn = luaL_checklstring(L, 1, &l);
+    const char *cn = luaL_checklstring(L, 1, &l);
 
     while (_lua_jm_connector[i].name != NULL &&
-        g_ascii_strncasecmp(cn, _lua_jm_connector[i].name, l) != 0)
+        strncmp(cn, _lua_jm_connector[i].name, l) != 0)
     {
         i++;
     }

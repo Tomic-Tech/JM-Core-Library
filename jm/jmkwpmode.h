@@ -5,9 +5,9 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmtype.h>
 
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
 typedef enum _JMKWPMode JMKWPMode;
 
@@ -20,6 +20,6 @@ enum _JMKWPMode
     JM_KWPCX = 4
 };
 
-G_END_DECLS
+JM_END_DECLS
 
 #endif

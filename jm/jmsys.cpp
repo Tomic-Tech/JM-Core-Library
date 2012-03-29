@@ -12,6 +12,9 @@ namespace JM
 
 	System::~System()
 	{
+		if (_db == NULL)
+			return;
+
 		sqlite3_stmt *stmt = NULL;
 		while ((stmt = sqlite3_next_stmt(_db, 0)) != NULL)
 		{

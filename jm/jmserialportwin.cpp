@@ -128,7 +128,7 @@ namespace JM
 		return JM_ERROR_SUCCESS;
 	}
 
-	boost::int32_t SerialPort::setDatabits(guint8 databits)
+	boost::int32_t SerialPort::setDatabits(boost::uint8_t databits)
 	{
 		boost::mutex::scoped_lock lock(_mutex);
 

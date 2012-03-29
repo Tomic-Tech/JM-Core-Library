@@ -6,7 +6,7 @@
 #endif
 
 #include "jmerror.h"
-#include "jmserialport.h"
+#include "jmserialporttype.h"
 #include <string>
 #include <vector>
 #include <boost/cstdint.hpp>

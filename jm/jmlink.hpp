@@ -14,7 +14,7 @@ namespace JM
     {
     public:
 
-        virtual void* protocol();
+        virtual pointer_t protocol();
         void setProtocolType(JMProtocolType type);
         JMProtocolType protocolType();
 
@@ -94,7 +94,7 @@ namespace JM
 
     private:
         JMProtocolType _prcType;
-        void *_prc;
+        pointer_t _prc;
     };
 }
 

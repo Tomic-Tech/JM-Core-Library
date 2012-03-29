@@ -40,6 +40,6 @@ namespace JM
 		default:
 			break;
 		}
-		jm_commbox_set_handler((gpointer)box);
+		jm_commbox_set_handler((pointer_t)box);
 	}
 }

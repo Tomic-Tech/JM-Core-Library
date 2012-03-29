@@ -192,8 +192,8 @@ namespace JM
                         _box->delBatch(_shared->buffID);
                         return 0;
                     }
-                    g_usleep((length * _shared->reqByteToByte + 
-                        _shared->reqWaitTime) / 1000);
+					boost::this_thread::sleep(boost::posix_time::microseconds((length * _shared->reqByteToByte + _shared->reqWaitTime) / 1000));
+
                 }
                 else
                 {

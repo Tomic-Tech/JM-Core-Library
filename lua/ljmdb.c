@@ -1,4 +1,5 @@
 #include <jm/jmlib.h>
+#include <stdlib.h>
 
 #define LUA_LIB
 
@@ -9,8 +10,8 @@
 
 static int _lua_jm_db_get_text(lua_State *L)
 {
-    const gchar *name = luaL_checkstring(L, 1);
-    gchar *text = jm_db_get_text(name);
+    const char *name = luaL_checkstring(L, 1);
+    char *text = jm_db_get_text(name);
     if (text == NULL)
     {
         lua_pushnil(L);
@@ -18,45 +19,45 @@ static int _lua_jm_db_get_text(lua_State *L)
     else
     {
         lua_pushstring(L, text);
-        g_free(text);
+        free(text);
     }
     return 1;
 }
 
 static int _lua_jm_db_set_tc_catalog(lua_State *L)
 {
-    const gchar *name = luaL_checkstring(L, 1);
+    const char *name = luaL_checkstring(L, 1);
     jm_db_set_tc_catalog(name);
     return 0;
 }
 
 static int _lua_jm_db_set_ld_catalog(lua_State *L)
 {
-    const gchar *name = luaL_checkstring(L, 1);
+    const char *name = luaL_checkstring(L, 1);
     jm_db_set_ld_catalog(name);
     return 0;
 }
 
 static int _lua_jm_db_set_cmd_catalog(lua_State *L)
 {
-    const gchar *name = luaL_checkstring(L, 1);
+    const char *name = luaL_checkstring(L, 1);
     jm_db_set_cmd_catalog(name);
     return 0;
 }
 
 static int _lua_jm_db_get_trouble_code(lua_State *L)
 {
-    const gchar *code = luaL_checkstring(L, 1);
-    gchar *text = jm_db_get_trouble_code(code);
+    const char *code = luaL_checkstring(L, 1);
+    char *text = jm_db_get_trouble_code(code);
     lua_pushstring(L, text);
-    g_free(text);
+    free(text);
     return 1;
 }
 
 static int _lua_jm_db_get_command(lua_State *L)
 {
-    const gchar *name = luaL_checkstring(L, 1);
-    GByteArray *cmd = jm_db_get_command(name);
+    const char *name = luaL_checkstring(L, 1);
+    JMByteArray *cmd = jm_db_get_command(name);
     if (cmd == NULL)
     {
         lua_pushnil(L);
@@ -66,12 +67,12 @@ static int _lua_jm_db_get_command(lua_State *L)
         luaL_Buffer b;
         size_t i;
         luaL_buffinit(L, &b);
-        for (i = 0; i < cmd->len; i++)
+        for (i = 0; i < jm_byte_array_size(cmd); i++)
         {
-            luaL_addchar(&b, cmd->data[i]);
+            luaL_addchar(&b, jm_byte_array_data(cmd)[i]);
         }
         luaL_pushresult(&b);
-        g_byte_array_free(cmd, TRUE);
+        jm_byte_array_free(cmd);
     }
     return 1;
 }
@@ -79,7 +80,7 @@ static int _lua_jm_db_get_command(lua_State *L)
 static int _lua_jm_db_get_command_id(lua_State *L)
 {
     int id = lua_tointeger(L, 1);
-    GByteArray *cmd = jm_db_get_command_by_id(id);
+    JMByteArray *cmd = jm_db_get_command_by_id(id);
     if (cmd == NULL)
     {
         lua_pushnil(L);
@@ -89,12 +90,12 @@ static int _lua_jm_db_get_command_id(lua_State *L)
         luaL_Buffer b;
         size_t i;
         luaL_buffinit(L, &b);
-        for (i = 0; i < cmd->len; i++)
+        for (i = 0; i < jm_byte_array_size(cmd); i++)
         {
-            luaL_addchar(&b, cmd->data[i]);
+            luaL_addchar(&b, jm_byte_array_data(cmd)[i]);
         }
         luaL_pushresult(&b);
-        g_byte_array_free(cmd, TRUE);
+        jm_byte_array_free(cmd);
     }
     return 1;
 }
@@ -103,7 +104,7 @@ static int _lua_jm_db_get_live_data(lua_State *L)
 {
     size_t i;
     size_t size;
-    gboolean showed = lua_toboolean(L, 1);
+    boolean_t showed = lua_toboolean(L, 1);
 
     jm_ld_array_update_global_array(showed);
 
@@ -145,8 +146,8 @@ static int _lua_jm_db_ld_next_showed_index(lua_State *L)
 
 static int _lua_jm_db_ld_set_enabled(lua_State *L)
 {
-    gint32 index = luaL_checkinteger(L, 1);
-    gboolean enabled = lua_toboolean(L, 2);
+    int32_t index = luaL_checkinteger(L, 1);
+    boolean_t enabled = lua_toboolean(L, 2);
 
     jm_ld_array_set_enabled(index - 1, enabled);
     return 0;

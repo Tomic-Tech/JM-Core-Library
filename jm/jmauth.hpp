@@ -15,22 +15,23 @@
 #include <vector>
 #include <iterator>
 #include <sstream>
-#include <boost/config.hpp>
+#include <boost/cstdint.hpp>
+#include <boost/smart_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
 
 #include "jmdiskinfowin32.hpp"
 
-const size_t JM_AUTH_DES_KEY_LENGTH = 24;
-const size_t JM_AUTH_DE_ID_CODE = 0;
-const size_t JM_AUTH_DE_COMMBOX_ID = 1;
-const size_t JM_AUTH_DE_REG_TIME = 2;
-const size_t JM_AUTH_DE_EXPIRE_TIME = 3;
-const size_t JM_AUTH_DE_DB_PW = 4;
-const size_t JM_AUTH_DE_LANG = 5;
-const size_t JM_AUTH_DE_LOG_PW = 6;
-const size_t JM_AUTH_CRYPT_MESSAGE_LINES = 6;
+const std::size_t JM_AUTH_DES_KEY_LENGTH = 24;
+const std::size_t JM_AUTH_DE_ID_CODE = 0;
+const std::size_t JM_AUTH_DE_COMMBOX_ID = 1;
+const std::size_t JM_AUTH_DE_REG_TIME = 2;
+const std::size_t JM_AUTH_DE_EXPIRE_TIME = 3;
+const std::size_t JM_AUTH_DE_DB_PW = 4;
+const std::size_t JM_AUTH_DE_LANG = 5;
+const std::size_t JM_AUTH_DE_LOG_PW = 6;
+const std::size_t JM_AUTH_CRYPT_MESSAGE_LINES = 6;
 
 namespace JM
 {
@@ -77,12 +78,12 @@ namespace JM
         std::string queryIDCode()
         {
 			std::string idCode;
-            char *result = NULL;
+			boost::scoped_array<char> result;
             std::stringstream plain;
             std::string temp;
 
-            size_t count = DiskInfo::inst().load();
-            size_t i;
+            std::size_t count = DiskInfo::inst().load();
+            std::size_t i;
 
             for (i = 0; i < count; i++)
             {
@@ -91,21 +92,28 @@ namespace JM
             }
 
             count = cyoBase16EncodeGetLength(plain.str().size());
-            result = new char[count];
+            result.reset(new char[count]);
 
-            cyoBase16Encode(result, plain.str().c_str(), plain.str().size());
+            cyoBase16Encode(result.get(), plain.str().c_str(), plain.str().size());
 
-			idCode = result;
+			idCode = result.get();
 			idCode.resize(16);
 
-			delete[] result;
 			return idCode;
         }
 
         bool checkReg()
         {
 			std::vector<std::string> vec = decrypt();
-			return !vec.empty();
+			if (vec.empty())
+				return false;
+
+			if (vec.size() <= JM_AUTH_CRYPT_MESSAGE_LINES)
+				return false;
+			std::string idCode1 = vec[JM_AUTH_DE_ID_CODE];
+			std::string idCode2 = queryIDCode();
+
+			return idCode1.compare(idCode2) == 0;
         }
 
 		std::string encryptLogText(const std::string &log)
@@ -146,8 +154,8 @@ namespace JM
 			std::string e;
 			std::string d;
 
-            glong i;
-            glong length;
+            long i;
+            long length;
 
             length = strlen(_theN);
             for (i = 0; i < length; i += 2)
@@ -193,33 +201,28 @@ namespace JM
 				return std::vector<std::string>();
 
 			std::string fileText((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-			char *cipher = NULL;
-			std::size_t count = cyoBase64DecodeGetLength(fileText.size());
-			cipher = new char[count];
-			count = cyoBase64Decode(cipher, fileText.c_str(), fileText.size());
 
-			if (cipher == NULL || count <= 0)
+			std::size_t count = cyoBase64DecodeGetLength(fileText.size());
+			boost::scoped_array<char> cipher(new char[count]);
+			count = cyoBase64Decode(cipher.get(), fileText.c_str(), fileText.size());
+
+			if (cipher.get() == NULL || count <= 0)
 			{
-				delete[] cipher;
 				return std::vector<std::string>();
 			}
 
 			int flen = RSA_size(_rsa);
-			char *recovered = new char[flen];
-			memset(recovered, 0, flen);
+			boost::scoped_array<char> recovered(new char[flen]);
+			memset(recovered.get(), 0, flen);
 
-			int ret = RSA_private_decrypt(count, (const unsigned char*)cipher, (unsigned char*)recovered, _rsa, RSA_PKCS1_OAEP_PADDING);
+			int ret = RSA_private_decrypt(count, (const unsigned char*)cipher.get(), (unsigned char*)recovered.get(), _rsa, RSA_PKCS1_OAEP_PADDING);
 			if (ret < 0)
 			{
-				delete[] cipher;
-				delete[] recovered;
+				return std::vector<std::string>();
 			}
 
 			std::vector<std::string> result;
-			boost::algorithm::split(result, std::string(recovered), boost::is_any_of("\n"));
-
-			delete[] cipher;
-			delete[] recovered;
+			boost::algorithm::split(result, std::string(recovered.get()), boost::is_any_of("\n"));
 
 			if (result.size() < (JM_AUTH_CRYPT_MESSAGE_LINES + 1))
 			{

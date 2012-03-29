@@ -39,7 +39,7 @@ namespace JM
                 return JM_ERROR_SUCCESS;
             }
 
-            gint32 startKeepLink(bool run)
+            boost::int32_t startKeepLink(bool run)
             {
                 if (!_box->keepLink(run))
                     return JM_ERROR_GENERIC;
@@ -66,7 +66,7 @@ namespace JM
                 return _protocol->readFrames(data, maxLength);
             }
 
-            gint32 setKeepLink(const boost::uint8_t *data, std::size_t count)
+            boost::int32_t setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
                 return _protocol->setKeepLink(data, count);
             }

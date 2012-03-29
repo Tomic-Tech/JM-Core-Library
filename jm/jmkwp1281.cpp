@@ -14,7 +14,7 @@ namespace JM
 
 	}
 
-	guint8 KWP1281::frameCounterIncrement()
+	boost::uint8_t KWP1281::frameCounterIncrement()
 	{
 		return ++(_frameCounter);
 	}

@@ -1,4 +1,5 @@
 #include <jm/jmlib.h>
+#include <stdlib.h>
 
 #define LUA_LIB
 
@@ -21,21 +22,21 @@ static int _lua_jm_ui_msg_box_btn_clr(lua_State *L)
 
 static int _lua_jm_ui_msg_box_add_btn(lua_State *L)
 {
-    const gchar* text = (const gchar*)luaL_checkstring(L, 1);
+    const char* text = (const char*)luaL_checkstring(L, 1);
     jm_ui_msg_box_add_btn(text);
     return 0;
 }
 
 static int _lua_jm_ui_msg_box_set_msg(lua_State *L)
 {
-    const gchar* text = (const gchar*)luaL_checkstring(L, 1);
+    const char* text = (const char*)luaL_checkstring(L, 1);
     jm_ui_msg_box_set_msg(text);
     return 0;
 }
 
 static int _lua_jm_ui_msg_box_set_title(lua_State *L)
 {
-    const gchar* text = (const gchar*)luaL_checkstring(L, 1);
+    const char* text = (const char*)luaL_checkstring(L, 1);
     jm_ui_msg_box_set_title(text);
     return 0;
 }
@@ -60,15 +61,15 @@ static int _lua_jm_ui_list_box_btn_clr(lua_State *L)
 
 static int _lua_jm_ui_list_box_add_btn(lua_State *L)
 {
-    const gchar *text = (const gchar*)luaL_checkstring(L, 1);
+    const char *text = (const char*)luaL_checkstring(L, 1);
     jm_ui_list_box_add_btn(text);
     return 0;
 }
 
 static int _lua_jm_ui_list_box_add_item(lua_State *L)
 {
-    const gchar *caption = (const gchar*)luaL_checkstring(L, 1);
-    const gchar *item = (const gchar*)luaL_checkstring(L, 2);
+    const char *caption = (const char*)luaL_checkstring(L, 1);
+    const char *item = (const char*)luaL_checkstring(L, 2);
     jm_ui_list_box_add_item(caption, item);
     return 0;
 }
@@ -99,7 +100,7 @@ static int _lua_jm_ui_menu_item_clr(lua_State *L)
 
 static int _lua_jm_ui_menu_add_item(lua_State *L)
 {
-    const gchar *text = (const gchar*)luaL_checkstring(L, 1);
+    const char *text = (const char*)luaL_checkstring(L, 1);
     jm_ui_menu_add_item(text);
     return 0;
 }
@@ -118,15 +119,15 @@ static int _lua_jm_ui_tc_item_clr(lua_State *L)
 
 static int _lua_jm_ui_tc_add_item(lua_State *L)
 {
-    const gchar *code = (const gchar*)luaL_checkstring(L, 1);
-    const gchar *text = (const gchar*)luaL_checkstring(L, 2);
+    const char *code = (const char*)luaL_checkstring(L, 1);
+    const char *text = (const char*)luaL_checkstring(L, 2);
     jm_ui_tc_add_item(code, text);
     return 0;
 }
 
 static int _lua_jm_ui_tc_add_btn(lua_State *L)
 {
-    const gchar *text = (const gchar*)luaL_checkstring(L, 1);
+    const char *text = (const char*)luaL_checkstring(L, 1);
     jm_ui_tc_add_btn(text);
     return 0;
 }
@@ -163,15 +164,15 @@ static int _lua_jm_ui_ld_btn_clr(lua_State *L)
 
 static int _lua_jm_ui_ld_add_btn(lua_State *L)
 {
-    const gchar *text = (const gchar*)luaL_checkstring(L, 1);
+    const char *text = (const char*)luaL_checkstring(L, 1);
     jm_ui_ld_add_btn(text);
     return 0;
 }
 
 static int _lua_jm_ui_ld_set_value(lua_State *L)
 {
-    gint32 index = luaL_checkinteger(L, 1);
-    const gchar *value = (const gchar*)luaL_checkstring(L, 2);
+    int32_t index = luaL_checkinteger(L, 1);
+    const char *value = (const char*)luaL_checkstring(L, 2);
     jm_ui_ld_set_value(index - 1, value);
     //g_usleep(1000);
     return 0;
@@ -179,8 +180,8 @@ static int _lua_jm_ui_ld_set_value(lua_State *L)
 
 static int _lua_jm_ui_get_btn_clicked(lua_State *L)
 {
-    gboolean is_blocked = lua_toboolean(L, 1);
-    gchar *ret = jm_ui_get_btn_clicked(is_blocked);
+    boolean_t is_blocked = lua_toboolean(L, 1);
+    char *ret = jm_ui_get_btn_clicked(is_blocked);
     if (ret == NULL)
     {
         lua_pushnil(L);
@@ -189,13 +190,13 @@ static int _lua_jm_ui_get_btn_clicked(lua_State *L)
     {
         lua_pushstring(L, ret);
     }
-    g_free(ret);
+    free(ret);
     return 1;
 }
 
 static int _lua_jm_ui_get_menu_selected(lua_State *L)
 {
-    gchar *ret = jm_ui_get_menu_selected();
+    char *ret = jm_ui_get_menu_selected();
     if (ret == NULL)
     {
         lua_pushnil(L);
@@ -204,7 +205,7 @@ static int _lua_jm_ui_get_menu_selected(lua_State *L)
     {
         lua_pushstring(L, ret);
     }
-    g_free(ret);
+    free(ret);
     return 1;
 }
 

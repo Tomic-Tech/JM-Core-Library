@@ -5,9 +5,7 @@
 #pragma once
 #endif
 
-#include <glib.h>
-
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
 typedef enum _JMCanbusFrameType JMCanbusFrameType;
 
@@ -17,6 +15,6 @@ enum _JMCanbusFrameType
     JM_CANBUS_FRAME_TYPE_REMOTE = 0x40
 };
 
-G_END_DECLS
+JM_END_DECLS
 
 #endif

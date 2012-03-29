@@ -1,9 +1,9 @@
 #ifndef __JM_UI_H__
 #define __JM_UI_H__
 
-#include <glib.h>
+#include <jm/jmtype.h>
 
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
 typedef enum _JMUIMsgType JMUIMsgType;
 
@@ -41,10 +41,10 @@ enum _JMUIMsgType
 typedef struct _JMUIMessage
 {
     JMUIMsgType type;
-    gchar *message;
+    char *message;
 } JMUIMessage;
 
 
-G_END_DECLS
+JM_END_DECLS
 
 #endif

@@ -1,4 +1,5 @@
 #include <jm/jmlib.h>
+#include <string.h>
 
 #define LUA_LIB
 
@@ -15,8 +16,8 @@ static int _lua_jm_iso15765_set_options(lua_State *L)
     size_t mask_length = 0;
     size_t frame_length = 0;
 
-    gint32 target_id = luaL_checkinteger(L, 1);
-    const gchar*baud = luaL_checklstring(L, 2, &baud_length);
+    int32_t target_id = luaL_checkinteger(L, 1);
+    const char*baud = luaL_checklstring(L, 2, &baud_length);
     const char *id_mode = luaL_checklstring(L, 3, &id_mode_length);
     const char *mask = luaL_checklstring(L, 4, &mask_length);
     const char *frame = luaL_checklstring(L, 5, &frame_length);
@@ -33,22 +34,22 @@ static int _lua_jm_iso15765_set_options(lua_State *L)
     }
 
     while (lua_jm_canbus_baud[baud_i].name != NULL &&
-        g_ascii_strncasecmp(baud, lua_jm_canbus_baud[baud_i].name, baud_length) != 0)
+        strncmp(baud, lua_jm_canbus_baud[baud_i].name, baud_length) != 0)
     {
         baud_i++;
     }
     while (lua_jm_canbus_id_mode[id_mode_i].name != NULL &&
-        g_ascii_strncasecmp(id_mode, lua_jm_canbus_id_mode[id_mode_i].name, id_mode_length) != 0)
+        strncmp(id_mode, lua_jm_canbus_id_mode[id_mode_i].name, id_mode_length) != 0)
     {
         id_mode_i++;
     }
     while (lua_jm_canbus_filter_mask[mask_i].name != NULL &&
-        g_ascii_strncasecmp(mask, lua_jm_canbus_filter_mask[mask_i].name, mask_length) != 0)
+        strncmp(mask, lua_jm_canbus_filter_mask[mask_i].name, mask_length) != 0)
     {
         mask_i++;
     }
     while (lua_jm_canbus_frame_type[frame_i].name != NULL &&
-        g_ascii_strncasecmp(frame, lua_jm_canbus_frame_type[frame_i].name, frame_length) != 0)
+        strncmp(frame, lua_jm_canbus_frame_type[frame_i].name, frame_length) != 0)
     {
         frame_i++;
     }
@@ -83,8 +84,8 @@ static int _lua_jm_iso15765_set_options(lua_State *L)
 
 static int _lua_jm_iso15765_set_lines(lua_State *L)
 {
-    guint32 high = luaL_checkinteger(L, 1);
-    guint32 low = luaL_checkinteger(L, 2);
+    int32_t high = luaL_checkinteger(L, 1);
+    int32_t low = luaL_checkinteger(L, 2);
 
     if (jm_link_protocol_type() != JM_PRC_ISO15765)
     {
@@ -106,7 +107,7 @@ static int _lua_jm_iso15765_set_lines(lua_State *L)
 static int _lua_jm_iso15765_set_filter(lua_State *L)
 {
     size_t i = 0;
-    gint32 id[16] = {0};
+    int32_t id[16] = {0};
     
 
     if (jm_link_protocol_type() != JM_PRC_ISO15765)
@@ -123,7 +124,7 @@ static int _lua_jm_iso15765_set_filter(lua_State *L)
         lua_gettable(L, -2);
         if (!lua_isnil(L, -1) && lua_isnumber(L, -1) && i != 16)
         { /* Check if the last table key or none number */
-            id[i] = (gint32)lua_tonumber(L, -1);
+            id[i] = (int32_t)lua_tonumber(L, -1);
             lua_pop(L, 1);
             i++;
         }

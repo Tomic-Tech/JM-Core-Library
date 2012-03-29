@@ -21,7 +21,7 @@ namespace JM
         static CommboxPort& inst();
         void setType(JMCommboxPortType type);
         JMCommboxPortType type();
-        void setPointer(void *p);
+        void setPointer(pointer_t p);
         void* pointer();
 
 		template<typename DurationType>
@@ -175,7 +175,7 @@ namespace JM
 		boost::mutex _outMutex;
 		boost::condition_variable _inCond;
         JMCommboxPortType _portType;
-        void* _pointer;
+        pointer_t _pointer;
     };
 }
 

@@ -62,7 +62,7 @@ namespace JM
                 return count;
             }
 
-            gint32 setKeepLink(const boost::uint8_t *data, std::size_t count)
+            boost::int32_t setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
                 if (!_box->newBatch(BoxType::Constant::LINKBLOCK))
                 {

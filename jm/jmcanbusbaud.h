@@ -5,9 +5,9 @@
 #pragma once
 #endif
 
-#include <glib.h>
+#include <jm/jmtype.h>
 
-G_BEGIN_DECLS
+JM_BEGIN_DECLS
 
 typedef enum _JMCanbusBaud JMCanbusBaud;
 
@@ -30,5 +30,6 @@ enum _JMCanbusBaud
     JM_CANBUS_B5K = 5000
 };
 
-G_END_DECLS
+JM_END_DECLS
+
 #endif

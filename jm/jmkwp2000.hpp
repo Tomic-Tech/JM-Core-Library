@@ -21,7 +21,7 @@ namespace JM
         static const boost::uint8_t KWPXX_HEADER_LENGTH = 1;
         static const boost::uint8_t KWP00_HEADER_LENGTH = 2;
         static const boost::uint8_t KWP_CHECKSUM_LENGTH = 1;
-        static const guint16 KWP_MAX_DATA_LENGTH = 128;
+        static const boost::uint16_t KWP_MAX_DATA_LENGTH = 128;
     public:
         KWP2000();
         

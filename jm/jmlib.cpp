@@ -15,12 +15,12 @@
 #include "jmmikuni.hpp"
 #include "jmui.hpp"
 
-static gchar* _jm_std_string_to_gchar(const std::string &text)
+static char* _jm_std_string_to_char(const std::string &text)
 {
 	if (text.empty())
 		return NULL;
 
-	gchar* ret = (gchar*)g_malloc(text.length() + 1);
+	char *ret = (char*)malloc(text.length() + 1);
 	strcpy(ret, text.c_str());
 	return ret;
 }
@@ -30,71 +30,71 @@ extern "C"
     /************************************************************************/
     /* Auth                                                                 */
     /************************************************************************/
-    void jm_auth_set_dat_path(const gchar *path)
+    void jm_auth_set_dat_path(const char *path)
     {
         JM::Auth::inst().setPath(std::string(path));
     }
 
-    void jm_auth_save_reg(const gchar *reg)
+    void jm_auth_save_reg(const char *reg)
     {
         JM::Auth::inst().saveReg(std::string(reg));
     }
 
-    gchar* jm_auth_query_id_code(void)
+    char* jm_auth_query_id_code(void)
     {
 		std::string idCode = JM::Auth::inst().queryIDCode();
-		return _jm_std_string_to_gchar(idCode);
+		return _jm_std_string_to_char(idCode);
     }
 
-    gchar* jm_auth_decrypt_id_code()
+    char* jm_auth_decrypt_id_code()
     {
 		std::string idCode = JM::Auth::inst().decrypt(JM_AUTH_DE_ID_CODE);
-		return _jm_std_string_to_gchar(idCode);
+		return _jm_std_string_to_char(idCode);
     }
 
-    gchar* jm_auth_decrypt_commbox_id()
+    char* jm_auth_decrypt_commbox_id()
     {
 		std::string commboxID = JM::Auth::inst().decrypt(JM_AUTH_DE_COMMBOX_ID);
-		return _jm_std_string_to_gchar(commboxID);
+		return _jm_std_string_to_char(commboxID);
     }
 
-    gchar* jm_auth_decrypt_reg_time()
+    char* jm_auth_decrypt_reg_time()
     {
 		std::string regTime = JM::Auth::inst().decrypt(JM_AUTH_DE_REG_TIME);
-		return _jm_std_string_to_gchar(regTime);
+		return _jm_std_string_to_char(regTime);
     }
 
-    gchar* jm_auth_decrypt_expire_time()
+    char* jm_auth_decrypt_expire_time()
     {
 		std::string expireTime = JM::Auth::inst().decrypt(JM_AUTH_DE_EXPIRE_TIME);
-		return _jm_std_string_to_gchar(expireTime);
+		return _jm_std_string_to_char(expireTime);
     }
 
-    gchar* jm_auth_decrypt_db_pw()
+    char* jm_auth_decrypt_db_pw()
     {
 		std::string dbPW = JM::Auth::inst().decrypt(JM_AUTH_DE_DB_PW);
-		return _jm_std_string_to_gchar(dbPW);
+		return _jm_std_string_to_char(dbPW);
     }
 
-    gchar* jm_auth_decrypt_lang()
+    char* jm_auth_decrypt_lang()
     {
 		std::string lang = JM::Auth::inst().decrypt(JM_AUTH_DE_LANG);
-		return _jm_std_string_to_gchar(lang);
+		return _jm_std_string_to_char(lang);
     }
 
-    gchar* jm_auth_decrypt_log_pw()
+    char* jm_auth_decrypt_log_pw()
     {
 		std::string logPW = JM::Auth::inst().decrypt(JM_AUTH_DE_LOG_PW);
-		return _jm_std_string_to_gchar(logPW);
+		return _jm_std_string_to_char(logPW);
     }
 
-    gchar* jm_auth_encrypt_log_text(const gchar *log)
+    char* jm_auth_encrypt_log_text(const char *log)
     {
 		std::string text = JM::Auth::inst().encryptLogText(std::string(log));
-		return _jm_std_string_to_gchar(text);
+		return _jm_std_string_to_char(text);
     }
 
-    gboolean jm_auth_check_reg(void)
+    boolean_t jm_auth_check_reg(void)
     {
         return JM::Auth::inst().checkReg() ? TRUE : FALSE;
     }
@@ -102,12 +102,12 @@ extern "C"
     /************************************************************************/
     /* Message Log                                                          */
     /************************************************************************/
-    void jm_log_write(const gchar *tag, const gchar *msg)
+    void jm_log_write(const char *tag, const char *msg)
     {
         JM::Log::inst().write(std::string(tag), std::string(msg));
     }
 
-    void jm_log_write_hex(const gchar *tag, const guint8 *data, size_t count)
+    void jm_log_write_hex(const char *tag, const uint8_t *data, size_t count)
     {
         JM::Log::inst().write(std::string(tag), data, count);
     }
@@ -115,78 +115,78 @@ extern "C"
     /************************************************************************/
     /* Database                                                             */
     /************************************************************************/
-    gboolean jm_db_open(const gchar* file_path, const gchar* password)
+    boolean_t jm_db_open(const char* file_path, const char* password)
     {
         return JM::Database::inst().open(std::string(file_path), std::string(password));
     }
 
-    gboolean jm_db_close(void)
+    boolean_t jm_db_close(void)
     {
         return JM::Database::inst().close();
     }
 
-    gboolean jm_db_is_open(void)
+    boolean_t jm_db_is_open(void)
     {
         return JM::Database::inst().isOpen();
     }
 
-    void jm_db_set_tc_catalog(const gchar *catalog)
+    void jm_db_set_tc_catalog(const char *catalog)
     {
         JM::Database::inst().setTCCatalog(std::string(catalog));
     }
 
-    void jm_db_set_ld_catalog(const gchar *catalog)
+    void jm_db_set_ld_catalog(const char *catalog)
     {
         JM::Database::inst().setLDCatalog(std::string(catalog));
     }
 
-    void jm_db_set_cmd_catalog(const gchar *catalog)
+    void jm_db_set_cmd_catalog(const char *catalog)
     {
         JM::Database::inst().setCMDCatalog(std::string(catalog));
     }
 
-    gchar *jm_db_get_text(const gchar *name)
+    char *jm_db_get_text(const char *name)
     {
 		std::string text = JM::Database::inst().getText(std::string(name));
-		return _jm_std_string_to_gchar(text);
+		return _jm_std_string_to_char(text);
     }
 
-    gchar *jm_db_get_trouble_code(const gchar *code)
+    char *jm_db_get_trouble_code(const char *code)
     {
 		std::string content = JM::Database::inst().getTroubleCode(std::string(code));
-		return _jm_std_string_to_gchar(content);
+		return _jm_std_string_to_char(content);
     }
 
-    GByteArray *jm_db_get_command(const gchar *name)
+    JMByteArray *jm_db_get_command(const char *name)
     {
-		GByteArray *result;
+		JMByteArray *result;
 		boost::asio::const_buffer buff = JM::Database::inst().getCommand<boost::asio::const_buffer>(std::string(name));
-		result = g_byte_array_new();
-		result = g_byte_array_append(result, boost::asio::buffer_cast<const guint8*>(buff), boost::asio::buffer_size(buff));
+		result = jm_byte_array_new();
+		jm_byte_array_append(result, boost::asio::buffer_cast<const uint8_t*>(buff), boost::asio::buffer_size(buff));
 		return result;
     }
 
-    GByteArray *jm_db_get_command_by_id(gint32 id)
+    JMByteArray *jm_db_get_command_by_id(int32_t id)
     {
-		GByteArray *result;
+		JMByteArray *result;
 		boost::asio::const_buffer buff = JM::Database::inst().getCommandByID<boost::asio::const_buffer>(id);
-		result = g_byte_array_new();
-		result = g_byte_array_append(result, boost::asio::buffer_cast<const guint8*>(buff), boost::asio::buffer_size(buff));
+		result = jm_byte_array_new();
+		jm_byte_array_append(result, boost::asio::buffer_cast<const uint8_t*>(buff), boost::asio::buffer_size(buff));
 		return result;
     }
 
     /************************************************************************/
     /* System                                                               */
     /************************************************************************/
-    void jm_sys_set_software_path(const gchar *software_path)
+    void jm_sys_set_software_path(const char *software_path)
     {
         JM::System::inst().setPath(std::string(software_path));
     }
 
-    gchar* jm_sys_text(const gchar *name)
+    char* jm_sys_text(const char *name)
     {
-		GString *ret = g_string_new(JM::System::inst().text(std::string(name)).c_str());
-		return g_string_free(ret, FALSE);
+		std::string text = JM::System::inst().text(std::string(name));
+		return _jm_std_string_to_char(text);
     }
 
     /************************************************************************/
@@ -194,76 +194,78 @@ extern "C"
     /************************************************************************/
     static JM::Link *_link_handle = NULL;
 
-    void jm_link_set_handler(gpointer handle)
+    void jm_link_set_handler(pointer_t handle)
     {
         _link_handle = (JM::Link*)handle;
     }
 
     JMProtocolType jm_link_protocol_type(void)
     {
-        g_return_val_if_fail(_link_handle != NULL, JM_PRC_UNKNOW);
+		if (_link_handle == NULL)
+			return JM_PRC_UNKNOW;
         return ((JM::Link*)(_link_handle))->protocolType();
     }
 
-    gpointer jm_link_get_protocol(void)
+    pointer_t jm_link_get_protocol(void)
     {
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, NULL);
+		if (_link_handle == NULL)
+			return NULL;
         return ((JM::Link*)(_link_handle))->protocol();
     }
 
-    size_t jm_link_send_one_frame(const guint8 *data, size_t count)
+    size_t jm_link_send_one_frame(const uint8_t *data, size_t count)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
+		if (_link_handle == NULL)
+			return 0;
         return ((JM::Link*)(_link_handle))->sendOneFrame(data, count);
     }
 
-    size_t jm_link_send_frames(const guint8 *data, size_t count)
+    size_t jm_link_send_frames(const uint8_t *data, size_t count)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
+		if (_link_handle == NULL)
+			return 0;
         return ((JM::Link*)(_link_handle))->sendFrames(data, count);
     }
 
-    size_t jm_link_read_one_frame(guint8 *data, size_t max_length)
+    size_t jm_link_read_one_frame(uint8_t *data, size_t max_length)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
+		if (_link_handle == NULL)
+			return 0;
         return ((JM::Link*)(_link_handle))->readOneFrame(boost::asio::mutable_buffer(data, max_length));
     }
 
-    size_t jm_link_read_frames(guint8 *data, size_t max_length)
+    size_t jm_link_read_frames(uint8_t *data, size_t max_length)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
+		if (_link_handle == NULL)
+			return 0;
         return ((JM::Link*)(_link_handle))->readFrames(boost::asio::mutable_buffer(data, max_length));
     }
 
-    size_t jm_link_send_and_recv(const guint8 *send, size_t send_count, guint8 *recv, size_t max_length)
+    size_t jm_link_send_and_recv(const uint8_t *send, size_t send_count, uint8_t *recv, size_t max_length)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, 0);
+		if (_link_handle == NULL)
+			return 0;
         return ((JM::Link*)(_link_handle))->sendAndRecv(send, send_count, recv, max_length);
     }
 
-    gint32 jm_link_start_keep_link(gboolean run)
+    int32_t jm_link_start_keep_link(boolean_t run)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_link_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Link*)(_link_handle))->startKeepLink(run ? true : false);
     }
 
-    gint32 jm_link_set_keep_link(const guint8 *data, size_t count)
+    int32_t jm_link_set_keep_link(const uint8_t *data, size_t count)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_link_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Link*)(_link_handle))->setKeepLink(data, count);
     }
 
-    gint32 jm_link_set_timeout(gint64 tx_b2b, gint64 rx_b2b, gint64 tx_f2f, gint64 rx_f2f, gint64 total)
+    int32_t jm_link_set_timeout(int64_t tx_b2b, int64_t rx_b2b, int64_t tx_f2f, int64_t rx_f2f, int64_t total)
     {
-
-        g_return_val_if_fail(((JM::Link*)(_link_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_link_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Link*)(_link_handle))->setTimeout(boost::posix_time::microseconds(tx_b2b), 
 			boost::posix_time::microseconds(rx_b2b), 
 			boost::posix_time::microseconds(tx_f2f), 
@@ -276,26 +278,29 @@ extern "C"
     /************************************************************************/
     static JM::Commbox* _commbox_handle = NULL;
 
-    void jm_commbox_set_handler(gpointer handle)
+    void jm_commbox_set_handler(pointer_t handle)
     {
         _commbox_handle = (JM::Commbox*)handle;
     }
 
-    gint32 jm_commbox_open(void)
+    int32_t jm_commbox_open(void)
     {
-        g_return_val_if_fail(_commbox_handle != NULL, JM_ERROR_GENERIC);
+		if (_commbox_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Commbox*)(_commbox_handle))->open();
     }
 
-    gint32 jm_commbox_close(void)
+    int32_t jm_commbox_close(void)
     {
-        g_return_val_if_fail(((JM::Commbox*)(_commbox_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_commbox_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Commbox*)(_commbox_handle))->close();
     }
 
-    gint32 jm_commbox_configure(JMProtocolType type)
+    int32_t jm_commbox_configure(JMProtocolType type)
     {
-        g_return_val_if_fail(((JM::Commbox*)(_commbox_handle)) != NULL, NULL);
+		if (_commbox_handle == NULL)
+			return JM_ERROR_GENERIC;
         JM::Link *link = ((JM::Commbox*)(_commbox_handle))->configure(type);
         if (link != NULL)
         {
@@ -305,10 +310,10 @@ extern "C"
         return JM_ERROR_GENERIC;
     }
 
-    gint32 jm_commbox_set_connector(JMConnector cn)
+    int32_t jm_commbox_set_connector(JMConnector cn)
     {
-
-        g_return_val_if_fail(((JM::Commbox*)(_commbox_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_commbox_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Commbox*)(_commbox_handle))->setConnector(cn);
     }
 
@@ -325,22 +330,22 @@ extern "C"
         return JM::CommboxPort::inst().type();
     }
 
-    void jm_commbox_port_set_pointer(gpointer p)
+    void jm_commbox_port_set_pointer(pointer_t p)
     {
         JM::CommboxPort::inst().setPointer(p);
     }
 
-    gpointer jm_commbox_port_get_pointer(void)
+    pointer_t jm_commbox_port_get_pointer(void)
     {
         return JM::CommboxPort::inst().pointer();
     }
 
-    gint32 jm_commbox_port_set_read_timeout(gint64 microseconds) 
+    int32_t jm_commbox_port_set_read_timeout(int64_t microseconds) 
     {
         return JM::CommboxPort::inst().setReadTimeout(boost::posix_time::microseconds(microseconds));
     }
 
-    gint32 jm_commbox_port_set_write_timeout(gint64 microseconds)
+    int32_t jm_commbox_port_set_write_timeout(int64_t microseconds)
     {
         return JM::CommboxPort::inst().setWriteTimeout(boost::posix_time::microseconds(microseconds));
     }
@@ -350,37 +355,37 @@ extern "C"
         return JM::CommboxPort::inst().bytesAvailable();
     }
 
-    gint32 jm_commbox_port_discard_out_buffer(void)
+    int32_t jm_commbox_port_discard_out_buffer(void)
     {
         return JM::CommboxPort::inst().discardOutBuffer();
     }
 
-    gint32 jm_commbox_port_discard_in_buffer(void)
+    int32_t jm_commbox_port_discard_in_buffer(void)
     {
         return JM::CommboxPort::inst().discardInBuffer();
     }
 
-    size_t jm_commbox_port_read(guint8 *data, size_t count)
+    size_t jm_commbox_port_read(uint8_t *data, size_t count)
     {
         return JM::CommboxPort::inst().read(boost::asio::mutable_buffer(data, count));
     }
 
-    size_t jm_commbox_port_write(const guint8 *data, size_t count)
+    size_t jm_commbox_port_write(const uint8_t *data, size_t count)
     {
         return JM::CommboxPort::inst().write(boost::asio::const_buffer(data, count));
     }
 
-    void jm_commbox_port_push_in_deque(const guint8 *data, size_t count)
+    void jm_commbox_port_push_in_deque(const uint8_t *data, size_t count)
     {
         JM::CommboxPort::inst().pushInDeque(boost::asio::const_buffer(data, count));
     }
 
-    gboolean jm_commbox_port_out_deque_available(void)
+    boolean_t jm_commbox_port_out_deque_available(void)
     {
         return JM::CommboxPort::inst().outDequeAvailable();
     }
 
-    gboolean jm_commbox_port_pop_out_deque(guint8 *data, size_t count)
+    boolean_t jm_commbox_port_pop_out_deque(uint8_t *data, size_t count)
     {
         return JM::CommboxPort::inst().popOutDeque(boost::asio::mutable_buffer(data, count));
     }
@@ -398,39 +403,44 @@ extern "C"
     /************************************************************************/
     /* Canbus                                                               */
     /************************************************************************/
-    void jm_canbus_set_handler(gpointer handle)
+    void jm_canbus_set_handler(pointer_t handle)
     {
         _canbus_handle = (JM::Canbus*)handle;
     }
 
-    size_t jm_canbus_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_canbus_pack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, 0);
+		if (_canbus_handle == NULL)
+			return 0;
         return ((JM::Canbus*)(_canbus_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_canbus_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_canbus_unpack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, 0);
+		if (_canbus_handle == NULL)
+			return 0;
         return ((JM::Canbus*)(_canbus_handle))->unpack(src, src_length, tar, tar_length);
     }
 
-    gint32 jm_canbus_set_lines(gint32 high, gint32 low)
+    int32_t jm_canbus_set_lines(int32_t high, int32_t low)
     {
-        g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_canbus_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Canbus*)(_canbus_handle))->setLines(high, low);
     }
 
-    gint32 jm_canbus_set_filter(const gint32 *id_array, size_t count)
+    int32_t jm_canbus_set_filter(const int32_t *id_array, size_t count)
     {
-        g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_canbus_handle == NULL)
+			return JM_ERROR_GENERIC;
 		std::vector<boost::int32_t> id_vector(id_array, id_array + count);
         return ((JM::Canbus*)(_canbus_handle))->setFilter(id_vector);
     }
 
-    gint32 jm_canbus_set_options(gint32 id, JMCanbusBaud baud, JMCanbusIDMode id_mode, JMCanbusFilterMask mask, JMCanbusFrameType frame)
+    int32_t jm_canbus_set_options(int32_t id, JMCanbusBaud baud, JMCanbusIDMode id_mode, JMCanbusFilterMask mask, JMCanbusFrameType frame)
     {
-        g_return_val_if_fail(((JM::Canbus*)(_canbus_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_canbus_handle == NULL)
+			return JM_ERROR_GENERIC;
         return ((JM::Canbus*)(_canbus_handle))->setOptions(id, baud, id_mode, mask, frame);
     }
     
@@ -439,56 +449,62 @@ extern "C"
     /************************************************************************/
     static JM::KWP2000 *_kwp2000_handle = NULL;
 
-    void jm_kwp2000_set_handler(gpointer handle)
+    void jm_kwp2000_set_handler(pointer_t handle)
     {
         _kwp2000_handle = (JM::KWP2000*)handle;
     }
 
-    size_t jm_kwp2000_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_kwp2000_pack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, 0);
-
+		if (_kwp2000_handle == NULL)
+			return 0;
         return ((JM::KWP2000*)(_kwp2000_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_kwp2000_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_kwp2000_unpack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, 0);
+		if (_kwp2000_handle == NULL)
+			return 0;
 
         return ((JM::KWP2000*)(_kwp2000_handle))->unpack(src, src_length, tar, tar_length);
     }
 
-    gint32 jm_kwp2000_addr_init(guint8 addr_code)
+    int32_t jm_kwp2000_addr_init(uint8_t addr_code)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp2000_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP2000*)(_kwp2000_handle))->addrInit(addr_code);
     }
 
-    gint32 jm_kwp2000_fast_init(const guint8 *data, size_t count)
+    int32_t jm_kwp2000_fast_init(const uint8_t *data, size_t count)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp2000_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP2000*)(_kwp2000_handle))->fastInit(data, count);
     }
 
-    gint32 jm_kwp2000_set_lines(gint32 com_line, gboolean l_line)
+    int32_t jm_kwp2000_set_lines(int32_t com_line, boolean_t l_line)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp2000_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP2000*)(_kwp2000_handle))->setLines(com_line, l_line ? true : false);
     }
 
-    gint32 jm_kwp2000_set_options(JMKWPMode msg_mode, JMKWPMode link_mode, gint32 baud)
+    int32_t jm_kwp2000_set_options(JMKWPMode msg_mode, JMKWPMode link_mode, int32_t baud)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp2000_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP2000*)(_kwp2000_handle))->setOptions(msg_mode, link_mode, baud);
     }
 
-    gint32 jm_kwp2000_set_address(guint8 target, guint8 source)
+    int32_t jm_kwp2000_set_address(uint8_t target, uint8_t source)
     {
-        g_return_val_if_fail(((JM::KWP2000*)(_kwp2000_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp2000_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP2000*)(_kwp2000_handle))->setAddress(target, source);
     }
@@ -498,34 +514,38 @@ extern "C"
     /************************************************************************/
     static JM::KWP1281 *_kwp1281_handle = NULL;
     
-    void jm_kwp1281_set_handler(gpointer handle)
+    void jm_kwp1281_set_handler(pointer_t handle)
     {
         _kwp1281_handle = (JM::KWP1281*)handle;
     }
 
-    size_t jm_kwp1281_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_kwp1281_pack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, 0);
+		if (_kwp1281_handle == NULL)
+			return 0;
         return ((JM::KWP1281*)(_kwp1281_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_kwp1281_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_kwp1281_unpack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, 0);
+		if (_kwp1281_handle == NULL)
+			return 0;
 
         return ((JM::KWP1281*)(_kwp1281_handle))->unpack(src, src_length, tar, tar_length);
     }
 
-    gint32 jm_kwp1281_addr_init(guint8 addr_code)
+    int32_t jm_kwp1281_addr_init(uint8_t addr_code)
     {
-        g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp1281_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP1281*)(_kwp1281_handle))->addrInit(addr_code);
     }
 
-    gint32 jm_kwp1281_set_lines(gint32 com_line, gboolean l_line)
+    int32_t jm_kwp1281_set_lines(int32_t com_line, boolean_t l_line)
     {
-        g_return_val_if_fail(((JM::KWP1281*)(_kwp1281_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_kwp1281_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::KWP1281*)(_kwp1281_handle))->setLines(com_line, l_line ? true : false);
     }
@@ -535,28 +555,31 @@ extern "C"
     /************************************************************************/
     static JM::Mikuni *_mikuni_handle = NULL;
 
-    void jm_mikuni_set_handler(gpointer handle)
+    void jm_mikuni_set_handler(pointer_t handle)
     {
         _mikuni_handle = (JM::Mikuni*)handle;
     }
 
-    size_t jm_mikuni_pack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_mikuni_pack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::Mikuni*)(_mikuni_handle)) != NULL, 0);
+		if (_mikuni_handle == NULL)
+			return 0;
 
         return ((JM::Mikuni*)(_mikuni_handle))->pack(src, src_length, tar, tar_length);
     }
 
-    size_t jm_mikuni_unpack(const guint8 *src, size_t src_length, guint8 *tar, size_t tar_length)
+    size_t jm_mikuni_unpack(const uint8_t *src, size_t src_length, uint8_t *tar, size_t tar_length)
     {
-        g_return_val_if_fail(((JM::Mikuni*)(_mikuni_handle)) != NULL, 0);
+		if (_mikuni_handle == NULL)
+			return 0;
 
         return ((JM::Mikuni*)(_mikuni_handle))->unpack(src, src_length, tar, tar_length);
     }
 
-    gint32 jm_mikuni_init(void)
+    int32_t jm_mikuni_init(void)
     {
-        g_return_val_if_fail(((JM::Mikuni*)(_mikuni_handle)) != NULL, JM_ERROR_GENERIC);
+		if (_mikuni_handle == NULL)
+			return JM_ERROR_GENERIC;
 
         return ((JM::Mikuni*)(_mikuni_handle))->init();
     }
@@ -579,17 +602,17 @@ extern "C"
         JM::UserInterface::inst().msgBoxBtnClr();
     }
 
-    void jm_ui_msg_box_add_btn(const gchar *text)
+    void jm_ui_msg_box_add_btn(const char *text)
     {
         JM::UserInterface::inst().msgBoxAddBtn(text);
     }
 
-    void jm_ui_msg_box_set_msg(const gchar *text)
+    void jm_ui_msg_box_set_msg(const char *text)
     {
         JM::UserInterface::inst().msgBoxSetMsg(text);
     }
 
-    void jm_ui_msg_box_set_title(const gchar *text)
+    void jm_ui_msg_box_set_title(const char *text)
     {
         JM::UserInterface::inst().msgBoxSetTitle(text);
     }
@@ -609,12 +632,12 @@ extern "C"
         JM::UserInterface::inst().listBoxBtnClr();
     }
 
-    void jm_ui_list_box_add_btn(const gchar *text)
+    void jm_ui_list_box_add_btn(const char *text)
     {
         JM::UserInterface::inst().listBoxAddBtn(text);
     }
 
-    void jm_ui_list_box_add_item(const gchar *caption, const gchar *item)
+    void jm_ui_list_box_add_item(const char *caption, const char *item)
     {
         JM::UserInterface::inst().listBoxAddItem(caption, item);
     }
@@ -639,7 +662,7 @@ extern "C"
         JM::UserInterface::inst().menuItemClr();
     }
 
-    void jm_ui_menu_add_item(const gchar *text)
+    void jm_ui_menu_add_item(const char *text)
     {
         JM::UserInterface::inst().menuAddItem(text);
     }
@@ -654,12 +677,12 @@ extern "C"
         JM::UserInterface::inst().tcItemClr();
     }
 
-    void jm_ui_tc_add_item(const gchar *code, const gchar *text)
+    void jm_ui_tc_add_item(const char *code, const char *text)
     {
         JM::UserInterface::inst().tcAddItem(code, text);
     }
 
-    void jm_ui_tc_add_btn(const gchar *text)
+    void jm_ui_tc_add_btn(const char *text)
     {
         JM::UserInterface::inst().tcAddBtn(text);
     }
@@ -689,32 +712,32 @@ extern "C"
         JM::UserInterface::inst().ldBtnClr();
     }
 
-    void jm_ui_ld_add_btn(const gchar *text)
+    void jm_ui_ld_add_btn(const char *text)
     {
         JM::UserInterface::inst().ldAddBtn(text);
     }
 
-    void jm_ui_ld_set_value(gint32 index, const gchar *value)
+    void jm_ui_ld_set_value(int32_t index, const char *value)
     {
         JM::UserInterface::inst().ldSetValue(index, value);
     }
 
-    gchar* jm_ui_get_btn_clicked(gboolean is_blocked)
+    char* jm_ui_get_btn_clicked(boolean_t is_blocked)
     {
-        return JM::UserInterface::inst().btnClicked(is_blocked);
+        return _jm_std_string_to_char(JM::UserInterface::inst().btnClicked(is_blocked ? true : false));
     }
 
-    void jm_ui_set_btn_clicked(const gchar *text)
+    void jm_ui_set_btn_clicked(const char *text)
     {
         JM::UserInterface::inst().setBtnClicked(text);
     }
 
-    gchar* jm_ui_get_menu_selected(void)
+    char* jm_ui_get_menu_selected(void)
     {
-        return JM::UserInterface::inst().menuSelected();
+        return _jm_std_string_to_char(JM::UserInterface::inst().menuSelected());
     }
 
-    void jm_ui_set_menu_selected(const gchar *text)
+    void jm_ui_set_menu_selected(const char *text)
     {
         JM::UserInterface::inst().setMenuSelected(text);
     }
@@ -732,27 +755,27 @@ extern "C"
 	/************************************************************************/
 	/* Live Data Array                                                      */
 	/************************************************************************/
-	void jm_ld_array_update_global_array(gboolean showed)
+	void jm_ld_array_update_global_array(boolean_t showed)
 	{
 		JM::LiveDataVector::updateGlobalArray(showed ? true : false);
 	}
 
-	gint32 jm_ld_array_next_showed_index(void)
+	int32_t jm_ld_array_next_showed_index(void)
 	{
 		return JM::LiveDataVector::nextShowedIndex();
 	}
 
-	gint32 jm_ld_array_get_showed_index(gint32 index)
+	int32_t jm_ld_array_get_showed_index(int32_t index)
 	{
 		return JM::LiveDataVector::getShowedIndex(index);
 	}
 
-	gint32 jm_ld_array_query_showed_position(gint32 index)
+	int32_t jm_ld_array_query_showed_position(int32_t index)
 	{
 		return JM::LiveDataVector::queryShowedPosition(index);
 	}
 
-	gint32 jm_ld_array_get_enabled_index(gint32 index)
+	int32_t jm_ld_array_get_enabled_index(int32_t index)
 	{
 		return JM::LiveDataVector::getEnabledIndex(index);
 	}
@@ -782,82 +805,82 @@ extern "C"
 		return JM::LiveDataVector::showedSize();
 	}
 
-	void jm_ld_array_set_short_name(gint32 index, const gchar *short_name)
+	void jm_ld_array_set_short_name(int32_t index, const char *short_name)
 	{
 		JM::LiveDataVector::globalAt(index)->setShortName(std::string(short_name));
 	}
 
-	const gchar* jm_ld_array_get_short_name(gint32 index)
+	const char* jm_ld_array_get_short_name(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->shortName().c_str();
 	}
 
-	void jm_ld_array_set_content(gint32 index, const gchar *content)
+	void jm_ld_array_set_content(int32_t index, const char *content)
 	{
 		JM::LiveDataVector::globalAt(index)->setContent(std::string(content));
 	}
 
-	const gchar* jm_ld_array_get_content(gint32 index)
+	const char* jm_ld_array_get_content(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->content().c_str();
 	}
 
-	void jm_ld_array_set_unit(gint32 index, const gchar *unit)
+	void jm_ld_array_set_unit(int32_t index, const char *unit)
 	{
 		JM::LiveDataVector::globalAt(index)->setUnit(std::string(unit));
 	}
 
-	const gchar* jm_ld_array_get_unit(gint32 index)
+	const char* jm_ld_array_get_unit(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->unit().c_str();
 	}
 
-	void jm_ld_array_set_default_value(gint32 index, const gchar *value)
+	void jm_ld_array_set_default_value(int32_t index, const char *value)
 	{
 		JM::LiveDataVector::globalAt(index)->setDefaultValue(std::string(value));
 	}
 
-	const gchar* jm_ld_array_get_default_value(gint32 index)
+	const char* jm_ld_array_get_default_value(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->defaultValue().c_str();
 	}
 
-	void jm_ld_array_set_value(gint32 index, const gchar *value)
+	void jm_ld_array_set_value(int32_t index, const char *value)
 	{
 		JM::LiveDataVector::globalAt(index)->setValue(std::string(value));
 	}
 
-	const gchar* jm_ld_array_get_value(gint32 index)
+	const char* jm_ld_array_get_value(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->value().c_str();
 	}
 
-	void jm_ld_array_set_command_id(gint32 index, gint32 id)
+	void jm_ld_array_set_command_id(int32_t index, int32_t id)
 	{
 		JM::LiveDataVector::globalAt(index)->setCmdID(id);
 	}
 
-	gint32 jm_ld_array_get_command_id(gint32 index)
+	int32_t jm_ld_array_get_command_id(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->cmdID();
 	}
 
-	void jm_ld_array_set_enabled(gint32 index, gboolean enabled)
+	void jm_ld_array_set_enabled(int32_t index, boolean_t enabled)
 	{
 		JM::LiveDataVector::globalAt(index)->setEnabled(enabled ? true : false);
 	}
 
-	gboolean jm_ld_array_get_enabled(gint32 index)
+	boolean_t jm_ld_array_get_enabled(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->enabled();
 	}
 
-	void jm_ld_array_set_showed(gint32 index, gboolean show)
+	void jm_ld_array_set_showed(int32_t index, boolean_t show)
 	{
 		JM::LiveDataVector::globalAt(index)->setShowed(show ? true : false);
 	}
 
-	gboolean jm_ld_array_get_showed(gint32 index)
+	boolean_t jm_ld_array_get_showed(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->showed();
 	}
@@ -865,9 +888,8 @@ extern "C"
     /************************************************************************/
     /* JM Lib                                                               */
     /************************************************************************/
-    void jm_lib_init(const gchar *software_path)
+    void jm_lib_init(const char *software_path)
     {
-        g_thread_init(NULL);
         jm_sys_set_software_path(software_path);
         jm_auth_set_dat_path(software_path);
         jm_vehicle_init();
