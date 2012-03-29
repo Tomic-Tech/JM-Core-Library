@@ -35,7 +35,7 @@ namespace JM
             boost::int32_t addrInit(boost::uint8_t addrCode)
             {
                 bool dl0;
-                boost::uint8_t temp[255];
+                boost::array<boost::uint8_t, 255> temp;
                 std::size_t length;
                 boost::uint8_t valueOpen;
                 boost::uint8_t valueClose;
@@ -96,13 +96,13 @@ namespace JM
                     return JM_ERROR_GENERIC;
                 }
 
-                if (_box->readData(temp, 2, BoxType::toMicroSeconds(BoxType::MilliSeconds(3500))) != 2)
+                if (_box->readData(temp.data(), 2, BoxType::toMicroSeconds(BoxType::MilliSeconds(3500))) != 2)
                 {
                     _box->delBatch(_shared->buffID);
                     return JM_ERROR_GENERIC;
                 }
 
-                length = readOneFrame(temp, 255);
+                length = readOneFrame(temp.data(), temp.size());
                 if (length <= 0)
                 {
                     return JM_ERROR_GENERIC;
@@ -155,7 +155,7 @@ namespace JM
 
             std::size_t sendOneFrame(const boost::uint8_t *data, std::size_t count, bool needRecv)
             {
-                boost::uint8_t sendBuff[255];
+                boost::array<boost::uint8_t, 255> sendBuff;
                 std::size_t length;
 
                 _shared->buffID = 0;
@@ -165,7 +165,7 @@ namespace JM
                     return 0;
                 }
 
-                length = pack(data, count, sendBuff, 255);
+                length = pack(data, count, sendBuff.data(), sendBuff.size());
 
                 if (length <= 0)
                 {
@@ -175,13 +175,13 @@ namespace JM
                 if (needRecv)
                 {
                     if (!_box->turnOverOneByOne() ||
-                        !_box->sendOutData(sendBuff, length) ||
-                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
+                        !_box->sendOutData(sendBuff.data(), length) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr.data()) ||
                         !_box->turnOverOneByOne() ||
                         !_box->runReceive(BoxType::Constant::REC_FR) ||
                         !_box->turnOverOneByOne() ||
                         !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr.data()) ||
                         !_box->turnOverOneByOne() ||
                         !_box->runReceive(BoxType::Constant::REC_FR) ||
                         !_box->turnOverOneByOne() ||
@@ -198,13 +198,13 @@ namespace JM
                 else
                 {
                     if (!_box->turnOverOneByOne() ||
-                        !_box->sendOutData(sendBuff, length) ||
-                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
+                        !_box->sendOutData(sendBuff.data(), length) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr.data()) ||
                         !_box->turnOverOneByOne() ||
                         !_box->runReceive(BoxType::Constant::REC_FR) ||
                         !_box->turnOverOneByOne() ||
                         !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr) ||
+                        !_box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr.data()) ||
                         !_box->endBatch() ||
                         !_box->runBatch(&_shared->buffID, 1, false))
                     {
@@ -212,7 +212,7 @@ namespace JM
                         return 0;
                     }
                 }
-                if (_box->readBytes(sendBuff, length - 1) != (length - 1))
+                if (_box->readBytes(sendBuff.data(), length - 1) != (length - 1))
                 {
                     return 0;
                 }
@@ -233,9 +233,9 @@ namespace JM
             {
                 std::size_t pos = 0;
                 std::size_t len;
-                boost::uint8_t temp[255];
+                boost::array<boost::uint8_t, 255> temp;
 
-                if (_box->readBytes(temp, 1) != 1)
+                if (_box->readBytes(temp.data(), 1) != 1)
                 {
                     return 0;
                 }
@@ -243,7 +243,7 @@ namespace JM
                 pos++;
                 len = temp[0];
 
-                if (_box->readBytes(temp + pos, len) != len)
+                if (_box->readBytes(temp.data() + pos, len) != len)
                 {
                     return 0;
                 }
@@ -251,7 +251,7 @@ namespace JM
                 pos += len;
                 finishExecute(isFinish);
 
-                return unpack(temp, pos, data, maxLength);
+                return unpack(temp.data(), pos, data, maxLength);
             }
 
             std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength)
@@ -268,7 +268,7 @@ namespace JM
             {
                 boost::uint8_t add1 = 0;
                 boost::uint8_t add2 = 0;
-                boost::uint8_t tempBuff[3];
+                boost::array<boost::uint8_t, 3> tempBuff;
 
                 _buffIDAddr[0] = BoxType::Constant::LINKBLOCK;
                 if (_box->newBatch(BoxType::Constant::LINKBLOCK))
@@ -286,12 +286,12 @@ namespace JM
 
                 if (!_box->turnOverOneByOne() ||
                     !_box->sendOutData(data, 1) ||
-                    !((add1 = _box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr)) == 0) ||
+                    !((add1 = _box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr.data())) == 0) ||
                     !_box->turnOverOneByOne() ||
                     !_box->runReceive(BoxType::Constant::REC_FR) ||
                     !_box->turnOverOneByOne() ||
                     !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                    !((add2 = _box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr)) == 0) ||
+                    !((add2 = _box->updateBuff(BoxType::Constant::INC_DATA, _buffIDAddr.data())) == 0) ||
                     !_box->endBatch())
                 {
                     return JM_ERROR_GENERIC;
@@ -306,14 +306,14 @@ namespace JM
                     return JM_ERROR_GENERIC;
                 }
 
-                if (!_box->updateBuff(BoxType::Constant::UPDATE_1BYTE, tempBuff))
+                if (!_box->updateBuff(BoxType::Constant::UPDATE_1BYTE, tempBuff.data()))
                 {
                     return JM_ERROR_GENERIC;
                 }
 
                 tempBuff[1] = add2;
 
-                if (!_box->updateBuff(BoxType::Constant::UPDATE_1BYTE, tempBuff))
+                if (!_box->updateBuff(BoxType::Constant::UPDATE_1BYTE, tempBuff.data()))
                 {
                     return JM_ERROR_GENERIC;
                 }
@@ -324,7 +324,7 @@ namespace JM
             boost::shared_ptr<BoxType> _box;
             boost::shared_ptr<Shared> _shared;
             boost::shared_ptr<Default<BoxType, JM::V1::KWP1281<BoxType> > >_default;
-            boost::uint8_t _buffIDAddr[2]; // 0 == buffID, 1 == buffAddr
+            boost::array<boost::uint8_t, 2> _buffIDAddr; // 0 == buffID, 1 == buffAddr
             boost::uint8_t _kLine;
             boost::uint8_t _lLine;
         };

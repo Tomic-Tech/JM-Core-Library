@@ -22,183 +22,213 @@ namespace JM
 
 	}
 
-	void LiveDataVector::updateGlobalArray(bool showed)
+	void LiveDataVector::push_back(const LiveDataPtr &ptr)
 	{
-		boost::mutex::scoped_lock(_mutex);
-		if (_ldVector.get() != NULL)
-			_ldVector.reset();
-
-		_ldVector = JM::Database::inst().getLiveData(showed);
+		_vector.push_back(ptr);
+		if (ptr->enabled())
+		{
+			_enabledSize++;
+			if (ptr->showed())
+			{
+				_showSize++;
+			}
+		}
 	}
 
-	boost::int32_t LiveDataVector::nextShowedIndex_()
+	void LiveDataVector::updateGlobalArray(bool showed)
 	{
-		if (_showIndexes.size() == 0)
-			return -1;
-
-		std::size_t size = _showIndexes.size();
-		boost::int32_t ret = _showIndexes[_currentEnabledIndex];
-		_currentEnabledIndex++;
-
-		if ((std::size_t)_currentEnabledIndex > (size - 1))
-			_currentEnabledIndex = 0;
-
-		return ret;
+		boost::unique_lock<boost::mutex> lock(_mutex);
+		_ldVector = (JM::Database::inst().getLiveData(showed));
 	}
 
 	boost::int32_t LiveDataVector::nextShowedIndex()
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
 		{
-			return _ldVector->nextShowedIndex_();
+			if (_ldVector->_showIndexes.size() == 0)
+				return -1;
+
+			std::size_t size = _ldVector->_showIndexes.size();
+			boost::int32_t ret = _ldVector->_showIndexes[_ldVector->_currentEnabledIndex];
+			_ldVector->_currentEnabledIndex++;
+
+			if ((std::size_t)_ldVector->_currentEnabledIndex > (size - 1))
+				_ldVector->_currentEnabledIndex = 0;
+			return ret;
 		}
 		return -1;
-	}
-
-	boost::int32_t LiveDataVector::getEnabledIndex_(boost::int32_t index)
-	{
-		if (index > _enabledIndexes.size())
-			return -1;
-
-		return _enabledIndexes[index];
 	}
 
 	boost::int32_t LiveDataVector::getEnabledIndex(boost::int32_t index)
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
 		{
-			return _ldVector->getEnabledIndex_(index);
+			if ((std::size_t)index > _ldVector->_enabledIndexes.size())
+				return -1;
+
+			return _ldVector->_enabledIndexes[index];
 		}
 		return -1;
-	}
-
-	boost::int32_t LiveDataVector::queryShowedPosition_(boost::int32_t index)
-	{
-		return _showPositions[index];
 	}
 
 	boost::int32_t LiveDataVector::queryShowedPosition(boost::int32_t index)
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
 		{
-			return _ldVector->queryShowedPosition_(index);
+			return _ldVector->_showPositions[index];
 		}
 		return -1;
-	}
-
-	boost::int32_t LiveDataVector::getShowedIndex_(boost::int32_t index)
-	{
-		if (index > _showIndexes.size())
-			return -1;
-
-		return _showIndexes[index];
 	}
 
 	boost::int32_t LiveDataVector::getShowedIndex(boost::int32_t index)
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
 		{
-			return _ldVector->getShowedIndex_(index);
+			if ((std::size_t)index > _ldVector->_showIndexes.size())
+				return -1;
+
+			return _ldVector->_showIndexes[index];
 		}
 		return -1;
 	}
 
-	void LiveDataVector::deployEnabledIndex_()
-	{
-		_enabledIndexes.clear();
-
-		for (std::size_t i = 0; i < size(); i++)
-		{
-			LiveDataPtr ld = at(i);
-			if (ld->enabled())
-				_enabledIndexes.push_back(i);
-		}
-	}
-
 	void LiveDataVector::deployEnabledIndex()
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
 		{
-			_ldVector->deployEnabledIndex_();
-		}
-	}
+			_ldVector->_enabledIndexes.clear();
 
-	void LiveDataVector::deployShowedIndex_()
-	{
-		_showIndexes.clear();
-
-		std::size_t j = 0;
-		for (std::size_t i = 0; i < size(); i++)
-		{
-			LiveDataPtr ld = at(i);
-
-			if (ld->enabled() && ld->showed())
+			for (std::size_t i = 0; i < _ldVector->_vector.size(); i++)
 			{
-				_showIndexes.push_back(i);
-				_showPositions[i, j++];
+				LiveDataPtr ld = _ldVector->_vector[i];
+				if (ld->enabled())
+					_ldVector->_enabledIndexes.push_back(i);
 			}
 		}
-
-		_currentEnabledIndex = _showIndexes[0];
 	}
 
 	void LiveDataVector::deployShowedIndex()
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
 		{
-			_ldVector->deployShowedIndex_();
+			_ldVector->_showIndexes.clear();
+
+			std::size_t j = 0;
+			for (std::size_t i = 0; i < _ldVector->_vector.size(); i++)
+			{
+				LiveDataPtr ld = _ldVector->_vector[i];
+
+				if (ld->enabled() && ld->showed())
+				{
+					_ldVector->_showIndexes.push_back(i);
+					_ldVector->_showPositions[i] = j++;
+				}
+			}
+
+			_ldVector->_currentEnabledIndex = _ldVector->_showIndexes[0];
 		}
 	}
 
 	std::size_t LiveDataVector::globalSize()
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
-			return _ldVector->size();
+			return _ldVector->_vector.size();
 
 		return 0;
-	}
-
-	std::size_t LiveDataVector::enabledSize_()
-	{
-		return _enabledIndexes.size();
 	}
 
 	std::size_t LiveDataVector::enabledSize()
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
-			return _ldVector->enabledSize_();
+			return _ldVector->_enabledIndexes.size();
 
 		return 0;
 	}
 
-	std::size_t LiveDataVector::showedSize_()
-	{
-		return _showIndexes.size();
-	}
-
 	std::size_t LiveDataVector::showedSize()
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
-			return _ldVector->showedSize_();
+			return _ldVector->_showIndexes.size();
 
 		return 0;
 	}
 
 	LiveDataPtr LiveDataVector::globalAt(boost::int32_t index)
 	{
-		boost::mutex::scoped_lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_ldVector.get() != NULL)
-			return _ldVector->at(index);
+			return _ldVector->_vector[index];
 
 		return boost::make_shared<LiveData>();
+	}
+
+	void LiveDataVector::setShowed(boost::int32_t index, bool showed)
+	{
+		boost::unique_lock<boost::mutex> lock(_mutex);
+		if (_ldVector.get() != NULL)
+		{
+			LiveDataPtr ld = _ldVector->_vector[index];
+
+			if (!ld->showed())
+			{
+				if (ld->enabled() && showed)
+				{
+					_ldVector->_showSize++;
+				}
+			}
+			else
+			{
+				if (ld->enabled() && !showed)
+				{
+					_ldVector->_showSize--;
+				}
+			}
+
+			ld->setShowed(showed);
+		}
+	}
+
+	void LiveDataVector::setEnabled(boost::int32_t index, bool enabled)
+	{
+		boost::unique_lock<boost::mutex> lock(_mutex);
+
+		if (_ldVector.get() != NULL)
+		{
+			LiveDataPtr ld = _ldVector->_vector[index];
+
+			if (!ld->enabled())
+			{
+				if (enabled)
+				{
+					_ldVector->_enabledSize++;
+					if (ld->showed())
+					{
+						_ldVector->_showSize++;
+					}
+				}
+			}
+			else
+			{
+				if (!enabled)
+				{
+					_ldVector->_enabledSize--;
+					if (ld->showed())
+					{
+						_ldVector->_showSize--;
+					}
+				}
+			}
+
+			ld->setEnabled(enabled);
+		}
 	}
 }

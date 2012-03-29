@@ -22,7 +22,7 @@ namespace JM
         void setType(JMCommboxPortType type);
         JMCommboxPortType type();
         void setPointer(pointer_t p);
-        void* pointer();
+        pointer_t pointer();
 
 		template<typename DurationType>
         boost::int32_t setReadTimeout(DurationType const &time)

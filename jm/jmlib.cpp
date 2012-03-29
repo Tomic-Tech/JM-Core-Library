@@ -278,7 +278,7 @@ extern "C"
     /************************************************************************/
     static JM::Commbox* _commbox_handle = NULL;
 
-    void jm_commbox_set_handler(pointer_t handle)
+    void jm_commbox_set_handler(const pointer_t handle)
     {
         _commbox_handle = (JM::Commbox*)handle;
     }
@@ -812,7 +812,9 @@ extern "C"
 
 	const char* jm_ld_array_get_short_name(int32_t index)
 	{
-		return JM::LiveDataVector::globalAt(index)->shortName().c_str();
+		static std::string ret;
+		ret = JM::LiveDataVector::globalAt(index)->shortName().c_str();
+		return ret.c_str();
 	}
 
 	void jm_ld_array_set_content(int32_t index, const char *content)
@@ -822,7 +824,9 @@ extern "C"
 
 	const char* jm_ld_array_get_content(int32_t index)
 	{
-		return JM::LiveDataVector::globalAt(index)->content().c_str();
+		static std::string ret;
+		ret = JM::LiveDataVector::globalAt(index)->content().c_str();
+		return ret.c_str();
 	}
 
 	void jm_ld_array_set_unit(int32_t index, const char *unit)
@@ -832,7 +836,9 @@ extern "C"
 
 	const char* jm_ld_array_get_unit(int32_t index)
 	{
-		return JM::LiveDataVector::globalAt(index)->unit().c_str();
+		static std::string ret;
+		ret = JM::LiveDataVector::globalAt(index)->unit().c_str();
+		return ret.c_str();
 	}
 
 	void jm_ld_array_set_default_value(int32_t index, const char *value)
@@ -842,7 +848,9 @@ extern "C"
 
 	const char* jm_ld_array_get_default_value(int32_t index)
 	{
-		return JM::LiveDataVector::globalAt(index)->defaultValue().c_str();
+		static std::string ret;
+		ret = JM::LiveDataVector::globalAt(index)->defaultValue().c_str();
+		return ret.c_str();
 	}
 
 	void jm_ld_array_set_value(int32_t index, const char *value)
@@ -852,7 +860,9 @@ extern "C"
 
 	const char* jm_ld_array_get_value(int32_t index)
 	{
-		return JM::LiveDataVector::globalAt(index)->value().c_str();
+		static std::string ret;
+		ret = JM::LiveDataVector::globalAt(index)->value().c_str();
+		return ret.c_str();
 	}
 
 	void jm_ld_array_set_command_id(int32_t index, int32_t id)
@@ -867,7 +877,7 @@ extern "C"
 
 	void jm_ld_array_set_enabled(int32_t index, boolean_t enabled)
 	{
-		JM::LiveDataVector::globalAt(index)->setEnabled(enabled ? true : false);
+		JM::LiveDataVector::setEnabled(index, enabled ? true : false);
 	}
 
 	boolean_t jm_ld_array_get_enabled(int32_t index)
@@ -877,7 +887,7 @@ extern "C"
 
 	void jm_ld_array_set_showed(int32_t index, boolean_t show)
 	{
-		JM::LiveDataVector::globalAt(index)->setShowed(show ? true : false);
+		return JM::LiveDataVector::setShowed(index, show ? true : false);
 	}
 
 	boolean_t jm_ld_array_get_showed(int32_t index)

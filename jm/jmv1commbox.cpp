@@ -17,17 +17,6 @@ namespace JM
 
 		Commbox::~Commbox()
 		{
-			for (std::hash_map<JMProtocolType, JM::Link*>::iterator it = _w80PrcHash.begin();
-				it != _w80PrcHash.end(); ++it)
-			{
-				delete it->second;
-			}
-
-			for (std::hash_map<JMProtocolType, JM::Link*>::iterator it = _c168PrcHash.begin();
-				it != _c168PrcHash.end(); ++it)
-			{
-				delete it->second;
-			}
 		}
 
 		boost::int32_t Commbox::open()
@@ -84,24 +73,24 @@ namespace JM
 			{
 				if (_c168PrcHash.find(type) != _c168PrcHash.end())
 				{
-					comm = _c168PrcHash[type];
+					comm = _c168PrcHash[type].get();
 				}
 				if (comm == NULL)
 				{
-					comm = makeProtocol(_c168, type);
-					_c168PrcHash[type] = comm;
+					_c168PrcHash[type] = makeProtocol(_c168, type);
+					comm = _c168PrcHash[type].get();
 				}
 			}
 			else if (_currentBox == _w80.get())
 			{
 				if (_w80PrcHash.find(type) != _w80PrcHash.end())
 				{
-					comm = _w80PrcHash[type];
+					comm = _w80PrcHash[type].get();
 				}
 				if (comm == NULL)
 				{
-					comm = makeProtocol(_w80, type);
-					_w80PrcHash[type] = comm;
+					_w80PrcHash[type] = makeProtocol(_w80, type);
+					comm = _w80PrcHash[type].get();
 				}
 			}
 			return comm;

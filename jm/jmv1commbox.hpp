@@ -31,25 +31,25 @@ namespace JM
 
         private:
             template<typename BoxType>
-            JM::Link* makeProtocol(const boost::shared_ptr<BoxType> &box, JMProtocolType type)
+            boost::shared_ptr<JM::Link> makeProtocol(const boost::shared_ptr<BoxType> &box, JMProtocolType type)
             {
-                JM::Link *ret = NULL;
+                boost::shared_ptr<JM::Link> ret;
                 switch(type)
                 {
                 case JM_PRC_ISO14230:
-                    ret = new JM::V1::Link<BoxType, JM::V1::ISO14230<BoxType> >(box, _shared);
+                    ret.reset(new JM::V1::Link<BoxType, JM::V1::ISO14230<BoxType> >(box, _shared));
                     jm_kwp2000_set_handler(ret->protocol());
                     break;
                 case JM_PRC_ISO15765:
-                    ret = new JM::V1::Link<BoxType, JM::V1::ISO15765<BoxType> >(box, _shared);
+                    ret.reset(new JM::V1::Link<BoxType, JM::V1::ISO15765<BoxType> >(box, _shared));
                     jm_canbus_set_handler(ret->protocol());
                     break;
                 case JM_PRC_KWP1281:
-                    ret = new JM::V1::KWP1281Link<BoxType>(box, _shared);
+                    ret.reset(new JM::V1::KWP1281Link<BoxType>(box, _shared));
                     jm_kwp1281_set_handler(ret->protocol());
                     break;
                 case JM_PRC_MIKUNI:
-                    ret = new JM::V1::Link<BoxType, JM::V1::Mikuni<BoxType> >(box, _shared);
+                    ret.reset(new JM::V1::Link<BoxType, JM::V1::Mikuni<BoxType> >(box, _shared));
                     jm_mikuni_set_handler(ret->protocol());
                     break;
                 default:
@@ -62,8 +62,8 @@ namespace JM
             boost::shared_ptr<JM::V1::W80::Box> _w80;
             boost::shared_ptr<JM::V1::C168::Box> _c168;
             pointer_t _currentBox;
-			std::hash_map<JMProtocolType, JM::Link*> _w80PrcHash;
-			std::hash_map<JMProtocolType, JM::Link*> _c168PrcHash;
+			std::hash_map<JMProtocolType, boost::shared_ptr<JM::Link> > _w80PrcHash;
+			std::hash_map<JMProtocolType, boost::shared_ptr<JM::Link> > _c168PrcHash;
         };
     }
 }

@@ -7,6 +7,7 @@
 
 #include <boost/smart_ptr.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/array.hpp>
 #include <boost/asio/buffer.hpp>
 #include "jmcommboxport.hpp"
 #include "jmv1shared.hpp"

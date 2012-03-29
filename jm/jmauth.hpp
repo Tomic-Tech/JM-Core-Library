@@ -1,6 +1,10 @@
 #ifndef __JM_AUTH_HPP__
 #define __JM_AUTH_HPP__
 
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #include <cstring>
 #include <cstdlib>
 #include <openssl/rsa.h>

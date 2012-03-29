@@ -92,7 +92,7 @@ namespace JM
 
             boost::int32_t setKeepLink(const boost::uint8_t *data, std::size_t count)
             {
-				boost::array<boost::uint8_t, 256> buff;
+				boost::array<boost::uint8_t, 255> buff;
                 std::size_t length;
 
                 length = pack(data, count, buff.data(), buff.size());
@@ -111,9 +111,9 @@ namespace JM
             std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength, bool isFinish)
             {
                 std::size_t tempLength = 0;
-                boost::uint8_t temp[256] = {0};
+                boost::array<boost::uint8_t, 255> temp;
                 boost::uint8_t before = 0;
-                boost::uint8_t *p = temp;
+                boost::uint8_t *p = temp.data();
 
                 while (_box->readBytes(p++, 1) == 1)
                 {
@@ -128,7 +128,7 @@ namespace JM
                 if (before == 0x0D && *p == 0x0A)
                 {
                     // break normal
-                    tempLength = unpack(temp, tempLength, data, maxLength);
+                    tempLength = unpack(temp.data(), tempLength, data, maxLength);
                 }
                 else
                 {

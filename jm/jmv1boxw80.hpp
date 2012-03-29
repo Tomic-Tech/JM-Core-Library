@@ -58,14 +58,14 @@ namespace JM
                     _ports[1] &= ~valueLow;
                     _ports[1] |= valueHigh;
 
-                    return doSet(Constant::SET_PORT1, _ports + 1, 1);
+                    return doSet(Constant::SET_PORT1, _ports.data() + 1, 1);
                 }
 
                 bool setCommCtrl(boost::uint8_t valueOpen, boost::uint8_t valueClose)
                 {
                     _ports[2] &= ~valueOpen;
                     _ports[2] |= valueClose;
-                    return doSet(Constant::SET_PORT2, _ports + 2, 1);
+                    return doSet(Constant::SET_PORT2, _ports.data() + 2, 1);
                 }
 
                 bool setCommLine(boost::uint8_t sendLine, boost::uint8_t recvLine)
@@ -81,7 +81,7 @@ namespace JM
                     }
 
                     _ports[0] = sendLine | (recvLine << 4);
-                    return doSet(Constant::SET_PORT0, _ports, 1);
+                    return doSet(Constant::SET_PORT0, _ports.data(), 1);
                 }
 
                 bool turnOverOneByOne()
@@ -103,7 +103,7 @@ namespace JM
 
                 bool setCommLink(boost::uint8_t ctrlWord1, boost::uint8_t ctrlWord2, boost::uint8_t ctrlWord3)
                 {
-                    boost::uint8_t ctrlWord[3];
+                    boost::array<boost::uint8_t, 3> ctrlWord;
                     boost::uint8_t modeControl = ctrlWord1 & 0xE0;
                     std::size_t length = 3;
 
@@ -120,7 +120,7 @@ namespace JM
                     if (modeControl == Constant::SET_VPW || 
                         modeControl == Constant::SET_PWM)
                     {
-                        return doSet(Constant::SET_CTRL, ctrlWord, 1);
+                        return doSet(Constant::SET_CTRL, ctrlWord.data(), 1);
                     }
                     ctrlWord[1] = ctrlWord2;
                     ctrlWord[2] = ctrlWord3;
@@ -138,12 +138,12 @@ namespace JM
                         return false;
                     }
 
-                    return doSet(Constant::SET_CTRL, ctrlWord, length);
+                    return doSet(Constant::SET_CTRL, ctrlWord.data(), length);
                 }
 
                 bool setCommBaud(boost::uint32_t baud)
                 {
-                    boost::uint8_t baudTime[2];
+                    boost::array<boost::uint8_t, 2> baudTime;
                     double instructNum = 0;
 
                     instructNum = ((1000000.0 / _boxTimeUnit) * 1000000) / baud;
@@ -164,14 +164,14 @@ namespace JM
 
                     if (baudTime[0] == 0)
                     {
-                        return doSet(Constant::SET_BAUD, baudTime + 1, 1);
+                        return doSet(Constant::SET_BAUD, baudTime.data() + 1, 1);
                     }
-                    return doSet(Constant::SET_BAUD, baudTime, 2);
+                    return doSet(Constant::SET_BAUD, baudTime.data(), 2);
                 }
 
                 bool setCommTime(boost::uint8_t type, boost::int64_t time)
                 {
-                    boost::uint8_t timeBuff[2];
+                    boost::array<boost::uint8_t, 2> timeBuff;
 
                     getLinkTime(type, time);
 
@@ -194,14 +194,14 @@ namespace JM
                     timeBuff[1] = JM_LOW_BYTE(time);
                     if (timeBuff[0] == 0)
                     {
-                        return doSet(type, timeBuff + 1, 1);
+                        return doSet(type, timeBuff.data() + 1, 1);
                     }
-                    return doSet(type, timeBuff, 2);
+                    return doSet(type, timeBuff.data(), 2);
                 }
 
                 bool commboxDelay(boost::int64_t time)
                 {
-                    boost::uint8_t timeBuff[2];
+                    boost::array<boost::uint8_t, 2> timeBuff;
                     boost::uint8_t delayWord = Constant::DELAYSHORT;
 
                     time = (boost::uint32_t)(time / (_boxTimeUnit / 1000000.0));
@@ -234,9 +234,9 @@ namespace JM
 
                     if (timeBuff[0] == 0)
                     {
-                        return doSet(delayWord, timeBuff + 1, 1);
+                        return doSet(delayWord, timeBuff.data() + 1, 1);
                     }
-                    return doSet(delayWord, timeBuff, 2);
+                    return doSet(delayWord, timeBuff.data(), 2);
                 }
 
                 inline bool sendOutData(const boost::uint8_t *buffer, std::size_t count)
@@ -340,7 +340,7 @@ namespace JM
                 bool updateBuff(boost::uint8_t type, boost::uint8_t *buffer)
                 {
                     int len = 0;
-                    boost::uint8_t buf[3];
+                    boost::array<boost::uint8_t, 3> buf;
                     buf[0] = buffer[0];
                     buf[1] = buffer[1];
 
@@ -360,7 +360,7 @@ namespace JM
                     {
                         len = 3;
                     }
-                    return doSet(type, buf, len);
+                    return doSet(type, buf.data(), len);
                 }
 
                 bool newBatch(boost::uint8_t buffID)
@@ -412,7 +412,7 @@ namespace JM
                         }
                     }
 
-                    return doCmd(Constant::WR_DATA, _buf, _pos);
+                    return doCmd(Constant::WR_DATA, _buf.data(), _pos);
                 }
 
                 bool delBatch(boost::uint8_t buffID)
@@ -632,7 +632,7 @@ namespace JM
                         _startPos = _pos;
                         if (count > 0)
                         {
-                            memcpy(_buf + _pos, buff, count);
+                            memcpy(_buf.data() + _pos, buff, count);
                         }
                         _pos += count;
                         return true;
@@ -654,11 +654,11 @@ namespace JM
 
                 boost::uint8_t getBuffData(boost::uint8_t addr, boost::uint8_t *buff, std::size_t count)
                 {
-                    boost::uint8_t temp[2];
+                    boost::array<boost::uint8_t, 2> temp;
                     temp[0] = addr;
                     temp[1] = count;
 
-                    if (!doCmd(Constant::GET_BUF, temp, 2))
+                    if (!doCmd(Constant::GET_BUF, temp.data(), 2))
                     {
                         return 0;
                     }
@@ -669,7 +669,7 @@ namespace JM
                 bool initBox()
                 {
                     static boost::uint8_t password[] = {0x0C, 0x22, 0x17, 0x41, 0x57, 0x2D, 0x43, 0x17, 0x2D, 0x4D};
-                    boost::uint8_t buf[32];
+                    boost::array<boost::uint8_t, 32> buf;
                     std::size_t i;
                     boost::uint8_t run = 0;
 
@@ -692,11 +692,11 @@ namespace JM
                         run = 0x55;
                     }
 
-                    if (!doCmd(Constant::GET_CPU, buf + 1, 3))
+                    if (!doCmd(Constant::GET_CPU, buf.data() + 1, 3))
                     {
                         return false;
                     }
-                    if (getCmdData(buf, 32) <= 0)
+                    if (getCmdData(buf.data(), 32) <= 0)
                     {
                         return false;
                     }
@@ -750,14 +750,14 @@ namespace JM
 
                 bool checkBox()
                 {
-                    boost::uint8_t buf[32];
+                    boost::array<boost::uint8_t, 32> buf;
 
                     if (!doCmd(Constant::GET_BOXID, NULL, 0))
                     {
                         return false;
                     }
 
-                    if (getCmdData(buf, 32) <= 0)
+                    if (getCmdData(buf.data(), buf.size()) <= 0)
                     {
                         return false;
                     }
@@ -800,13 +800,13 @@ namespace JM
 
                 bool copyBuff(boost::uint8_t dest, boost::uint8_t src, boost::uint8_t len)
                 {
-                    boost::uint8_t buf[3];
+                    boost::array<boost::uint8_t, 3> buf;
 
                     buf[0] = dest;
                     buf[1] = src;
                     buf[2] = len;
 
-                    return doSet(Constant::COPY_BYTE, buf, 3);
+                    return doSet(Constant::COPY_BYTE, buf.data(), buf.size());
                 }
 
                 boost::uint32_t getBoxVer()
@@ -823,8 +823,8 @@ namespace JM
                 boost::uint32_t _runFlag;
                 boost::uint32_t _boxVer;
                 boost::uint32_t _startPos;
-                boost::uint8_t _ports[Constant::MAXPORT_NUM];
-                boost::uint8_t _buf[Constant::MAXBUFF_LEN];
+                boost::array<boost::uint8_t, Constant::MAXPORT_NUM> _ports;
+                boost::array<boost::uint8_t, Constant::MAXBUFF_LEN> _buf;
             };
         }
     }

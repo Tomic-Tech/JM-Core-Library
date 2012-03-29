@@ -9,7 +9,7 @@
 
 namespace JM
 {
-	class LiveDataVector : public std::vector<LiveDataPtr>
+	class LiveDataVector
 	{
 	public:
 		static void updateGlobalArray(bool showed);
@@ -23,20 +23,15 @@ namespace JM
 		static std::size_t enabledSize();
 		static std::size_t showedSize();
 		static LiveDataPtr globalAt(boost::int32_t index);
+		static void setShowed(boost::int32_t index, bool showed);
+		static void setEnabled(boost::int32_t index, bool enabled);
 	public:
 		LiveDataVector();
 		~LiveDataVector();
-	private:
-		boost::int32_t nextShowedIndex_();
-		boost::int32_t getEnabledIndex_(boost::int32_t index);
-		boost::int32_t queryShowedPosition_(boost::int32_t index);
-		boost::int32_t getShowedIndex_(boost::int32_t index);
-		void deployEnabledIndex_();
-		void deployShowedIndex_();
-		std::size_t enabledSize_();
-		std::size_t showedSize_();
+		void push_back(const LiveDataPtr &ptr);
 
 	private:
+		std::vector<LiveDataPtr> _vector;
 		std::vector<boost::int32_t> _showIndexes;
 		std::hash_map<boost::int32_t, boost::int32_t> _showPositions;
 		std::vector<boost::int32_t> _enabledIndexes;

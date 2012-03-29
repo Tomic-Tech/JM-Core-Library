@@ -6,7 +6,7 @@ namespace JM
 	template<typename DurationType>
 	boost::int32_t SerialPort::setWriteTimeout(DurationType const &time)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 
 		_writeTimeout = time;
 
@@ -46,7 +46,7 @@ namespace JM
 	template<typename DurationType>
 	boost::int32_t SerialPort::setReadTimeout(DurationType const &time)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 
 		_readTimeout = time;
 
@@ -90,7 +90,7 @@ namespace JM
 	{
 		DWORD retVal = -1;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -115,7 +115,7 @@ namespace JM
 	{
 		DWORD retVal = -1;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 
 		if (!isOpen())
 		{

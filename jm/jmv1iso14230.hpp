@@ -36,7 +36,7 @@ namespace JM
             boost::int32_t fastInit(const boost::uint8_t *data, std::size_t count)
             {
                 boost::uint8_t valueOpen = 0;
-                boost::uint8_t packEnter[255];
+                boost::array<boost::uint8_t, 255> packEnter;
                 std::size_t length;
 
                 if (_lLine)
@@ -70,13 +70,13 @@ namespace JM
                     return JM_ERROR_GENERIC;
                 }
 
-                length = pack(data, count, packEnter, 255);
+                length = pack(data, count, packEnter.data(), packEnter.size());
 
                 if (!_box->setLineLevel(BoxType::Constant::COMS, BoxType::Constant::SET_NULL) ||
                     !_box->commboxDelay(BoxType::toMicroSeconds(BoxType::MilliSeconds(25))) ||
                     !_box->setLineLevel(BoxType::Constant::SET_NULL, BoxType::Constant::COMS) ||
                     !_box->commboxDelay(BoxType::toMicroSeconds(BoxType::MilliSeconds(25))) ||
-                    !_box->sendOutData(packEnter, length) ||
+                    !_box->sendOutData(packEnter.data(), length) ||
                     !_box->runReceive(BoxType::Constant::REC_FR) ||
                     !_box->endBatch())
                 {
@@ -87,7 +87,7 @@ namespace JM
                 if (!_box->runBatch(&(_shared->buffID), 1, false))
                     return JM_ERROR_GENERIC;
 
-                length = readOneFrame(packEnter, 255);
+                length = readOneFrame(packEnter.data(), packEnter.size());
                 if (length <= 0)
                     return JM_ERROR_GENERIC;
 
@@ -107,7 +107,7 @@ namespace JM
 
             boost::int32_t addrInit(boost::uint8_t addrCode)
             {
-                boost::uint8_t temp[3];
+                boost::array<boost::uint8_t, 3> temp;
                 if (!_box->setCommCtrl(BoxType::Constant::PWC | BoxType::Constant::REFC |
                     BoxType::Constant::RZFC | BoxType::Constant::CK, BoxType::Constant::SET_NULL) ||
                     !_box->setCommLink(BoxType::Constant::RS_232 | BoxType::Constant::BIT9_MARK |
@@ -147,7 +147,7 @@ namespace JM
                 }
 
                 if (!_box->runBatch(&(_shared->buffID), 1, false) ||
-                    (_box->readData(temp, 0, BoxType::toMicroSeconds(BoxType::Seconds(3))) <= 0) ||
+                    (_box->readData(temp.data(), temp.size(), BoxType::toMicroSeconds(BoxType::Seconds(3))) <= 0) ||
                     !_box->checkResult(BoxType::toMicroSeconds(BoxType::Seconds(5))))
                 {
                     _box->delBatch(_shared->buffID);
@@ -221,14 +221,14 @@ namespace JM
         private:
             std::size_t readOneFrame(boost::uint8_t *data, std::size_t maxLength, bool isFinish)
             {
-                static boost::uint8_t temp[3];
-                static boost::uint8_t result[255];
+                static boost::array<boost::uint8_t, 3> temp;
+                static boost::array<boost::uint8_t, 255> result;
                 std::size_t frameLength = 0;
                 std::size_t length;
                 boost::uint8_t checksum;
                 std::size_t i;
 
-                length = _box->readBytes(temp, 3);
+                length = _box->readBytes(temp.data(), temp.size());
 
                 if (length <= 0)
                 {
@@ -253,11 +253,11 @@ namespace JM
                             finishExecute(isFinish);
                             return 0;
                         }
-                        memcpy(result, temp, 3);
-                        frameLength += 3;
-                        memcpy(result + frameLength, &b, 1);
+                        memcpy(result.data(), temp.data(), temp.size());
+                        frameLength += temp.size();
+                        memcpy(result.data() + frameLength, &b, 1);
                         frameLength++;
-                        length = _box->readBytes(result + KWP80_HEADER_LENGTH, length + KWP_CHECKSUM_LENGTH);
+                        length = _box->readBytes(result.data() + KWP80_HEADER_LENGTH, length + KWP_CHECKSUM_LENGTH);
                         frameLength += length;
                     }
                     else
@@ -268,9 +268,9 @@ namespace JM
                             return 0;
                         }
 
-                        memcpy(result, temp, 3);
-                        frameLength += 3;
-                        length = _box->readBytes(result + 3, length + KWP_CHECKSUM_LENGTH);
+                        memcpy(result.data(), temp.data(), temp.size());
+                        frameLength += temp.size();
+                        length = _box->readBytes(result.data() + temp.size(), length + KWP_CHECKSUM_LENGTH);
                         frameLength += length;
                     }
                 }
@@ -284,9 +284,9 @@ namespace JM
                             finishExecute(isFinish);
                             return 0;
                         }
-                        memcpy(result, temp, 3);
-                        frameLength += 3;
-                        length = _box->readBytes(result + 3, length);
+                        memcpy(result.data(), temp.data(), temp.size());
+                        frameLength += temp.size();
+                        length = _box->readBytes(result.data() + temp.size(), length);
                         frameLength += length;
                     }
                     else
@@ -297,9 +297,9 @@ namespace JM
                             finishExecute(isFinish);
                             return 0;
                         }
-                        memcpy(result, temp, 3);
-                        frameLength += 3;
-                        length = _box->readBytes(result + 3, length - KWP_CHECKSUM_LENGTH);
+                        memcpy(result.data(), temp.data(), temp.size());
+                        frameLength += temp.size();
+                        length = _box->readBytes(result.data() + temp.size(), length - KWP_CHECKSUM_LENGTH);
                         frameLength += length;
                     }
                 }
@@ -321,7 +321,7 @@ namespace JM
                     return 0;
                 }
 
-                return unpack(result, frameLength, data, maxLength);
+                return unpack(result.data(), frameLength, data, maxLength);
             }
 
             boost::int32_t sendOneFrame(const boost::uint8_t *data, std::size_t count, bool isFinish)

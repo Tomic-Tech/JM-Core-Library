@@ -1,6 +1,7 @@
 #include "jmstringarray.h"
 #include <string>
 #include <vector>
+#include <boost/array.hpp>
 
 struct _JMStringArray
 {
@@ -41,5 +42,7 @@ const char* jm_string_array_get(JMStringArray *array, size_t index)
 		return NULL;
 	if (index > array->str_array.size())
 		return NULL;
-	return array->str_array[index].c_str();
+	static boost::array<char, 255> temp;
+	strcpy(temp.data(), array->str_array[index].c_str());
+	return temp.data();
 }

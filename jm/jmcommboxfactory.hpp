@@ -3,6 +3,7 @@
 
 #include <jm/jmcommboxversion.h>
 #include <hash_map>
+#include <boost/shared_ptr.hpp>
 #include <jm/jmcommbox.hpp>
 
 namespace JM
@@ -16,7 +17,7 @@ namespace JM
         CommboxFactory();
         ~CommboxFactory();
     private:
-		std::hash_map<JMCommboxVersion, JM::Commbox*> _objHash;
+		std::hash_map<JMCommboxVersion, boost::shared_ptr<JM::Commbox> > _objHash;
     };
 }
 

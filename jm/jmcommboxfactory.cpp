@@ -11,10 +11,7 @@ namespace JM
 	}
 	CommboxFactory::~CommboxFactory()
 	{
-		for (std::hash_map<JMCommboxVersion, JM::Commbox*>::iterator it = _objHash.begin(); it != _objHash.end(); it++)
-		{
-			delete it->second;
-		}
+
 	}
 
 	CommboxFactory& CommboxFactory::inst()
@@ -31,15 +28,15 @@ namespace JM
 		case JM_COMMBOX_V1:
 			if (_objHash.find(ver) != _objHash.end())
 			{
-				box = _objHash[ver];
+				box = _objHash[ver].get();
 			}
 			if (box != NULL)
 				break;
 			box = new JM::V1::Commbox();
-			_objHash[ver] = box;
+			_objHash[ver].reset(box);
 		default:
 			break;
 		}
-		jm_commbox_set_handler((pointer_t)box);
+		jm_commbox_set_handler((const pointer_t)box);
 	}
 }

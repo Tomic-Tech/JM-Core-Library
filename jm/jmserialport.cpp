@@ -126,16 +126,15 @@ namespace JM
 	{
 		DWORD size = 0;
 		DWORD type;
-		BYTE *buff = NULL;
+		boost::scoped_array<BYTE> buff;
 		RegQueryValueExA(key, property.c_str(), NULL, NULL, NULL, &size);
-		buff = new BYTE[size];
+		buff.reset(new BYTE[size]);
 		std::string ret;
 
-		if (RegQueryValueExA(key, property.c_str(), NULL, &type, buff, &size) == ERROR_SUCCESS)
+		if (RegQueryValueExA(key, property.c_str(), NULL, &type, buff.get(), &size) == ERROR_SUCCESS)
 		{
-			ret = std::string((char*)buff);
+			ret = std::string((char*)buff.get());
 		}
-		delete[] buff;
 		return ret;
 	}
 
@@ -195,7 +194,9 @@ const char* jm_serial_port_get_port_name(JMSerialPort *self)
 {
 	if (self == NULL)
 		return NULL;
-	return ((JM::SerialPort*)(self->_handle))->portName().c_str();
+	static boost::array<char, 255> temp;
+	strcpy(temp.data(), ((JM::SerialPort*)(self->_handle))->portName().c_str());
+	return temp.data();
 }
 
 int32_t jm_serial_port_set_port_name(JMSerialPort *self, const char *name)

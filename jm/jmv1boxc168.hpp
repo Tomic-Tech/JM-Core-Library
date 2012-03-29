@@ -31,12 +31,12 @@ namespace JM
 					, _buffID(0)
 					, _headPassword(0)
 				{
-					memset(_buffAdd, 0, Constant::MAXIM_BLOCK + 2);
-					memset(_buffUsed, 0, Constant::MAXIM_BLOCK);
-					memset(_version, 0, Constant::VERSIONLEN);
-					memset(_boxID, 0, Constant::COMMBOXIDLEN);
-					memset(_port, 0, Constant::COMMBOXPORTNUM);
-					memset(_cmdTemp, 0, sizeof(_cmdTemp));
+					memset(_buffAdd.data(), 0, _buffAdd.size());
+					memset(_buffUsed.data(), 0, _buffUsed.size());
+					memset(_version.data(), 0, _version.size());
+					memset(_boxID.data(), 0, _boxID.size());
+					memset(_port.data(), 0, _port.size());
+					memset(_cmdTemp.data(), 0, _cmdTemp.size());
 				}
 
 				bool openComm()
@@ -44,7 +44,7 @@ namespace JM
 					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
 					{
 						JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
-						if (_port == NULL)
+						if (port == NULL)
 							return false;
 
 						std::vector<std::string> vec = JM::SerialPort::getSystemPorts();
@@ -117,7 +117,7 @@ namespace JM
 					else
 					{
 						std::size_t i = 0;
-						boost::uint8_t data[3];
+						boost::array<boost::uint8_t, 3> data;
 						boost::uint8_t deleteBuffLen;
 
 						for (; i < _buffUsedNum; i++)
@@ -133,7 +133,7 @@ namespace JM
 							data[1] = _buffAdd[_buffUsed[i + 1]];
 							data[2] = _buffAdd[Constant::SWAPBLOCK] - data[1];
 
-							if (!doSet(Constant::COPY_DATA - Constant::COPY_DATA % 4, data, 3))
+							if (!doSet(Constant::COPY_DATA - Constant::COPY_DATA % 4, data.data(), data.size()))
 							{
 								return false;
 							}
@@ -316,7 +316,7 @@ namespace JM
 							return false;
 						}
 						if (!checkIdle() || 
-							(commboxPort().write(boost::asio::const_buffer(_cmdTemp, _cmdTemp[1] + 3)) != (_cmdTemp[1] + 3)))
+							(commboxPort().write(boost::asio::const_buffer(_cmdTemp.data(), _cmdTemp[1] + 3)) != (_cmdTemp[1] + 3)))
 						{
 							continue;
 						}
@@ -363,7 +363,7 @@ namespace JM
 					// 只有一个字节的数据，设定端口1
 					_port[1] &= ~valueLow;
 					_port[1] |= valueHigh;
-					return sendToBox(Constant::SETPORT1, _port + 1, 1);
+					return sendToBox(Constant::SETPORT1, _port.data() + 1, 1);
 				}
 
 				bool setCommCtrl(boost::uint8_t valueOpen, boost::uint8_t valueClose)
@@ -371,7 +371,7 @@ namespace JM
 					// 只有一个字节的数据，设定端口2
 					_port[2] &= ~valueOpen;
 					_port[2] |= valueClose;
-					return sendToBox(Constant::SETPORT2, _port + 2, 1);
+					return sendToBox(Constant::SETPORT2, _port.data() + 2, 1);
 				}
 
 				bool setCommLine(boost::uint8_t sendLine, boost::uint8_t recvLine)
@@ -386,7 +386,7 @@ namespace JM
 						recvLine = 0x0F;
 					}
 					_port[0] = sendLine + (recvLine << 4);
-					return sendToBox(Constant::SETPORT0, _port, 1);
+					return sendToBox(Constant::SETPORT0, _port.data(), 1);
 				}
 
 				bool turnOverOneByOne()
@@ -404,10 +404,10 @@ namespace JM
 					}
 					if (_shared->isDoNow)
 					{
-						boost::uint8_t receiveBuff[6];
+						boost::array<boost::uint8_t, 6> receiveBuff;
 						std::size_t i;
 						if (!commboxDo(Constant::ECHO, echoBuff, echoLen) || 
-							(readData(receiveBuff, echoLen, MilliSeconds(100).total_microseconds()) != echoLen))
+							(readData(receiveBuff.data(), echoLen, MilliSeconds(100).total_microseconds()) != echoLen))
 						{
 							return false;
 						}
@@ -435,7 +435,7 @@ namespace JM
 
 				bool setCommLink(boost::uint8_t ctrlWord1, boost::uint8_t ctrlWord2, boost::uint8_t ctrlWord3)
 				{
-					boost::uint8_t ctrlWord[3]; // 通讯控制字3
+					boost::array<boost::uint8_t, 3> ctrlWord; // 通讯控制字3
 					boost::uint8_t modeControl = ctrlWord1 & 0xE0;
 					std::size_t length = 3;
 
@@ -453,7 +453,7 @@ namespace JM
 					if (modeControl == Constant::SET_VPW || 
 						modeControl == Constant::SET_PWM)
 					{
-						return sendToBox(Constant::SETTING, ctrlWord, 1);
+						return sendToBox(Constant::SETTING, ctrlWord.data(), 1);
 					}
 
 					ctrlWord[1] = ctrlWord2;
@@ -472,12 +472,12 @@ namespace JM
 						return false;
 					}
 
-					return sendToBox(Constant::SETTING, ctrlWord, length);
+					return sendToBox(Constant::SETTING, ctrlWord.data(), length);
 				}
 
 				bool setCommBaud(boost::uint32_t baud)
 				{
-					boost::uint8_t baudTime[2];
+					boost::array<boost::uint8_t, 2> baudTime;
 					double instructNum;
 
 					instructNum = ((1000000.0 / (_timeUnit)) * 1000000) / baud;
@@ -497,17 +497,17 @@ namespace JM
 					baudTime[1] = JM_LOW_BYTE(instructNum);
 					if (baudTime[0] == 0)
 					{
-						return sendToBox(Constant::SETBAUD, baudTime + 1, 1);
+						return sendToBox(Constant::SETBAUD, baudTime.data() + 1, 1);
 					}
 					else
 					{
-						return sendToBox(Constant::SETBAUD, baudTime, 2);
+						return sendToBox(Constant::SETBAUD, baudTime.data(), 2);
 					}
 				}
 
 				bool setCommTime(boost::uint8_t type, boost::int64_t time)
 				{
-					boost::uint8_t timeBuff[2];
+					boost::array<boost::uint8_t, 2> timeBuff;
 
 					getLinkTime(type, time);
 
@@ -542,9 +542,9 @@ namespace JM
 						timeBuff[1] = JM_LOW_BYTE(time);
 						if (timeBuff[0] == 0)
 						{
-							return sendToBox(type, timeBuff + 1, 1);
+							return sendToBox(type, timeBuff.data() + 1, 1);
 						}
-						return sendToBox(type, timeBuff, 2);
+						return sendToBox(type, timeBuff.data(), 2);
 					}
 					_shared->lastError = Constant::UNDEFINE_CMD;
 					return false;
@@ -626,7 +626,7 @@ namespace JM
 
 				bool updateBuff(boost::uint8_t type, boost::uint8_t *buffer)
 				{
-					boost::uint8_t cmdTemp[4];
+					boost::array<boost::uint8_t, 4> cmdTemp;
 					boost::uint8_t ret;
 
 					_shared->lastError = 0;
@@ -703,12 +703,12 @@ namespace JM
 						return false;
 
 					}
-					return sendToBox(type - type % 4, cmdTemp, type % 4 + 1);
+					return sendToBox(type - type % 4, cmdTemp.data(), type % 4 + 1);
 				}
 
 				bool commboxDelay(boost::int64_t time)
 				{
-					boost::uint8_t timeBuff[2];
+					boost::array<boost::uint8_t, 2> timeBuff;
 					boost::uint8_t delayWord = Constant::DELAYSHORT;
 
 					time = time / (_timeUnit / 1000000.0);
@@ -741,15 +741,15 @@ namespace JM
 					{
 						if (_shared->isDoNow)
 						{
-							return commboxDo(delayWord, timeBuff + 1, 1);
+							return commboxDo(delayWord, timeBuff.data() + 1, 1);
 						}
-						return addToBuff(delayWord, timeBuff + 1, 1);
+						return addToBuff(delayWord, timeBuff.data() + 1, 1);
 					}
 					if (_shared->isDoNow)
 					{
-						return commboxDo(delayWord, timeBuff, 2);
+						return commboxDo(delayWord, timeBuff.data(), 2);
 					}
-					return addToBuff(delayWord, timeBuff, 2);
+					return addToBuff(delayWord, timeBuff.data(), 2);
 				}
 
 				bool sendOutData( const boost::uint8_t *buffer, std::size_t count)
@@ -1043,7 +1043,7 @@ namespace JM
 								return false;
 							}
 						}
-						return commboxDo(Constant::D0_BAT, _buffAdd + Constant::SWAPBLOCK, 1);
+						return commboxDo(Constant::D0_BAT, _buffAdd.data() + Constant::SWAPBLOCK, 1);
 					}
 					_shared->lastError = Constant::ILLIGICAL_LEN;
 					return false;
@@ -1148,10 +1148,10 @@ namespace JM
 				std::size_t getCmdData(boost::uint8_t command, boost::uint8_t *receiveBuffer)
 				{
 					boost::uint8_t checksum = command;
-					boost::uint8_t cmdInfo[2];
+					boost::array<boost::uint8_t, 2> cmdInfo;
 					std::size_t i;
 
-					if (readData(cmdInfo, 2, toMicroSeconds(MilliSeconds(150))) != 2)
+					if (readData(cmdInfo.data(), cmdInfo.size(), toMicroSeconds(MilliSeconds(150))) != 2)
 					{
 						return 0;
 					}
@@ -1164,7 +1164,7 @@ namespace JM
 					}
 
 					if ((readData(receiveBuffer, cmdInfo[1], toMicroSeconds(MilliSeconds(150))) != cmdInfo[1]) ||
-						(readData(cmdInfo, 1, toMicroSeconds(MilliSeconds(150))) != 1))
+						(readData(cmdInfo.data(), 1, toMicroSeconds(MilliSeconds(150))) != 1))
 					{
 						return 0;
 					}
@@ -1187,7 +1187,7 @@ namespace JM
 				bool checkBox()
 				{
 					static boost::uint8_t password[] = {0x0C, 0x22, 0x17, 0x41, 0x57, 0x2D, 0x43, 0x17, 0x2D, 0x4D};
-					boost::uint8_t temp[5];
+					boost::array<boost::uint8_t, 5> temp;
 					std::size_t i;
 					boost::uint8_t checksum;
 
@@ -1202,7 +1202,7 @@ namespace JM
 						i++;
 					}
 
-					if (commboxPort().write(ConstBuffer(temp, 5)) != 5)
+					if (commboxPort().write(ConstBuffer(temp.data(), temp.size())) != 5)
 					{
 						_shared->lastError = Constant::SENDDATA_ERROR;
 						return false;
@@ -1219,7 +1219,7 @@ namespace JM
 
 					sleep(MilliSeconds(20));
 
-					if (getCmdData(Constant::GETINFO, temp) <= 0)
+					if (getCmdData(Constant::GETINFO, temp.data()) <= 0)
 					{
 						return false;
 					}
@@ -1252,7 +1252,7 @@ namespace JM
 						return false;
 					}
 
-					length = getCmdData(Constant::GETINFO, _cmdTemp);
+					length = getCmdData(Constant::GETINFO, _cmdTemp.data());
 					if (length < Constant::COMMBOXIDLEN)
 					{
 						_shared->lastError = Constant::LOST_VERSIONDATA;
@@ -1293,7 +1293,7 @@ namespace JM
 					_buffID = Constant::NULLADD;
 					_buffUsedNum = 0;
 
-					memset(_buffAdd, Constant::NULLADD, Constant::MAXIM_BLOCK);
+					memset(_buffAdd.data(), Constant::NULLADD, Constant::MAXIM_BLOCK);
 					_buffAdd[Constant::LINKBLOCK] = _cmdBuffLen;
 					_buffAdd[Constant::SWAPBLOCK] = 0;
 					return true;
@@ -1426,12 +1426,12 @@ namespace JM
 				boost::uint32_t _cmdBuffLen;
 				boost::uint8_t _buffID;
 				boost::uint8_t _headPassword;
-				boost::uint8_t _buffAdd[Constant::MAXIM_BLOCK + 2];
-				boost::uint8_t _buffUsed[Constant::MAXIM_BLOCK];
-				boost::uint8_t _version[Constant::VERSIONLEN];
-				boost::uint8_t _boxID[Constant::COMMBOXIDLEN];
-				boost::uint8_t _port[Constant::COMMBOXPORTNUM];
-				boost::uint8_t _cmdTemp[256]; // Write Command to buffer
+				boost::array<boost::uint8_t, Constant::MAXIM_BLOCK + 2> _buffAdd;
+				boost::array<boost::uint8_t, Constant::MAXIM_BLOCK> _buffUsed;
+				boost::array<boost::uint8_t, Constant::VERSIONLEN> _version;
+				boost::array<boost::uint8_t, Constant::COMMBOXIDLEN> _boxID;
+				boost::array<boost::uint8_t, Constant::COMMBOXPORTNUM> _port;
+				boost::array<boost::uint8_t, 255> _cmdTemp; // Write Command to buffer
 			};
 		}
 	}

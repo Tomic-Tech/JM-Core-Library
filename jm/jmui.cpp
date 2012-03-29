@@ -41,7 +41,7 @@ namespace JM
 
 	JMUIMessage* UserInterface::popMsg()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		if (_msgQueue.empty())
 			return NULL;
 
@@ -53,13 +53,13 @@ namespace JM
 
 	std::size_t UserInterface::msgCount()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		return _msgQueue.size();
 	}
 
 	void UserInterface::mainShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage *msg = new JMUIMessage;
 		msg->message = NULL;
 		msg->type = JM_UI_MAIN_SHOW;
@@ -69,7 +69,7 @@ namespace JM
 
 	void UserInterface::msgBoxBtnClr()
 	{	
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MSG_BOX_BTN_CLR;
 		msg->message = NULL;
@@ -79,7 +79,7 @@ namespace JM
 
 	void UserInterface::msgBoxAddBtn(const std::string &text)
 	{		
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MSG_BOX_ADD_BTN;
 		msg->message = new char[text.length() + 1];
@@ -90,7 +90,7 @@ namespace JM
 
 	void UserInterface::msgBoxSetMsg(const std::string &text)
 	{		
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MSG_BOX_SET_MSG;
 		msg->message = new char[text.length() + 1];
@@ -101,7 +101,7 @@ namespace JM
 
 	void UserInterface::msgBoxSetTitle(const std::string &text)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MSG_BOX_SET_TITLE;
 		msg->message = new char[text.length() + 1];
@@ -111,7 +111,7 @@ namespace JM
 
 	void UserInterface::msgBoxShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MSG_BOX_SHOW;
 		msg->message = NULL;
@@ -120,7 +120,7 @@ namespace JM
 
 	void UserInterface::msgBoxHide()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MSG_BOX_HIDE;
 		msg->message = NULL;
@@ -129,7 +129,7 @@ namespace JM
 
 	void UserInterface::listBoxBtnClr()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LIST_BOX_BTN_CLR;
 		msg->message = NULL;
@@ -138,7 +138,7 @@ namespace JM
 
 	void UserInterface::listBoxAddBtn(const std::string &text)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LIST_BOX_ADD_BTN;
 		msg->message = new char[text.length() + 1];
@@ -151,7 +151,7 @@ namespace JM
 		std::stringstream ss;
 		ss << caption << "|" << item;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LIST_BOX_ADD_ITEM;
 		msg->message = new char[ss.str().length() + 1];
@@ -160,7 +160,7 @@ namespace JM
 
 	void UserInterface::listBoxItemClr()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LIST_BOX_ITEM_CLR;
 		msg->message = NULL;
@@ -169,7 +169,7 @@ namespace JM
 
 	void UserInterface::listBoxShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LIST_BOX_SHOW;
 		msg->message = NULL;
@@ -178,7 +178,7 @@ namespace JM
 
 	void UserInterface::listBoxHide()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LIST_BOX_HIDE;
 		msg->message = NULL;
@@ -187,7 +187,7 @@ namespace JM
 
 	void UserInterface::menuItemClr()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MENU_ITEM_CLR;
 		msg->message = NULL;
@@ -196,7 +196,7 @@ namespace JM
 
 	void UserInterface::menuAddItem(const std::string &text)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MENU_ADD_ITEM;
 		msg->message = new char[text.length() + 1];
@@ -206,7 +206,7 @@ namespace JM
 
 	void UserInterface::menuShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_MENU_SHOW;
 		msg->message = NULL;
@@ -215,7 +215,7 @@ namespace JM
 
 	void UserInterface::tcItemClr()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_TC_ITEM_CLR;
 		msg->message = NULL;
@@ -226,7 +226,7 @@ namespace JM
 	{
 		std::stringstream ss;
 		ss << code << "|" << text;
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_TC_ADD_ITEM;
 		msg->message = new char[ss.str().length() + 1];
@@ -236,7 +236,7 @@ namespace JM
 
 	void UserInterface::tcAddBtn(const std::string &text)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_TC_ADD_BTN;
 		msg->message = new char[text.length() + 1];
@@ -246,7 +246,7 @@ namespace JM
 
 	void UserInterface::tcBtnClr()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_TC_BTN_CLR;
 		msg->message = NULL;
@@ -255,7 +255,7 @@ namespace JM
 
 	void UserInterface::tcShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_TC_SHOW;
 		msg->message = NULL;
@@ -264,7 +264,7 @@ namespace JM
 
 	void UserInterface::ldPrepareShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LD_PREPARE_SHOW;
 		msg->message = NULL;
@@ -273,7 +273,7 @@ namespace JM
 
 	void UserInterface::ldShow()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LD_SHOW;
 		msg->message = NULL;
@@ -282,7 +282,7 @@ namespace JM
 
 	void UserInterface::ldBtnClr()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LD_BTN_CLR;
 		msg->message = NULL;
@@ -291,7 +291,7 @@ namespace JM
 
 	void UserInterface::ldAddBtn(const std::string &text)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LD_ADD_BTN;
 		msg->message = new char[text.length() + 1];
@@ -304,7 +304,7 @@ namespace JM
 		std::stringstream ss;
 		ss << index << "|" << value;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::unique_lock<boost::mutex> lock(_mutex);
 		JMUIMessage* msg = new JMUIMessage;
 		msg->type = JM_UI_LD_SET_VALUE;
 		msg->message = new char[ss.str().length() + 1];
@@ -353,7 +353,7 @@ namespace JM
 
 	std::string UserInterface::menuSelected()
 	{
-		boost::mutex::scoped_lock lock(_menuMutex);
+		boost::unique_lock<boost::mutex> lock(_menuMutex);
 		std::string ret = _menuSel;
 		_menuSel.clear();
 		return ret;
@@ -361,7 +361,7 @@ namespace JM
 
 	void UserInterface::setMenuSelected(const std::string &text)
 	{
-		boost::mutex::scoped_lock lock(_menuMutex);
+		boost::unique_lock<boost::mutex> lock(_menuMutex);
 		_menuSel = text;
 	}
 

@@ -1,6 +1,10 @@
 #ifndef __JM_BYTE_ARRAY_H__
 #define __JM_BYTE_ARRAY_H__
 
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #include <jm/jmtype.h>
 
 JM_BEGIN_DECLS

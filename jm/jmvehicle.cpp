@@ -702,9 +702,9 @@ boolean_t jm_vehicle_load_script(const char *name, const char *path, const char 
 
 const char* jm_vehicles_dir(void)
 {
-	static char temp[1024];
-	strcpy(temp, JM::Vehicle::inst().path().c_str());
-	return temp;
+	static std::string ret;
+	ret = JM::Vehicle::inst().path().c_str();
+	return ret.c_str();
 }
 
 #define LUA_BUILD_AS_DLL
