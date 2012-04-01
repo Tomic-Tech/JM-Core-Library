@@ -31,11 +31,10 @@ namespace JM
 			std::size_t srcLength,
 			boost::uint8_t *tar,
 			std::size_t tarMaxLength);
-
+		virtual boost::int32_t init() = 0;
         virtual boost::int32_t setLines(boost::int32_t high, boost::int32_t low);
 		virtual boost::int32_t setFilter(const std::vector<boost::int32_t> &idVector);
 		virtual boost::int32_t setOptions(boost::int32_t id, JMCanbusBaud baud, JMCanbusIDMode idMode, JMCanbusFilterMask mask, JMCanbusFrameType frame);
-
     protected:
         boost::int32_t _targetID;
         JMCanbusBaud _baud;

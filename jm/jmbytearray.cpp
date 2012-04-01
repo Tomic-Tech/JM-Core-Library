@@ -63,8 +63,8 @@ void jm_byte_array_append(JMByteArray *self, const uint8_t *data, size_t count)
 		{
 			memcpy(new_buff, self->arr, self->length);
 			delete[] self->arr;
-			self->arr = new_buff;
 		}
+		self->arr = new_buff;
 	}
 
 	memcpy(self->arr + self->length, data, count);

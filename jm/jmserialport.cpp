@@ -400,7 +400,7 @@ JMStringArray* jm_serial_port_get_system_ports(void)
 {
 	JMStringArray *arr = jm_string_array_new();
 	std::vector<std::string> vec = JM::SerialPort::getSystemPorts();
-	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
 	{
 		jm_string_array_append(arr, it->c_str());
 	}

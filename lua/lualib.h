@@ -68,6 +68,9 @@ LUAMOD_API int (luaopen_jmui) (lua_State *L);
 #define LUA_JMLOG "jmlog"
 LUAMOD_API int (luaopen_jmlog) (lua_State *L);
 
+#define LUA_JMDIAG "jmdiag"
+LUAMOD_API int (luaopen_jmdiag) (lua_State *L);
+
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);
 

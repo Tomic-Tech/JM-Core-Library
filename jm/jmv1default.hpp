@@ -32,7 +32,7 @@ namespace JM
 				boost::array<uint8_t, 255> sendBuff;
                 std::size_t length = _protocol->pack(data, count, sendBuff.data(), sendBuff.size());
                 _shared->buffID = 0;
-                if (_box->newBatch(_shared->buffID))
+                if (!_box->newBatch(_shared->buffID))
                 {
                     return 0;
                 }

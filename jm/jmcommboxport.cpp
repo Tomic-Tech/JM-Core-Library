@@ -12,11 +12,13 @@ namespace JM
 		, _outMutex()
 		, _inCond()
 		, _portType(JM_COMMBOX_PORT_UNKNOW)
+		, _serialPortThread()
 	{
 	}
 
 	CommboxPort::~CommboxPort()
 	{
+		_serialPortThread.stop();
 	}
 
 	CommboxPort& CommboxPort::inst()
@@ -28,6 +30,12 @@ namespace JM
 	void CommboxPort::setType(JMCommboxPortType type)
 	{
 		_portType = type;
+		switch(type)
+		{
+		case JM_COMMBOX_PORT_SERIAL_PORT:
+			_serialPortThread.start();
+			break;
+		}
 	}
 
 	JMCommboxPortType CommboxPort::type()
@@ -35,22 +43,22 @@ namespace JM
 		return _portType;
 	}
 
-	void CommboxPort::setPointer(void* p)
-	{
-		if (_portType == JM_COMMBOX_PORT_SERIAL_PORT)
-		{
-			_pointer = ((JMSerialPort*)p)->_handle;
-		}
-		else
-		{
-			_pointer = p;
-		}
-	}
+	//void CommboxPort::setPointer(void* p)
+	//{
+	//	if (_portType == JM_COMMBOX_PORT_SERIAL_PORT)
+	//	{
+	//		_pointer = ((JMSerialPort*)p)->_handle;
+	//	}
+	//	else
+	//	{
+	//		_pointer = p;
+	//	}
+	//}
 
-	void* CommboxPort::pointer()
-	{
-		return _pointer;
-	}
+	//void* CommboxPort::pointer()
+	//{
+	//	return _pointer;
+	//}
 
 	std::size_t CommboxPort::bytesAvailable()
 	{

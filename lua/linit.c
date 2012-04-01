@@ -47,6 +47,7 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_JMMIKUNINAME, luaopen_jmmikuni},
   {LUA_JMUINAME, luaopen_jmui},
   {LUA_JMLOG, luaopen_jmlog},
+  {LUA_JMDIAG, luaopen_jmdiag},
   {NULL, NULL}
 };
 

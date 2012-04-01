@@ -25,7 +25,7 @@ namespace JM
 
 	boost::int32_t SerialPort::setPortName(const std::string &name)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		boost::int32_t ret;
 		if (isOpen())
@@ -39,7 +39,7 @@ namespace JM
 
 	boost::int32_t SerialPort::setBaudrate(boost::int32_t baudrate)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (_baudrate != baudrate)
 		{
@@ -130,7 +130,7 @@ namespace JM
 
 	boost::int32_t SerialPort::setDatabits(boost::uint8_t databits)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (databits < 5 || databits > 8)
 		{
@@ -218,7 +218,7 @@ namespace JM
 
 	boost::int32_t SerialPort::setParity(boost::int32_t parity)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!(parity == JM_SP_PAR_NONE || 
 			parity == JM_SP_PAR_SPACE || 
@@ -283,7 +283,7 @@ namespace JM
 
 	boost::int32_t SerialPort::setStopbits(boost::int32_t stopbits)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!(stopbits == JM_SP_SB_ONE || 
 			stopbits == JM_SP_SB_ONE_POINT_FIVE || 
@@ -357,7 +357,7 @@ namespace JM
 
 	boost::int32_t SerialPort::setFlowControl(boost::int32_t flowControl)
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!(flowControl == JM_SP_FC_NONE || 
 			flowControl == JM_SP_FC_HARDWARE || 
@@ -428,7 +428,7 @@ namespace JM
 		DWORD confSize = sizeof(COMMCONFIG);
 		DWORD dwFlagsAndAttribute = FILE_ATTRIBUTE_NORMAL;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		_commConfig.dwSize = confSize;
 
@@ -498,7 +498,7 @@ namespace JM
 
 	boost::int32_t SerialPort::close()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -523,7 +523,7 @@ namespace JM
 
 	boost::int32_t SerialPort::flush()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -543,7 +543,7 @@ namespace JM
 
 	boost::int32_t SerialPort::discardInBuffer()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -563,7 +563,7 @@ namespace JM
 
 	boost::int32_t SerialPort::discardOutBuffer()
 	{
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -586,7 +586,7 @@ namespace JM
 		DWORD errors;
 		COMSTAT status;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -608,7 +608,7 @@ namespace JM
 	{
 		DWORD dw_func;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -639,7 +639,7 @@ namespace JM
 	{
 		DWORD dw_func;
 
-		boost::mutex::scoped_lock lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{

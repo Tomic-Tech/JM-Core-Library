@@ -12,7 +12,16 @@ namespace JM
 			, _w80PrcHash()
 			, _c168PrcHash()
 		{
-
+			_shared->buffID = 0;
+			_shared->connector = JM_CN_UNKNOW;
+			_shared->isDB20 = false;
+			_shared->isDoNow = true;
+			_shared->lastError = 0;
+			_shared->nextAddress = 0;
+			_shared->reqByteToByte = 500000;
+			_shared->reqWaitTime = 500000;
+			_shared->resByteToByte = 500000;
+			_shared->resWaitTime = 500000;
 		}
 
 		Commbox::~Commbox()
@@ -51,6 +60,11 @@ namespace JM
 		{
 			if (_currentBox == _c168.get())
 			{
+				if (jm_link_protocol_type() == JM_PRC_ISO15765)
+				{
+					((JM::V1::ISO15765<JM::V1::C168::Box>*)jm_link_get_protocol())->reset();
+				}
+
 				if (_c168->closeComm())
 				{
 					return JM_ERROR_SUCCESS;
@@ -58,6 +72,10 @@ namespace JM
 			}
 			else
 			{
+				if (jm_link_protocol_type() == JM_PRC_ISO15765)
+				{
+					((JM::V1::ISO15765<JM::V1::C168::Box>*)jm_link_get_protocol())->reset();
+				}
 				if (_w80->closeComm())
 				{
 					return JM_ERROR_SUCCESS;

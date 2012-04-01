@@ -12,8 +12,10 @@ namespace JM
 {
     class Link
     {
+	protected:
+		Link();
+		void setProtocol(pointer_t p);
     public:
-
         virtual pointer_t protocol();
         void setProtocolType(JMProtocolType type);
         JMProtocolType protocolType();

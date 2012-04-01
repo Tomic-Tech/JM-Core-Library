@@ -172,7 +172,7 @@ extern "C"
             env->FindClass("java/lang/String"), 
             env->NewStringUTF(""));
         size_t i;
-        for (i = 0; i < jm_string_array_size(arr); i++)
+        for (i = 0; i < jm_string_array_size(arr); ++i)
         {
             env->SetObjectArrayElement(ret, i, env->NewStringUTF(jm_string_array_get(arr, i)));
         }

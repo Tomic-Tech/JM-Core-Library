@@ -43,13 +43,14 @@ namespace JM
 				{
 					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
 					{
-						JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
-						if (port == NULL)
-							return false;
+						boost::shared_ptr<JM::SerialPort> port = commboxPort().getPhysicalPort<JM::SerialPort>();
+						//JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
+						//if (port == NULL)
+						//	return false;
 
 						std::vector<std::string> vec = JM::SerialPort::getSystemPorts();
 
-						for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+						for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
 						{
 							port->setPortName(*it);
 							port->setBaudrate(9600);
@@ -73,7 +74,7 @@ namespace JM
 				{
 					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
 					{
-						if (!((JM::SerialPort*)commboxPort().pointer())->isOpen())
+						if (!commboxPort().getPhysicalPort<JM::SerialPort>()->isOpen())
 							return true;
 					}
 
@@ -82,7 +83,7 @@ namespace JM
 					setRF(Constant::RESET_RF, 0);
 					if  (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
 					{
-						((JM::SerialPort*)commboxPort().pointer())->close();
+						commboxPort().getPhysicalPort<JM::SerialPort>()->close();
 					}
 
 					return true;
@@ -120,7 +121,7 @@ namespace JM
 						boost::array<boost::uint8_t, 3> data;
 						boost::uint8_t deleteBuffLen;
 
-						for (; i < _buffUsedNum; i++)
+						for (; i < _buffUsedNum; ++i)
 						{
 							if (_buffUsed[i] == buffID)
 							{
@@ -144,14 +145,14 @@ namespace JM
 						}
 
 						deleteBuffLen = data[1] - data[0];
-						for (i = i + 1; i < _buffUsedNum; i++)
+						for (i = i + 1; i < _buffUsedNum; ++i)
 						{
 							_buffUsed[i - 1] = _buffUsed[i];
 							_buffAdd[_buffUsed[i]] = _buffAdd[_buffUsed[i]] - deleteBuffLen;
 						}
-						_buffUsedNum--;
+						--_buffUsedNum;
 						_buffAdd[Constant::SWAPBLOCK] = _buffAdd[Constant::SWAPBLOCK] - deleteBuffLen;
-						_buffAdd[_buffID] = Constant::NULLADD;
+						_buffAdd[buffID] = Constant::NULLADD;
 					}
 					return true;
 				}
@@ -244,38 +245,38 @@ namespace JM
 								// 增加发送长命令
 								_cmdTemp[_cmdTemp[1] + 2] = Constant::SEND_CMD;
 								checksum += Constant::SEND_CMD;
-								_cmdTemp[1]++;
+								++_cmdTemp[1];
 								_cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
 								if (count > 0)
 								{
-									_cmdTemp[_cmdTemp[1] + 2]--;
+									--_cmdTemp[_cmdTemp[1] + 2];
 								}
 								checksum += _cmdTemp[_cmdTemp[1] + 2];
-								_cmdTemp[1]++;
-								for (i = 0; i < count; i++, _cmdTemp[1]++)
+								++_cmdTemp[1];
+								for (i = 0; i < count; ++i, ++_cmdTemp[1])
 								{
 									_cmdTemp[_cmdTemp[1] + 2] = data[i];
 									checksum += data[i];
 								}
 								_cmdTemp[_cmdTemp[1] + 2] = checksum + count + 2;
-								_shared->nextAddress++;
+								++(_shared->nextAddress);
 							}
 							else
 							{
 								_cmdTemp[_cmdTemp[1] + 2] = commandWord + count;
 								if (count > 0)
 								{
-									_cmdTemp[_cmdTemp[1] + 2]--;
+									--_cmdTemp[_cmdTemp[1] + 2];
 								}
 								checksum += _cmdTemp[_cmdTemp[1] + 2];
-								_cmdTemp[1]++;
-								for (i = 0; i < count; i++, _cmdTemp[1]++)
+								++_cmdTemp[1];
+								for (i = 0; i < count; ++i, ++_cmdTemp[1])
 								{
 									_cmdTemp[_cmdTemp[1] + 2] = data[i];
 									checksum += data[i];
 								}
 								_cmdTemp[_cmdTemp[1] + 2] = checksum + count + 1;
-								_shared->nextAddress++; // Rocky Add
+								++(_shared->nextAddress); // Rocky Add
 							}
 							return true;
 						}
@@ -308,7 +309,7 @@ namespace JM
 						return false;
 					}
 
-					while (times--)
+					while (--times)
 					{
 						if (times == 0)
 						{
@@ -339,7 +340,7 @@ namespace JM
 					{
 						_buffAdd[_buffID] = _buffAdd[Constant::SWAPBLOCK];
 						_buffUsed[_buffUsedNum] = _buffID;
-						_buffUsedNum++;
+						++_buffUsedNum;
 						_buffAdd[Constant::SWAPBLOCK] = _buffAdd[Constant::SWAPBLOCK] + _cmdTemp[1];
 					}
 					_buffID = Constant::NULLADD;
@@ -411,7 +412,7 @@ namespace JM
 						{
 							return false;
 						}
-						for (i = 0; i < echoLen; i++)
+						for (i = 0; i < echoLen; ++i)
 						{
 							if (receiveBuff[i] != echoBuff[i])
 							{
@@ -460,10 +461,10 @@ namespace JM
 					ctrlWord[2] = ctrlWord3;
 					if (ctrlWord3 == 0)
 					{
-						length--;
+						--length;
 						if (ctrlWord2 == 0)
 						{
-							length--;
+							--length;
 						}
 					}
 					if (modeControl == Constant::EXRS_232 && length < 2)
@@ -591,7 +592,7 @@ namespace JM
 						else
 						{
 							std::size_t i;
-							for (i = 0; i < _buffUsedNum; i++)
+							for (i = 0; i < _buffUsedNum; ++i)
 							{
 								if (_buffUsed[i] == _buffID)
 								{
@@ -774,7 +775,7 @@ namespace JM
 					boost::uint8_t commandWord = Constant::D0_BAT;
 					std::size_t i;
 
-					for (i = 0; i < count; i++)
+					for (i = 0; i < count; ++i)
 					{
 						if (_buffAdd[buffID[i]] == Constant::NULLADD)
 						{
@@ -835,7 +836,7 @@ namespace JM
 					{
 						boost::uint8_t receiveBuffer = 0;
 						boost::uint32_t times = Constant::REPLAYTIMES;
-						while (times--)
+						while (--times)
 						{
 							if (!commboxDo(Constant::STOP_EXECUTE, NULL, 0))
 							{
@@ -873,7 +874,7 @@ namespace JM
 					while (avail)
 					{
 						commboxPort().read(MutableBuffer(&receiveBuffer, 1));
-						avail--;
+						--avail;
 					}
 
 					if (receiveBuffer == Constant::SUCCESS)
@@ -955,12 +956,12 @@ namespace JM
 
 					memcpy(command.get() + 5, buff, count);
 
-					for(i = 0; i < count; i++)
+					for(i = 0; i < count; ++i)
 					{
 						command[checksum] += buff[i];
 					}
 
-					for (i = 0; i < 3; i++)
+					for (i = 0; i < 3; ++i)
 					{
 						if (!checkIdle() || 
 							(commboxPort().write(ConstBuffer(command.get(), size)) != size))
@@ -993,12 +994,12 @@ namespace JM
 
 					memcpy(command.get() + 4, buff, count);
 
-					for (i = 0; i < count; i++)
+					for (i = 0; i < count; ++i)
 					{
 						command[checksum] += buff[i];
 					}
 
-					for (i = 0; i < 3; i++)
+					for (i = 0; i < 3; ++i)
 					{
 						if (!checkIdle() || 
 							(commboxPort().write(ConstBuffer(command.get(), size)) != size))
@@ -1066,7 +1067,7 @@ namespace JM
 							_shared->lastError = Constant::ILLIGICAL_LEN;
 							return false;
 						}
-						(*checksum)--;
+						--(*checksum);
 					}
 					else
 					{
@@ -1080,12 +1081,12 @@ namespace JM
 					command[0] = *checksum + _headPassword;
 					memcpy(command.get() + 1, buff, count);
 
-					for (i = 0; i < count; i++)
+					for (i = 0; i < count; ++i)
 					{
 						*checksum += buff[i];
 					}
 
-					for (i = 0; i < 3; i++)
+					for (i = 0; i < 3; ++i)
 					{
 						if (commandWord != Constant::STOP_REC && 
 							commandWord != Constant::STOP_EXECUTE)
@@ -1130,7 +1131,7 @@ namespace JM
 				{
 					boost::uint32_t times = Constant::REPLAYTIMES;
 
-					while (times--)
+					while (--times)
 					{
 						if (!commboxDo(commandWord, buff, count))
 						{
@@ -1171,7 +1172,7 @@ namespace JM
 
 					checksum += cmdInfo[1];
 
-					for (i = 0; i < cmdInfo[1]; i++)
+					for (i = 0; i < cmdInfo[1]; ++i)
 					{
 						checksum += receiveBuffer[i];
 					}
@@ -1199,7 +1200,7 @@ namespace JM
 					{
 						temp[i] = JM_LOW_BYTE(rand());
 						temp[4] += temp[i];
-						i++;
+						++i;
 					}
 
 					if (commboxPort().write(ConstBuffer(temp.data(), temp.size())) != 5)
@@ -1214,7 +1215,7 @@ namespace JM
 					while (i < sizeof(password))
 					{
 						checksum += password[i] ^ temp[i % 5];
-						i++;
+						++i;
 					}
 
 					sleep(MilliSeconds(20));
@@ -1246,6 +1247,7 @@ namespace JM
 
 					_headPassword = 0x00;
 					_shared->isDB20 = false;
+					_shared->isDoNow = true;
 
 					if (!commboxDo(Constant::GETINFO, NULL, 0))
 					{
@@ -1260,7 +1262,7 @@ namespace JM
 					}
 
 					_timeUnit = 0;
-					for (i = 0; i < Constant::MINITIMELEN; i++)
+					for (i = 0; i < Constant::MINITIMELEN; ++i)
 					{
 						_timeUnit = (_timeUnit << 8) | _cmdTemp[pos++];
 					}
@@ -1275,12 +1277,12 @@ namespace JM
 						return false;
 					}
 
-					for (i = 0; i < Constant::COMMBOXIDLEN; i++)
+					for (i = 0; i < Constant::COMMBOXIDLEN; ++i)
 					{
 						_boxID[i] = _cmdTemp[pos++];
 					}
 
-					for (i = 0; i < Constant::VERSIONLEN; i++)
+					for (i = 0; i < Constant::VERSIONLEN; ++i)
 					{
 						_version[i] = _cmdTemp[pos++];
 					}
@@ -1311,7 +1313,7 @@ namespace JM
 
 					sleep(MilliSeconds(6));
 
-					while (times--)
+					while (--times)
 					{
 						if (checkIdle() && 
 							(commboxPort().write(ConstBuffer(&cmdInfo, 1)) == 1))
@@ -1335,7 +1337,7 @@ namespace JM
 
 				bool doSetPCBaud(boost::uint8_t baud)
 				{
-					JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
+					boost::shared_ptr<JM::SerialPort> port = commboxPort().getPhysicalPort<JM::SerialPort>();
 
 					if (!commboxDo(Constant::SET_UPBAUD, &baud, 1))
 					{
@@ -1386,7 +1388,7 @@ namespace JM
 				bool setPCBaud(boost::uint8_t baud)
 				{
 					std::size_t times = Constant::REPLAYTIMES;
-					while (times--)
+					while (--times)
 					{
 						if (times == 0)
 							return false;
@@ -1400,7 +1402,7 @@ namespace JM
 				{
 					std::size_t i;
 
-					for (i = 0; i < 3; i++)
+					for (i = 0; i < 3; ++i)
 					{
 						setRF(Constant::RESET_RF, 0);
 						setRF(Constant::SETDTR_L, 0);

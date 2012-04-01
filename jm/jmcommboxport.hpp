@@ -11,7 +11,9 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/smart_ptr.hpp>
 #include "jmserialport.hpp"
+#include "jmphysicalportthread.hpp"
 
 namespace JM
 {
@@ -21,8 +23,17 @@ namespace JM
         static CommboxPort& inst();
         void setType(JMCommboxPortType type);
         JMCommboxPortType type();
-        void setPointer(pointer_t p);
-        pointer_t pointer();
+
+		template<typename PortType>
+		boost::shared_ptr<PortType> getPhysicalPort()
+		{
+			switch(_portType)
+			{
+			case JM_COMMBOX_PORT_SERIAL_PORT:
+				return _serialPortThread.port();
+			}
+			return boost::shared_ptr<PortType>();
+		}
 
 		template<typename DurationType>
         boost::int32_t setReadTimeout(DurationType const &time)
@@ -58,10 +69,12 @@ namespace JM
 		template<typename ConstBufferSequence>
         std::size_t write(const ConstBufferSequence &data)
 		{
+			boost::unique_lock<boost::mutex> lock(_outMutex);
 			std::size_t count = boost::asio::buffer_size(data);
 			const boost::uint8_t *p = boost::asio::buffer_cast<const boost::uint8_t*>(data);
-			boost::unique_lock<boost::mutex> lock(_outMutex);
-			for (std::size_t i = 0; i < count; i++)
+
+			JM::Log::inst().write("Commbox Port Write", p, count);
+			for (std::size_t i = 0; i < count; ++i)
 			{
 				_outDeque.push_back(p[i]);
 			}
@@ -74,10 +87,12 @@ namespace JM
 			boost::unique_lock<boost::mutex> lock(_inMutex);
 			const boost::uint8_t* p = boost::asio::buffer_cast<const boost::uint8_t*>(data);
 			std::size_t count = boost::asio::buffer_size(data);
-			for (std::size_t i = 0; i < count; i++)
+			for (std::size_t i = 0; i < count; ++i)
 			{
 				_inDeque.push_back(p[i]);
 			}
+			//JM::Log::inst().write("Commbox Port Push In", p, count);
+			_inCond.notify_one();
 		}
 
         std::size_t outDequeAvailable();
@@ -85,13 +100,13 @@ namespace JM
 		template<typename MutableBufferSequence>
         bool popOutDeque(const MutableBufferSequence &data)
 		{
+			boost::unique_lock<boost::mutex> lock(_outMutex);
 			std::size_t count = boost::asio::buffer_size(data);
 			boost::uint8_t *p = boost::asio::buffer_cast<boost::uint8_t*>(data);
-			boost::unique_lock<boost::mutex> lock(_outMutex);
 			if (_outDeque.empty() || _outDeque.size() < count)
 				return false;
 
-			for (std::size_t i = 0; i < count; i++)
+			for (std::size_t i = 0; i < count; ++i)
 			{
 				p[i] = _outDeque.front();
 				_outDeque.pop_front();
@@ -107,40 +122,42 @@ namespace JM
 		template<typename MutableBufferSequence>
         std::size_t readImmediately(const MutableBufferSequence &data)
 		{
-			std::size_t count = boost::asio::buffer_size(data);
 			boost::unique_lock<boost::mutex> lock(_inMutex);
+			std::size_t count = boost::asio::buffer_size(data);
 			boost::uint8_t *p = boost::asio::buffer_cast<boost::uint8_t*>(data);
-			for (std::size_t i = 0; i < count; i++)
+			for (std::size_t i = 0; i < count; ++i)
 			{
 				p[i] = _inDeque.front();
 				_inDeque.pop_front();
 			}
+			JM::Log::inst().write("Commbox Port Read", p, count);
 			return count;
 		}
 
 		template<typename MutableBufferSequence>
         std::size_t readWithoutTimeout(const MutableBufferSequence &data)
 		{
-			std::size_t count = boost::asio::buffer_size(data);
 			boost::unique_lock<boost::mutex> lock(_inMutex);
+			std::size_t count = boost::asio::buffer_size(data);
 			boost::uint8_t *p = boost::asio::buffer_cast<boost::uint8_t*>(data);
 			while (_inDeque.size() < count)
 			{
 				_inCond.wait(lock);
 			}
-			for (std::size_t i = 0; i < count; i++)
+			for (std::size_t i = 0; i < count; ++i)
 			{
 				p[i] = _inDeque.front();
 				_inDeque.pop_front();
 			}
+			JM::Log::inst().write("Commbox Port Read", p, count);
 			return count;
 		}
 
 		template<typename MutableBufferSequence>
         std::size_t readWithTimeout(const MutableBufferSequence &data)
 		{
-			std::size_t count = boost::asio::buffer_size(data);
 			boost::unique_lock<boost::mutex> lock(_inMutex);
+			std::size_t count = boost::asio::buffer_size(data);
 			boost::uint8_t *p = boost::asio::buffer_cast<boost::uint8_t*>(data);
 			size_t len = 0;
 			while (_inCond.timed_wait(lock, _readTimeout))
@@ -148,15 +165,16 @@ namespace JM
 				std::size_t size = _inDeque.size();
 				if (size >= count)
 				{
-					for (std::size_t i = 0; i < count; i++)
+					for (std::size_t i = 0; i < count; ++i)
 					{
 						p[i + len] = _inDeque.front();
 						_inDeque.pop_front();
 					}
 					len += count;
+					JM::Log::inst().write("Commbox Port Read", p, len);
 					break;
 				}
-				for (std::size_t i = 0; i < size; i++)
+				for (std::size_t i = 0; i < size; ++i)
 				{
 					p[i + len] = _inDeque.front();
 					_inDeque.pop_front();
@@ -175,7 +193,7 @@ namespace JM
 		boost::mutex _outMutex;
 		boost::condition_variable _inCond;
         JMCommboxPortType _portType;
-        pointer_t _pointer;
+		JM::PhysicalPortThread<JM::SerialPort, JM::CommboxPort> _serialPortThread;
     };
 }
 

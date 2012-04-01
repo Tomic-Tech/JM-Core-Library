@@ -2,6 +2,17 @@
 
 namespace JM
 {
+	Link::Link()
+		: _prc(NULL)
+	{
+
+	}
+
+	void Link::setProtocol(pointer_t p)
+	{
+		_prc = p;
+	}
+
 	pointer_t Link::protocol()
 	{
 		return _prc;

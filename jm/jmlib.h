@@ -93,17 +93,17 @@ int32_t jm_commbox_set_connector(JMConnector cnn);
 /* Commbox Port                                                         */
 /************************************************************************/
 // If we use SerialPort (or other need) we will need a pointer to operate.
-void jm_commbox_port_set_pointer(pointer_t p);
-pointer_t jm_commbox_port_get_pointer(void);
+//void jm_commbox_port_set_pointer(pointer_t p);
+//pointer_t jm_commbox_port_get_pointer(void);
 void jm_commbox_port_set_type(JMCommboxPortType type);
-JMCommboxPortType jm_commbox_port_get_type(void);
-int32_t jm_commbox_port_set_read_timeout(int64_t microseconds);
-int32_t jm_commbox_port_set_write_timeout(int64_t microseconds);
-size_t jm_commbox_port_bytes_available(void);
-int32_t jm_commbox_port_discard_out_buffer(void);
-int32_t jm_commbox_port_discard_in_buffer(void);
-size_t jm_commbox_port_read(uint8_t *data, size_t count);
-size_t jm_commbox_port_write(const uint8_t *data, size_t count);
+//JMCommboxPortType jm_commbox_port_get_type(void);
+//int32_t jm_commbox_port_set_read_timeout(int64_t microseconds);
+//int32_t jm_commbox_port_set_write_timeout(int64_t microseconds);
+//size_t jm_commbox_port_bytes_available(void);
+//int32_t jm_commbox_port_discard_out_buffer(void);
+//int32_t jm_commbox_port_discard_in_buffer(void);
+//size_t jm_commbox_port_read(uint8_t *data, size_t count);
+//size_t jm_commbox_port_write(const uint8_t *data, size_t count);
 
 void jm_commbox_port_push_in_deque(const uint8_t *data, size_t count);
 boolean_t jm_commbox_port_out_deque_available(void);
@@ -123,6 +123,7 @@ size_t jm_canbus_unpack(const uint8_t *src, size_t src_length, uint8_t *tar, siz
 int32_t jm_canbus_set_lines(int32_t high, int32_t low);
 int32_t jm_canbus_set_filter(const int32_t *id_array, size_t count);
 int32_t jm_canbus_set_options(int32_t id, JMCanbusBaud baud, JMCanbusIDMode id_mode, JMCanbusFilterMask mask, JMCanbusFrameType frame);
+int32_t jm_canbus_init(void);
 
 /************************************************************************/
 /* KWP2000                                                              */
@@ -220,6 +221,11 @@ void jm_ld_array_set_enabled(int32_t index, boolean_t enabled);
 boolean_t jm_ld_array_get_enabled(int32_t index);
 void jm_ld_array_set_showed(int32_t index, boolean_t show);
 boolean_t jm_ld_array_get_showed(int32_t index);
+
+/************************************************************************/
+/* JM Diagnose                                                          */
+/************************************************************************/
+char* jm_diag_calc_std_obd_dtc(const uint8_t *buff, size_t buff_length, int32_t pos, int32_t factor, int32_t offset);
 
 /************************************************************************/
 /* JM Lib                                                               */

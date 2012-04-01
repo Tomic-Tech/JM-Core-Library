@@ -18,13 +18,13 @@ namespace JM
                 , _shared(shared)
                 , _protocol(boost::make_shared<ProtocolType>(box, shared))
             {
-
+				setProtocol((pointer_t)_protocol.get());
             }
 
             std::size_t sendAndRecv(const boost::uint8_t *send, std::size_t count, boost::uint8_t *recv, std::size_t maxLength)
             {
                 boost::uint32_t times = 3;
-                while (times--)
+                while (--times)
                 {
                     if (sendFrames(send, count) > 0)
                     {

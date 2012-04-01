@@ -27,11 +27,11 @@ static int _lua_jm_iso14230_set_options(lua_State *L)
 
     while (lua_jm_kwp_mode[msg_mode_i].name != NULL &&
         strncmp(msg_mode, lua_jm_kwp_mode[msg_mode_i].name, msg_mode_length) != 0)
-        msg_mode_i++;
+        ++msg_mode_i;
 
     while (lua_jm_kwp_mode[link_mode_i].name != NULL &&
         strncmp(link_mode, lua_jm_kwp_mode[link_mode_i].name, link_mode_length) != 0)
-        link_mode_i++;
+        ++link_mode_i;
 
     if (lua_jm_kwp_mode[msg_mode_i].name == NULL ||
         lua_jm_kwp_mode[link_mode_i].name == NULL)

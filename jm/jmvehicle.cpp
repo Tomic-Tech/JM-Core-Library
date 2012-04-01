@@ -139,6 +139,8 @@ static int report (lua_State *L, int status)
 		const char *msg = lua_tostring(L, -1);
 		if (msg == NULL) msg = "(error object is not a string)";
 		l_message(progname, msg);
+		// Here we add message for JMScanner
+		JM::Log::inst().write("Lua Scirpt", msg);
 		lua_pop(L, 1);
 		/* force a complete garbage collection in case of errors */
 		lua_gc(L, LUA_GCCOLLECT, 0);
@@ -197,13 +199,13 @@ static int getargs (lua_State *L, char **argv, int n)
 	int narg;
 	int i;
 	int argc = 0;
-	while (argv[argc]) argc++;  /* count total number of arguments */
+	while (argv[argc]) ++argc;  /* count total number of arguments */
 	narg = argc - (n + 1);  /* number of arguments to the script */
 	luaL_checkstack(L, narg + 3, "too many arguments to script");
-	for (i=n+1; i < argc; i++)
+	for (i=n+1; i < argc; ++i)
 		lua_pushstring(L, argv[i]);
 	lua_createtable(L, narg, n + 1);
-	for (i=0; i < argc; i++)
+	for (i=0; i < argc; ++i)
 	{
 		lua_pushstring(L, argv[i]);
 		lua_rawseti(L, -2, i - n);
@@ -370,7 +372,7 @@ static int handle_script (lua_State *L, char **argv, int n)
 static int collectargs (char **argv, int *args)
 {
 	int i;
-	for (i = 1; argv[i] != NULL; i++)
+	for (i = 1; argv[i] != NULL; ++i)
 	{
 		if (argv[i][0] != '-')  /* not an option? */
 			return i;
@@ -396,7 +398,7 @@ static int collectargs (char **argv, int *args)
 		case 'l':  /* both options need an argument */
 			if (argv[i][2] == '\0')
 			{  /* no concatenated argument? */
-				i++;  /* try next 'argv' */
+				++i;  /* try next 'argv' */
 				if (argv[i] == NULL || argv[i][0] == '-')
 					return -(i - 1);  /* no next argument or it is another option */
 			}
@@ -411,7 +413,7 @@ static int collectargs (char **argv, int *args)
 static int runargs (lua_State *L, char **argv, int n)
 {
 	int i;
-	for (i = 1; i < n; i++)
+	for (i = 1; i < n; ++i)
 	{
 		lua_assert(argv[i][0] == '-');
 		switch (argv[i][1])
@@ -527,7 +529,7 @@ namespace JM
 
 		strArray = boost::split(strArray, softwarePath, boost::is_any_of("\\/"));
 
-		for (std::vector<std::string>::iterator it = strArray.begin(); it != strArray.end(); it++)
+		for (std::vector<std::string>::iterator it = strArray.begin(); it != strArray.end(); ++it)
 		{
 			if (it != strArray.begin())
 			{

@@ -21,6 +21,10 @@ namespace JM
 
 	void Log::write(const std::string &str)
 	{
+#ifdef _MSC_VER
+		OutputDebugStringA(str.c_str());
+		OutputDebugStringA("\n");
+#endif
 		BOOST_LOG_TRIVIAL(trace) << str;
 	}
 
@@ -41,9 +45,10 @@ namespace JM
 	{
 		std::stringstream ss;
 		ss << tag << " : ";
-		for (std::size_t i = 0;i < count; i++)
+		for (std::size_t i = 0;i < count; ++i)
 		{
-			ss << std::setw(2) << std::setfill('0') << std::hex << data[i] << " ";
+			ss << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(data[i]) << " ";
 		}
+		write(ss.str());
 	}
 }

@@ -256,7 +256,7 @@ namespace JM
                         memcpy(result.data(), temp.data(), temp.size());
                         frameLength += temp.size();
                         memcpy(result.data() + frameLength, &b, 1);
-                        frameLength++;
+                        ++frameLength;
                         length = _box->readBytes(result.data() + KWP80_HEADER_LENGTH, length + KWP_CHECKSUM_LENGTH);
                         frameLength += length;
                     }
@@ -311,7 +311,7 @@ namespace JM
                 }
 
                 checksum = 0;
-                for (i = 0; i < frameLength - 1; i++)
+                for (i = 0; i < frameLength - 1; ++i)
                 {
                     checksum += result[i];
                 }

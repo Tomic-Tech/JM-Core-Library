@@ -67,7 +67,7 @@ static int _lua_jm_db_get_command(lua_State *L)
         luaL_Buffer b;
         size_t i;
         luaL_buffinit(L, &b);
-        for (i = 0; i < jm_byte_array_size(cmd); i++)
+        for (i = 0; i < jm_byte_array_size(cmd); ++i)
         {
             luaL_addchar(&b, jm_byte_array_data(cmd)[i]);
         }
@@ -90,7 +90,7 @@ static int _lua_jm_db_get_command_id(lua_State *L)
         luaL_Buffer b;
         size_t i;
         luaL_buffinit(L, &b);
-        for (i = 0; i < jm_byte_array_size(cmd); i++)
+        for (i = 0; i < jm_byte_array_size(cmd); ++i)
         {
             luaL_addchar(&b, jm_byte_array_data(cmd)[i]);
         }
@@ -111,7 +111,7 @@ static int _lua_jm_db_get_live_data(lua_State *L)
     lua_newtable(L); /* creates root table for LDArray */
     
     size = jm_ld_array_size();
-    for (i = 0; i < size; i++)
+    for (i = 0; i < size; ++i)
     {
         lua_pushinteger(L, i + 1); /* C zero begin, lua one begin */
         lua_newtable(L); /* sub table */

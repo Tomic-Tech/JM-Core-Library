@@ -18,7 +18,7 @@ namespace JM
 
 	UserInterface::~UserInterface()
 	{
-		for (std::deque<JMUIMessage*>::iterator it = _msgQueue.begin(); it != _msgQueue.end(); it++)
+		for (std::deque<JMUIMessage*>::iterator it = _msgQueue.begin(); it != _msgQueue.end(); ++it)
 		{
 			msgFree(*it);
 		}

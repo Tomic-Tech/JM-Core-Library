@@ -42,7 +42,7 @@ static int _lua_jm_comm_read_one_frame(lua_State *L) {
         size_t i;
         luaL_buffinit(L, &b);
 
-        for (i = 0; i < ret; i++) {
+        for (i = 0; i < ret; ++i) {
             luaL_addchar(&b, data[i]);
         }
         luaL_pushresult(&b);
@@ -67,7 +67,7 @@ static int _lua_jm_comm_read_frames(lua_State *L) {
         size_t i;
         luaL_buffinit(L, &b);
 
-        for (i = 0; i < ret; i++)
+        for (i = 0; i < ret; ++i)
         {
             luaL_addchar(&b, data[i]);
         }
@@ -95,7 +95,7 @@ static int _lua_jm_comm_send_and_recv(lua_State *L)
         size_t i;
         luaL_buffinit(L, &b);
 
-        for (i = 0; i < ret; i++)
+        for (i = 0; i < ret; ++i)
         {
             luaL_addchar(&b, recv[i]);
         }

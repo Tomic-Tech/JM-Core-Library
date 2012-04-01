@@ -77,7 +77,7 @@ namespace JM
 			pos += srcLength;
 		}
 
-		for (i = 0; i < pos; i++)
+		for (i = 0; i < pos; ++i)
 		{
 			checksum += tar[i];
 		}

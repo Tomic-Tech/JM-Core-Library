@@ -14,6 +14,7 @@
 #include "jmkwp2000.hpp"
 #include "jmmikuni.hpp"
 #include "jmui.hpp"
+#include "jmdiag.hpp"
 
 static char* _jm_std_string_to_char(const std::string &text)
 {
@@ -325,70 +326,70 @@ extern "C"
         JM::CommboxPort::inst().setType(type);
     }
 
-    JMCommboxPortType jm_commbox_port_get_type(void)
-    {
-        return JM::CommboxPort::inst().type();
-    }
+    //JMCommboxPortType jm_commbox_port_get_type(void)
+    //{
+    //    return JM::CommboxPort::inst().type();
+    //}
 
-    void jm_commbox_port_set_pointer(pointer_t p)
-    {
-        JM::CommboxPort::inst().setPointer(p);
-    }
+    //void jm_commbox_port_set_pointer(pointer_t p)
+    //{
+    //    JM::CommboxPort::inst().setPointer(p);
+    //}
 
-    pointer_t jm_commbox_port_get_pointer(void)
-    {
-        return JM::CommboxPort::inst().pointer();
-    }
+    //pointer_t jm_commbox_port_get_pointer(void)
+    //{
+    //    return JM::CommboxPort::inst().pointer();
+    //}
 
-    int32_t jm_commbox_port_set_read_timeout(int64_t microseconds) 
-    {
-        return JM::CommboxPort::inst().setReadTimeout(boost::posix_time::microseconds(microseconds));
-    }
+    //int32_t jm_commbox_port_set_read_timeout(int64_t microseconds) 
+    //{
+    //    return JM::CommboxPort::inst().setReadTimeout(boost::posix_time::microseconds(microseconds));
+    //}
 
-    int32_t jm_commbox_port_set_write_timeout(int64_t microseconds)
-    {
-        return JM::CommboxPort::inst().setWriteTimeout(boost::posix_time::microseconds(microseconds));
-    }
+    //int32_t jm_commbox_port_set_write_timeout(int64_t microseconds)
+    //{
+    //    return JM::CommboxPort::inst().setWriteTimeout(boost::posix_time::microseconds(microseconds));
+    //}
 
-    size_t jm_commbox_port_bytes_available(void)
-    {
-        return JM::CommboxPort::inst().bytesAvailable();
-    }
+    //size_t jm_commbox_port_bytes_available(void)
+    //{
+    //    return JM::CommboxPort::inst().bytesAvailable();
+    //}
 
-    int32_t jm_commbox_port_discard_out_buffer(void)
-    {
-        return JM::CommboxPort::inst().discardOutBuffer();
-    }
+    //int32_t jm_commbox_port_discard_out_buffer(void)
+    //{
+    //    return JM::CommboxPort::inst().discardOutBuffer();
+    //}
 
-    int32_t jm_commbox_port_discard_in_buffer(void)
-    {
-        return JM::CommboxPort::inst().discardInBuffer();
-    }
+    //int32_t jm_commbox_port_discard_in_buffer(void)
+    //{
+    //    return JM::CommboxPort::inst().discardInBuffer();
+    //}
 
-    size_t jm_commbox_port_read(uint8_t *data, size_t count)
-    {
-        return JM::CommboxPort::inst().read(boost::asio::mutable_buffer(data, count));
-    }
+    //size_t jm_commbox_port_read(uint8_t *data, size_t count)
+    //{
+    //    return JM::CommboxPort::inst().read(boost::asio::mutable_buffer(data, count));
+    //}
 
-    size_t jm_commbox_port_write(const uint8_t *data, size_t count)
-    {
-        return JM::CommboxPort::inst().write(boost::asio::const_buffer(data, count));
-    }
+    //size_t jm_commbox_port_write(const uint8_t *data, size_t count)
+    //{
+    //    return JM::CommboxPort::inst().write(boost::asio::const_buffer(data, count));
+    //}
 
-    void jm_commbox_port_push_in_deque(const uint8_t *data, size_t count)
-    {
-        JM::CommboxPort::inst().pushInDeque(boost::asio::const_buffer(data, count));
-    }
+    //void jm_commbox_port_push_in_deque(const uint8_t *data, size_t count)
+    //{
+    //    JM::CommboxPort::inst().pushInDeque(boost::asio::const_buffer(data, count));
+    //}
 
-    boolean_t jm_commbox_port_out_deque_available(void)
-    {
-        return JM::CommboxPort::inst().outDequeAvailable();
-    }
+    //boolean_t jm_commbox_port_out_deque_available(void)
+    //{
+    //    return JM::CommboxPort::inst().outDequeAvailable();
+    //}
 
-    boolean_t jm_commbox_port_pop_out_deque(uint8_t *data, size_t count)
-    {
-        return JM::CommboxPort::inst().popOutDeque(boost::asio::mutable_buffer(data, count));
-    }
+    //boolean_t jm_commbox_port_pop_out_deque(uint8_t *data, size_t count)
+    //{
+    //    return JM::CommboxPort::inst().popOutDeque(boost::asio::mutable_buffer(data, count));
+    //}
 
     /************************************************************************/
     /* Commbox Factory                                                      */
@@ -443,6 +444,13 @@ extern "C"
 			return JM_ERROR_GENERIC;
         return ((JM::Canbus*)(_canbus_handle))->setOptions(id, baud, id_mode, mask, frame);
     }
+
+	int32_t jm_canbus_init(void)
+	{
+		if (_canbus_handle == NULL)
+			return JM_ERROR_GENERIC;
+		return ((JM::Canbus*)(_canbus_handle))->init();
+	}
     
     /************************************************************************/
     /* KWP2000                                                              */
@@ -893,6 +901,15 @@ extern "C"
 	boolean_t jm_ld_array_get_showed(int32_t index)
 	{
 		return JM::LiveDataVector::globalAt(index)->showed();
+	}
+
+	/************************************************************************/
+	/* JM Diagnose                                                          */
+	/************************************************************************/
+	char* jm_diag_calc_std_obd_dtc(const uint8_t *buff, size_t buff_length, int32_t pos, int32_t factor, int32_t offset)
+	{
+		std::string code = JM::Diag::inst().calcStdOBDTroubleCode(boost::asio::const_buffer(buff, buff_length), pos, factor, offset);
+		return _jm_std_string_to_char(code);
 	}
 
     /************************************************************************/

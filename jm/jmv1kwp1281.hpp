@@ -240,7 +240,7 @@ namespace JM
                     return 0;
                 }
 
-                pos++;
+                ++pos;
                 len = temp[0];
 
                 if (_box->readBytes(temp.data() + pos, len) != len)

@@ -278,7 +278,7 @@ namespace JM
 		BOOL DiskInfo::AddIfNew(USHORT *pIdSector)
 		{
 			BOOL bAdd = TRUE;
-			for (UINT i = 0; i < m_list.size(); i++)
+			for (UINT i = 0; i < m_list.size(); ++i)
 			{
 				if (memcmp(pIdSector, m_list[i].get(), 256 * sizeof(WORD)) == 0)
 				{
@@ -305,10 +305,10 @@ namespace JM
 			std::size_t num = str.size();
 			for (std::size_t i = 0; i < num; i += 4)
 			{
-				for (std::size_t j = 1; j >= 0; j--)
+				for (std::size_t j = 1; j >= 0; --j)
 				{
 					int sum = 0;
-					for (std::size_t k = 0; k < 2; k++)
+					for (std::size_t k = 0; k < 2; ++k)
 					{
 						sum *= 16;
 						switch (str[i + j * 2 + k])
@@ -350,7 +350,7 @@ namespace JM
 			std::string str;
 
 			//  each integer has two characters stored in it backwards
-			for (int index = firstIndex; index <= lastIndex; index++)
+			for (int index = firstIndex; index <= lastIndex; ++index)
 			{
 				char c;
 				//  get high byte for 1st character
@@ -371,7 +371,7 @@ namespace JM
 			BOOL done = FALSE;
 			int drive = 0;
 
-			for (drive = 0; drive < MAX_IDE_DRIVES; drive++)
+			for (drive = 0; drive < MAX_IDE_DRIVES; ++drive)
 			{
 				HANDLE hPhysicalDriveIOCTL = 0;
 
@@ -430,7 +430,7 @@ namespace JM
 			BOOL done = FALSE;
 			int drive = 0;
 			BYTE IdOutCmd [sizeof (SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE - 1];
-			for (drive = 0; drive < MAX_IDE_DRIVES; drive++)
+			for (drive = 0; drive < MAX_IDE_DRIVES; ++drive)
 			{
 				HANDLE hPhysicalDriveIOCTL = 0;
 
@@ -490,7 +490,7 @@ namespace JM
 			BOOL done = FALSE;
 			int drive = 0;
 
-			for (drive = 0; drive < MAX_IDE_DRIVES; drive++)
+			for (drive = 0; drive < MAX_IDE_DRIVES; ++drive)
 			{
 				HANDLE hPhysicalDriveIOCTL = 0;
 
@@ -606,18 +606,18 @@ namespace JM
 
 
 			// 4. Translate and store 
-			for (i=0; i<8; i++)
+			for (i=0; i<8; ++i)
 			{
 				if((pOutBufVxD->DiskExists[i]) && (pOutBufVxD->IDEExists[i/2]))
 				{
 					size_t j;
 					BOOL bAdd;
 					boost::shared_array<WORD> diskdata(new WORD[256]);
-					for (j = 0; j < 256; j++) diskdata [j] = pOutBufVxD -> DisksRawInfo [i * 256 + j];
+					for (j = 0; j < 256; ++j) diskdata [j] = pOutBufVxD -> DisksRawInfo [i * 256 + j];
 
 					// process the information for this buffer
 					bAdd = TRUE;
-					for(j =0; j< m_list.size();j++)
+					for(j =0; j< m_list.size();++j)
 					{
 						if(memcmp(diskdata.get(), m_list[j].get(), 256 * sizeof(WORD)) == 0)
 						{
@@ -642,7 +642,7 @@ namespace JM
 			BOOL done = FALSE;
 			int controller = 0;
 
-			for (controller = 0; controller < 16; controller++)
+			for (controller = 0; controller < 16; ++controller)
 			{
 				HANDLE hScsiDriveIOCTL = 0;
 				std::stringstream driveName;
@@ -659,7 +659,7 @@ namespace JM
 				{
 					int drive = 0;
 
-					for (drive = 0; drive < 2; drive++)
+					for (drive = 0; drive < 2; ++drive)
 					{
 						char buffer [sizeof (SRB_IO_CONTROL) + SENDIDLENGTH];
 						SRB_IO_CONTROL *p = (SRB_IO_CONTROL *) buffer;
@@ -795,7 +795,7 @@ namespace JM
 				BOOL done = FALSE;
 
 				//  try this up to 10 times to get a hard drive serial number
-				for(int attempt = 0; attempt < 10 && !done; attempt ++)
+				for(int attempt = 0; attempt < 10 && !done; ++attempt)
 				{
 					done = ReadDrivePortsInWin9X ();
 				}

@@ -55,6 +55,7 @@ namespace JM
                 default:
                     break;
                 }
+				ret->setProtocolType(type);
                 return ret;
             }
         private:

@@ -89,7 +89,7 @@ namespace JM
             std::size_t count = DiskInfo::inst().load();
             std::size_t i;
 
-            for (i = 0; i < count; i++)
+            for (i = 0; i < count; ++i)
             {
                 temp = DiskInfo::inst().serialNumber(i);
 				plain << temp << std::endl;

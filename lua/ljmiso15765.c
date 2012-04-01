@@ -36,22 +36,22 @@ static int _lua_jm_iso15765_set_options(lua_State *L)
     while (lua_jm_canbus_baud[baud_i].name != NULL &&
         strncmp(baud, lua_jm_canbus_baud[baud_i].name, baud_length) != 0)
     {
-        baud_i++;
+        ++baud_i;
     }
     while (lua_jm_canbus_id_mode[id_mode_i].name != NULL &&
         strncmp(id_mode, lua_jm_canbus_id_mode[id_mode_i].name, id_mode_length) != 0)
     {
-        id_mode_i++;
+        ++id_mode_i;
     }
     while (lua_jm_canbus_filter_mask[mask_i].name != NULL &&
         strncmp(mask, lua_jm_canbus_filter_mask[mask_i].name, mask_length) != 0)
     {
-        mask_i++;
+        ++mask_i;
     }
     while (lua_jm_canbus_frame_type[frame_i].name != NULL &&
         strncmp(frame, lua_jm_canbus_frame_type[frame_i].name, frame_length) != 0)
     {
-        frame_i++;
+        ++frame_i;
     }
     if (lua_jm_canbus_baud[baud_i].name == NULL ||
         lua_jm_canbus_id_mode[id_mode_i].name == NULL ||
@@ -108,34 +108,26 @@ static int _lua_jm_iso15765_set_filter(lua_State *L)
 {
     size_t i = 0;
     int32_t id[16] = {0};
+	int32_t l;
     
+	if (jm_link_protocol_type() != JM_PRC_ISO15765)
+	{
+		lua_pushboolean(L, 0);
+		return 1;
+	}
 
-    if (jm_link_protocol_type() != JM_PRC_ISO15765)
+	l = lua_gettop(L);
+	lua_pushnil(L);
+    while (lua_next(L, l))
     {
-        lua_pushboolean(L, 0);
-        return 1;
-    }
-
-    while (TRUE)
-    {
-        /* Add key we're interested in to the stack */
-        lua_pushinteger(L, i + 1);
-        /* Have Lua functions look up the keyed value */
-        lua_gettable(L, -2);
-        if (!lua_isnil(L, -1) && lua_isnumber(L, -1) && i != 16)
-        { /* Check if the last table key or none number */
-            id[i] = (int32_t)lua_tonumber(L, -1);
-            lua_pop(L, 1);
-            i++;
-        }
-        else
-        {
-            lua_pop(L, 1);
-            break;
-        }
+		id[i++] = luaL_checknumber(L, -1);
+		lua_pop(L, 1);
     }
     if (i == 0)
+	{
         lua_pushboolean(L, 0);
+		return 1;
+	}
     if (jm_canbus_set_filter(id, i) != JM_ERROR_SUCCESS)
     {
         lua_pushboolean(L, 0);
@@ -147,11 +139,25 @@ static int _lua_jm_iso15765_set_filter(lua_State *L)
     return 1;
 }
 
+static int _lua_jm_iso15765_init(lua_State *L)
+{
+	if (jm_canbus_init() != JM_ERROR_SUCCESS)
+	{
+		lua_pushboolean(L, 0);
+	}
+	else
+	{
+		lua_pushboolean(L, 1);
+	}
+	return 1;
+}
+
 static const luaL_Reg _lua_jm_iso15765_lib[] =
 {
     {"setOptions", _lua_jm_iso15765_set_options},
     {"setLines", _lua_jm_iso15765_set_lines},
     {"setFilter", _lua_jm_iso15765_set_filter},
+	{"init", _lua_jm_iso15765_init},
     {NULL, NULL}
 };
 

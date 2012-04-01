@@ -126,10 +126,10 @@ namespace JM
                     ctrlWord[2] = ctrlWord3;
                     if (ctrlWord3 == 0)
                     {
-                        length--;
+                        --length;
                         if (ctrlWord2 == 0)
                         {
-                            length--;
+                            --length;
                         }
                     }
 
@@ -267,7 +267,7 @@ namespace JM
                         cmd = Constant::STOP_REC;
                     }
 
-                    for (i = 0; i < 3; i++)
+                    for (i = 0; i < 3; ++i)
                     {
                         if (commboxPort().write(ConstBuffer(&cmd, 1)) != 1)
                             continue;
@@ -287,13 +287,14 @@ namespace JM
                 {
                     if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
                     {
-                        JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
-                        if (port == NULL)
-                            return false;
+						boost::shared_ptr<JM::SerialPort> port = commboxPort().getPhysicalPort<JM::SerialPort>();
+                        //JM::SerialPort *port = (JM::SerialPort*)commboxPort().pointer();
+                        //if (port == NULL)
+                        //    return false;
 
                         std::vector<std::string> vec = JM::SerialPort::getSystemPorts();
 
-                        for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+                        for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
                         {
                             port->setPortName(*it);
                             port->setBaudrate(115200);
@@ -318,7 +319,7 @@ namespace JM
                 {
 					if (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
 					{
-						if (!((JM::SerialPort*)commboxPort().pointer())->isOpen())
+						if (!commboxPort().getPhysicalPort<JM::SerialPort>()->isOpen())
 							return true;
 					}
 
@@ -327,7 +328,7 @@ namespace JM
 
 					if  (commboxPort().type() == JM_COMMBOX_PORT_SERIAL_PORT)
 					{
-						((JM::SerialPort*)commboxPort().pointer())->close();
+						commboxPort().getPhysicalPort<JM::SerialPort>()->close();
 					}
                     return true;
                 }
@@ -403,7 +404,7 @@ namespace JM
                             else if(_buf[i] >= Constant::REC_LEN_1 && 
                                 _buf[i] <= Constant::REC_LEN_15)
                             {
-                                i++; // ÌØÊâ 
+                                ++i; // ÌØÊâ 
                             }
                             else
                             {
@@ -534,7 +535,7 @@ namespace JM
 
 					command[0] = cmd;
 
-                    for (i = 0; i < count; i++)
+                    for (i = 0; i < count; ++i)
                     {
 						command[i + 1] = data[i];
                         cs += data[i];
@@ -542,7 +543,7 @@ namespace JM
 
 					command[i + 1] = cs;
 
-                    for (i = 0; i < 3; i++)
+                    for (i = 0; i < 3; ++i)
                     {
                         if (!checkIdle())
                         {
@@ -677,12 +678,12 @@ namespace JM
                     _shared->isDoNow = true;
                     _runFlag = 0;
 
-                    for (i = 0; i < 4; i++)
+                    for (i = 0; i < 4; ++i)
                     {
                         buf[i] = JM_LOW_BYTE(rand());
                     }
 
-                    for (i = 0; i < 10; i++)
+                    for (i = 0; i < 10; ++i)
                     {
                         run += password[i] ^ buf[i % 3 + 1];
                     }
@@ -702,14 +703,14 @@ namespace JM
                     }
                     _runFlag = 0; // Run 
                     _boxTimeUnit = 0;
-                    for (i = 0; i < 3; i++)
+                    for (i = 0; i < 3; ++i)
                     {
                         _boxTimeUnit = (_boxTimeUnit << 8) | buf[i];
                     }
                     _timeBaseDB = buf[i++];
                     _timeExternDB = buf[i++];
 
-                    for (i = 0; i < Constant::MAXPORT_NUM; i++)
+                    for (i = 0; i < Constant::MAXPORT_NUM; ++i)
                     {
                         _ports[i] = 0xFF;
                     }
@@ -790,7 +791,7 @@ namespace JM
                     commboxPort().discardOutBuffer();
                     commboxPort().discardInBuffer();
 
-                    for (i = 0; i < Constant::MAXPORT_NUM; i++)
+                    for (i = 0; i < Constant::MAXPORT_NUM; ++i)
                     {
                         _ports[i] = 0xFF;
                     }

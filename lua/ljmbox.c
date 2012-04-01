@@ -84,7 +84,7 @@ static int _lua_jm_commbox_configure(lua_State *L)
     while (_lua_jm_protocol_type[i].name != NULL &&
         strncmp(prc, _lua_jm_protocol_type[i].name, l) != 0)
     {
-        i++;
+        ++i;
     }
     if (_lua_jm_protocol_type[i].name == NULL)
     {
@@ -111,7 +111,7 @@ static int _lua_jm_commbox_set_connector(lua_State *L)
     while (_lua_jm_connector[i].name != NULL &&
         strncmp(cn, _lua_jm_connector[i].name, l) != 0)
     {
-        i++;
+        ++i;
     }
 
     if (_lua_jm_connector[i].name == NULL)

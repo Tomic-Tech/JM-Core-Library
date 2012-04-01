@@ -27,10 +27,10 @@ namespace JM
 		_vector.push_back(ptr);
 		if (ptr->enabled())
 		{
-			_enabledSize++;
+			++_enabledSize;
 			if (ptr->showed())
 			{
-				_showSize++;
+				++_showSize;
 			}
 		}
 	}
@@ -51,7 +51,7 @@ namespace JM
 
 			std::size_t size = _ldVector->_showIndexes.size();
 			boost::int32_t ret = _ldVector->_showIndexes[_ldVector->_currentEnabledIndex];
-			_ldVector->_currentEnabledIndex++;
+			++(_ldVector->_currentEnabledIndex);
 
 			if ((std::size_t)_ldVector->_currentEnabledIndex > (size - 1))
 				_ldVector->_currentEnabledIndex = 0;
@@ -103,7 +103,7 @@ namespace JM
 		{
 			_ldVector->_enabledIndexes.clear();
 
-			for (std::size_t i = 0; i < _ldVector->_vector.size(); i++)
+			for (std::size_t i = 0; i < _ldVector->_vector.size(); ++i)
 			{
 				LiveDataPtr ld = _ldVector->_vector[i];
 				if (ld->enabled())
@@ -120,7 +120,7 @@ namespace JM
 			_ldVector->_showIndexes.clear();
 
 			std::size_t j = 0;
-			for (std::size_t i = 0; i < _ldVector->_vector.size(); i++)
+			for (std::size_t i = 0; i < _ldVector->_vector.size(); ++i)
 			{
 				LiveDataPtr ld = _ldVector->_vector[i];
 
@@ -182,14 +182,14 @@ namespace JM
 			{
 				if (ld->enabled() && showed)
 				{
-					_ldVector->_showSize++;
+					++(_ldVector->_showSize);
 				}
 			}
 			else
 			{
 				if (ld->enabled() && !showed)
 				{
-					_ldVector->_showSize--;
+					--_ldVector->_showSize;
 				}
 			}
 
@@ -209,10 +209,10 @@ namespace JM
 			{
 				if (enabled)
 				{
-					_ldVector->_enabledSize++;
+					++(_ldVector->_enabledSize);
 					if (ld->showed())
 					{
-						_ldVector->_showSize++;
+						++(_ldVector->_showSize);
 					}
 				}
 			}
@@ -220,10 +220,10 @@ namespace JM
 			{
 				if (!enabled)
 				{
-					_ldVector->_enabledSize--;
+					--_ldVector->_enabledSize;
 					if (ld->showed())
 					{
-						_ldVector->_showSize--;
+						--_ldVector->_showSize;
 					}
 				}
 			}

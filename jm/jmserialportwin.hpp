@@ -6,7 +6,7 @@ namespace JM
 	template<typename DurationType>
 	boost::int32_t SerialPort::setWriteTimeout(DurationType const &time)
 	{
-		boost::unique_lock<boost::mutex> lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		_writeTimeout = time;
 
@@ -46,7 +46,7 @@ namespace JM
 	template<typename DurationType>
 	boost::int32_t SerialPort::setReadTimeout(DurationType const &time)
 	{
-		boost::unique_lock<boost::mutex> lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		_readTimeout = time;
 
@@ -90,7 +90,7 @@ namespace JM
 	{
 		DWORD retVal = -1;
 
-		boost::unique_lock<boost::mutex> lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -103,7 +103,7 @@ namespace JM
 
 		if (ReadFile(_handle, (void*)p, (DWORD)count, &retVal, NULL))
 		{
-			JM::Log::inst().write("Serial Port: read", p, retVal);
+			//JM::Log::inst().write("Serial Port: read", p, retVal);
 		}		
 
 		
@@ -115,7 +115,7 @@ namespace JM
 	{
 		DWORD retVal = -1;
 
-		boost::unique_lock<boost::mutex> lock(_mutex);
+		boost::recursive_mutex::scoped_lock lock(_mutex);
 
 		if (!isOpen())
 		{
@@ -125,7 +125,7 @@ namespace JM
 
 		const boost::uint8_t *p = boost::asio::buffer_cast<const boost::uint8_t*>(data);
 		std::size_t count = boost::asio::buffer_size(data);
-		JM::Log::inst().write("Serial Port: write", p, count);
+		//JM::Log::inst().write("Serial Port: write", p, count);
 
 		WriteFile(_handle, (const void*)p, (DWORD)count, &retVal, NULL);
 

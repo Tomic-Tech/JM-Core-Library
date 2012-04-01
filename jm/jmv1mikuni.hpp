@@ -117,7 +117,7 @@ namespace JM
 
                 while (_box->readBytes(p++, 1) == 1)
                 {
-                    tempLength++;
+                    ++tempLength;
                     if (before == 0x0D && (*p) == 0x0A)
                     {
                         break;

@@ -37,11 +37,11 @@ jm_serial_port_set_dtr
 jm_serial_port_set_rts
 jm_serial_port_get_system_ports
 
-jm_commbox_port_set_pointer
+;jm_commbox_port_set_pointer
 jm_commbox_port_set_type
-jm_commbox_port_push_in_deque
-jm_commbox_port_pop_out_deque
-jm_commbox_port_out_deque_available
+;jm_commbox_port_push_in_deque
+;jm_commbox_port_pop_out_deque
+;jm_commbox_port_out_deque_available
 
 jm_commbox_factory_set_commbox_version
 

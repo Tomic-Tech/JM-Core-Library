@@ -11,7 +11,7 @@ JM_BEGIN_DECLS
 
 #define JM_HIGH_BYTE(value) (uint8_t)(((uint16_t)(value) >> 8) & 0xFF)
 #define JM_LOW_BYTE(value) (uint8_t)((uint16_t)(value) & 0xFF)
-#define JM_HIGH_WORD(value) (uint16_t)(((uint32_t)(value) >> 16) & 0xFFF)
+#define JM_HIGH_WORD(value) (uint16_t)(((uint32_t)(value) >> 16) & 0xFFFF)
 #define JM_LOW_WORD(value) (uint16_t)((uint32_t)(value) & 0xFFFF)
 
 JM_END_DECLS

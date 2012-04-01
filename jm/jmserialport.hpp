@@ -104,7 +104,7 @@ namespace JM
         boost::int32_t _baudrate;
         bool _isMultiSetting;
         boost::uint8_t _databits;
-		boost::mutex _mutex;
+		boost::recursive_mutex _mutex;
 #ifdef BOOST_WINDOWS
         boost::int64_t _bytesToWrite;
         HANDLE _handle;
