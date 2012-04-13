@@ -22,9 +22,53 @@ LiveDataVector::~LiveDataVector()
 
 }
 
-static void setValue(const LiveDataPtr &ptr, const std::string &value)
+void LiveDataVector::setValue(boost::int32_t index, const std::string &value)
 {
-    UI::Message::inst().ldSetValue(ptr->index(), value);
+    UI::Message::inst().ldSetValue(index, value);
+}
+
+void LiveDataVector::setShowed(boost::int32_t index, bool showed)
+{
+    if (_vector[index]->showed())
+    {
+        if (_vector[index]->enabled() && showed)
+        {
+            ++_showSize;
+        }
+    }
+    else
+    {
+        if (_vector[index]->enabled() && !showed)
+        {
+            --_showSize;
+        }
+    }
+}
+
+void LiveDataVector::setEnabled(boost::int32_t index, bool enabled)
+{
+    if (!_vector[index]->enabled())
+    {
+        if (enabled)
+        {
+            ++_enabledSize;
+            if (_vector[index]->showed())
+            {
+                ++_showSize;
+            }
+        }
+    }
+    else
+    {
+        if (!enabled)
+        {
+            --_enabledSize;
+            if (_vector[index]->showed())
+            {
+                --_showSize;
+            }
+        }
+    }
 }
 
 void LiveDataVector::push_back(const LiveDataPtr &ptr)
@@ -33,7 +77,9 @@ void LiveDataVector::push_back(const LiveDataPtr &ptr)
     ptr->setIndex(_vector.size());
     _vector.push_back(ptr);
 
-    ptr->valueChanged.connect(boost::bind(setValue, ptr, _1));
+    ptr->valueChanged.connect(boost::bind(&LiveDataVector::setValue, this, _vector.size() - 1, _1));
+    ptr->showedChanged.connect(boost::bind(&LiveDataVector::setShowed, this, _vector.size() - 1, _1));
+    ptr->enabledChanged.connect(boost::bind(&LiveDataVector::setEnabled, this, _vector.size() - 1, _1));
 
     if (ptr->enabled())
     {

@@ -34,7 +34,10 @@ public:
     JMCORE_API std::size_t showedSize();
     JMCORE_API const LiveDataPtr& at(std::size_t index);
     JMCORE_API const LiveDataPtr& operator[] (std::size_t index);
-
+private:
+    void setValue(boost::int32_t index, const std::string &value);
+    void setShowed(boost::int32_t index, bool showed);
+    void setEnabled(boost::int32_t index, bool enabled);
 private:
     std::vector<LiveDataPtr> _vector;
     std::vector<boost::int32_t> _showIndexes;
