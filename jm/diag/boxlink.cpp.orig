@@ -1,0 +1,18 @@
+#include "boxlink.hpp"
+
+namespace JM
+{
+namespace Diag
+{
+BoxLink::BoxLink()
+: _ptr()
+{
+
+}
+
+void BoxLink::setProtocol(void *p)
+{
+    _ptr.reset(p);
+}
+}
+}

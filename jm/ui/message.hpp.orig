@@ -1,0 +1,106 @@
+#ifndef __MESSAGE_HPP__
+#define __MESSAGE_HPP__
+
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#include <string>
+#include <deque>
+#include <boost/thread.hpp>
+
+namespace JM
+{
+namespace UI
+{
+class Message
+{
+public:
+    enum Type
+    {
+        MAIN_SHOW,
+        MSG_BOX_BTN_CLR,
+        MSG_BOX_ADD_BTN,
+        MSG_BOX_SET_MSG,
+        MSG_BOX_SET_TITLE,
+        MSG_BOX_SHOW,
+        MSG_BOX_HIDE,
+        LIST_BOX_BTN_CLR,
+        LIST_BOX_ADD_BTN,
+        LIST_BOX_ITEM_CLR,
+        LIST_BOX_ADD_ITEM,
+        LIST_BOX_SHOW,
+        LIST_BOX_HIDE,
+        MENU_ITEM_CLR,
+        MENU_ADD_ITEM,
+        MENU_SHOW,
+        TC_ITEM_CLR,
+        TC_ADD_ITEM,
+        TC_ADD_BTN,
+        TC_BTN_CLR,
+        TC_SHOW,
+        LD_PREPARE_SHOW,
+        LD_SHOW,
+        LD_BTN_CLR,
+        LD_ADD_BTN,
+        LD_SET_VALUE,
+        UNKNOW
+    };
+
+    struct Msg 
+    {
+        Type type;
+        std::string msg;
+    };
+
+public:
+    static Message& inst();
+    Msg* popMsg();
+    std::size_t msgCount();
+            void mainShow();
+        void msgBoxBtnClr();
+        void msgBoxAddBtn(const std::string &text);
+        void msgBoxSetMsg(const std::string &text);
+        void msgBoxSetTitle(const std::string &text);
+        void msgBoxShow();
+        void msgBoxHide();
+        void listBoxBtnClr();
+        void listBoxAddBtn(const std::string &text);
+        void listBoxAddItem(const std::string &caption, const std::string &item);
+        void listBoxItemClr();
+        void listBoxShow();
+        void listBoxHide();
+        void menuItemClr();
+        void menuAddItem(const std::string &text);
+        void menuShow();
+        void tcItemClr();
+        void tcAddItem(const std::string &code, const std::string &text);
+        void tcAddBtn(const std::string &text);
+        void tcBtnClr();
+        void tcShow();
+        void ldPrepareShow();
+        void ldShow();
+        void ldBtnClr();
+        void ldAddBtn(const std::string &text);
+        void ldSetValue(boost::int32_t index, const std::string &value);
+        std::string btnClicked(bool isBlocked);
+        void setBtnClicked(const std::string &text);
+        std::string menuSelected();
+        void setMenuSelected(const std::string &text);
+            private:
+        UserInterface();
+        ~UserInterface();
+            private:
+		std::deque<JMUIMessage*> _msgQueue;
+		boost::mutex _mutex;
+		std::string _btnClicked;
+		boost::mutex _btnMutex;
+		boost::condition_variable _btnCond;
+		std::string _menuSel;
+		boost::mutex _menuMutex;
+    
+};
+}
+}
+
+#endif

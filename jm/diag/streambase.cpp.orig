@@ -1,0 +1,9 @@
+#include "streambase.hpp"
+
+namespace JM
+{
+    namespace Diag
+    {
+
+    }
+}

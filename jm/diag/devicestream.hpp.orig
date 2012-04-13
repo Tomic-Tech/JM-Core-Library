@@ -1,0 +1,71 @@
+#ifndef __JM_DIAG_DEVICE_STREAM_HPP__
+#define __JM_DIAG_DEVICE_STREAM_HPP__
+
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#include <boost/asio.hpp>
+#include <boost/array.hpp>
+#include <jm/diag/stream.hpp>
+
+namespace JM
+{
+namespace Diag
+{
+template<typename PhysicalType>
+class DeviceStream
+{
+public:
+    DeviceStream(Stream &toCommbox, Stream &fromCommbox)
+        : _io()
+        , _physical(_io)
+        , _toCommbox(toCommbox)
+        , _fromCommbox(fromCommbox)
+    {
+        startWriteToCommbox();
+        startReadFromCommbox();
+    }
+
+private:
+    void startWriteToCommbox()
+    {
+        static boost::array<boost::uint8_t, 255> cache;
+        // starts an asynchronous write and call write_complete when it completes or fails
+        boost::system::error_code ec;
+        boost::asio::mutable_buffer buff(cache, _toCommbox.bytesAvailable());
+        _toCommbox.read(buff, ec);
+        if (ec)
+        {
+            return;
+        }
+
+        boost::asio::async_write(_physical, buff,
+                                 boost::bind(&DeviceStream::writeComplete,
+                                             this, 
+                                             boost::asio::placeholders::error));
+    }
+
+    void writeComplete(const boost::system::error_code &ec)
+    {
+        // the asynchronous write operation has now completed or failed and returned an error
+        if (!ec)
+        {
+            // write completed, so send next write data
+            if (_toCommbox.bytesAvailable()) // if there is anything left to written
+            {
+                startWriteToCommbox(); // then start sending the next item in the buffer.
+            }
+        }
+    }
+private:
+    boost::asio::io_service _io;
+    PhysicalType _physical;
+    Stream &_toCommbox;
+    Stream &_fromCommbox;
+};
+
+}
+}
+
+#endif

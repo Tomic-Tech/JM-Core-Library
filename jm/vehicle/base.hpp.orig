@@ -1,0 +1,21 @@
+#ifndef __JM_VEHICLE_BASE_HPP__
+#define __JM_VEHICLE_BASE_HPP__
+
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#include <boost/noncopyable.hpp>
+
+namespace JM
+{
+    namespace Vehicle
+    {
+        class Base : public boost::noncopyable
+        {
+
+        };
+    }
+}
+
+#endif

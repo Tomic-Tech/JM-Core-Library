@@ -1,0 +1,47 @@
+#ifndef __JM_DIAG_STREAM_BASE_HPP__
+#define __JM_DIAG_STREAM_BASE_HPP__
+
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#include <boost/cstdint.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/asio/error.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+namespace JM
+{
+namespace Diag
+{
+
+class StreamBase
+{
+public:
+    virtual void setReadTimeout(boost::int64_t microseconds, 
+        boost::system::error_code &ec) = 0;
+
+    template<typename DurationType>
+    virtual void setReadTimeout(DurationType const &time,
+        boost::system::error_code &ec)
+    {
+        setReadTimeout(time.total_microseconds(), ec);
+    }
+
+    virtual void setWriteTimeout(boost::int64_t microseconds,
+        boost::system::error_code &ec) = 0;
+    
+    template<typename DurationType>
+    virtual void setWriteTimeout(DurationType const &time,
+        boost::system::error_code &ec)
+    {
+        setWriteTimeout(time.total_microseconds(), ec);
+    }
+private:
+    static boost::shared_ptr<StreamBase> _ptr;
+};
+
+}
+}
+
+#endif

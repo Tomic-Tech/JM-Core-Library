@@ -1,0 +1,46 @@
+#include "boxfactory.hpp"
+
+namespace JM
+{
+namespace Diag
+{
+
+BoxFactory::BoxFactory()
+    : _boxHash()
+{
+
+}
+
+BoxFactory::~BoxFactory()
+{
+
+}
+
+BoxFactory& BoxFactory::inst()
+{
+    static BoxFactory instance;
+    return instance;
+}
+
+void BoxFactory::setVersion(Version ver)
+{
+    BoxVersion *box = NULL;
+    switch(ver)
+    {
+    case V1:
+        			if (_objHash.find(ver) != _objHash.end())
+			{
+				box = _objHash[ver].get();
+			}
+			if (box != NULL)
+				break;
+            			box = new JM::V1::Commbox();
+			_objHash[ver].reset(box);
+    default:
+        break;
+    }
+    _ver = ver;
+}
+
+}
+}

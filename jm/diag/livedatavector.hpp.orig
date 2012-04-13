@@ -1,0 +1,39 @@
+#ifndef __JM_DIAG_LIVE_DATA_VECTOR_HPP__
+#define __JM_DIAG_LIVE_DATA_VECTOR_HPP__
+
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#include <vector>
+#include <boost/noncopyable.hpp>
+#include <boost/smart_ptr.hpp>
+#include <jm/diag/livedata.hpp>
+
+namespace JM
+{
+namespace Diag
+{
+class LiveDataVector : public boost::noncopyable
+{
+public:
+    LiveDataVector();
+    ~LiveDataVector();
+
+    void push_back(const LiveDataPtr &ptr);
+
+private:
+    		std::vector<LiveDataPtr> _vector;
+		std::vector<boost::int32_t> _showIndexes;
+		std::hash_map<boost::int32_t, boost::int32_t> _showPositions;
+		std::vector<boost::int32_t> _enabledIndexes;
+		boost::int32_t _currentEnabledIndex;
+		std::size_t _enabledSize;
+		std::size_t _showSize;
+		static boost::mutex _mutex;
+		static boost::shared_ptr<LiveDataVector> _ldVector;
+};
+}
+}
+
+#endif
