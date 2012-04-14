@@ -33,3 +33,4 @@ Makefile
 nbproject
 *.vcxproj
 *.filters
+*.orig

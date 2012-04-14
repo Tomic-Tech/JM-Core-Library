@@ -5,12 +5,19 @@
 #pragma once
 #endif
 
-#include <stdint.h>
+#include <vector>
+#include <string>
+#include <boost/cstdint.hpp>
 
 #ifdef JMCORE_BUILD
 #define JMCORE_API _declspec(dllexport)
 #else
 #define JMCORE_API _declspec(dllimport)
 #endif
+
+namespace JM
+{
+typedef std::vector<std::string> StringVector;
+}
 
 #endif

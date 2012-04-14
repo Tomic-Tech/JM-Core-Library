@@ -11,6 +11,10 @@
 #include <jm/vehicle/database.hpp>
 #include <jm/vehicle/loader.hpp>
 #include <jm/ui/message.hpp>
+#include <jm/ui/menu.hpp>
+#include <jm/ui/troublecode.hpp>
+#include <jm/ui/livedataprepare.hpp>
+#include <jm/ui/livedataview.hpp>
 #include <jm/diag/livedatavector.hpp>
 #include <jm/diag/boxfactory.hpp>
 #include <jm/diag/commbox.hpp>
