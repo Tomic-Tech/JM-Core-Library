@@ -1,9 +1,0 @@
-#include "app.hpp"
-
-namespace JM
-{
-    namespace System
-    {
-
-    }
-}
