@@ -1,3 +1,10 @@
 LIBRARY
 
 EXPORTS
+sqlite3_column_bytes
+sqlite3_column_blob
+sqlite3_step
+sqlite3_bind_text
+sqlite3_reset
+sqlite3_finalize
+sqlite3_prepare_v2

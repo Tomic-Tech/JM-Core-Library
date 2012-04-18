@@ -1,11 +1,12 @@
-#ifndef __DIAG_V1_ISO14230_HPP__
-#define __DIAG_V1_ISO14230_HPP__
+#ifndef __JM_DIAG_V1_BESTURN_KWP_HPP__
+#define __JM_DIAG_V1_BESTURN_KWP_HPP__
 
 #ifdef _MSC_VER
 #pragma once
 #endif
 
 #include <jm/utils.hpp>
+#include <jm/types.hpp>
 #include <jm/diag/kwp2000.hpp>
 #include <jm/diag/v1/default.hpp>
 
@@ -16,22 +17,71 @@ namespace Diag
 namespace V1
 {
 template<typename BoxType>
-class ISO14230 : public Diag::KWP2000
+class BesturnKWP : public KWP2000
 {
 public:
-    ISO14230(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &shared)
+    BesturnKWP(const boost::shared_ptr<BoxType> &box,
+               const boost::shared_ptr<Shared> &shared)
         : _box(box)
         , _shared(shared)
-        , _default()
-        , _lLine(false)
+        , _lLine(true)
         , _sendLine(0)
         , _recvLine(0)
     {
-        _default.reset(new Default<BoxType, ISO14230<BoxType> >(_box, _shared, this));
+        _default.reset(new Default<BoxType, BesturnKWP<BoxType> >(_box, _shared, this));
+    }
+    std::size_t pack(const boost::uint8_t* src,
+                     std::size_t srcLength,
+                     boost::uint8_t *tar,
+                     std::size_t tarLength,
+                     boost::system::error_code &ec)
+    {
+        if (srcLength == 0)
+        {
+            ec = boost::asio::error::message_size;
+            return 0;
+        }
+
+        tar[0] = 0x80;
+        tar[1] = _targetAddress;
+        tar[2] = _sourceAddress;
+        tar[3] = HighByte(LowWord(srcLength));
+        tar[4] = LowByte(LowWord(srcLength));
+
+        memcpy(tar + 5, src, srcLength);
+        boost::uint16_t checksum = 0;
+        for (std::size_t i = 0; i < srcLength; ++i)
+        {
+            checksum += tar[i];
+        }
+        tar[srcLength + 5] = HighByte(checksum);
+        tar[srcLength + 6] = LowByte(checksum);
+        ec = boost::system::error_code();
+        return srcLength + 7;
     }
 
-    ~ISO14230()
+    std::size_t unpack(const boost::uint8_t *src,
+                       std::size_t srcLength,
+                       boost::uint8_t *tar,
+                       std::size_t tarLength,
+                       boost::system::error_code &ec)
     {
+        if (srcLength == 0)
+        {
+            ec = boost::asio::error::message_size;
+            return 0;
+        }
+
+        std::size_t length = (src[5] << 8) + src[6];
+        if (length != (srcLength - 7))
+        {
+            ec = boost::asio::error::message_size;
+            return 0;
+        }
+
+        memcpy(tar, src + 5, length);
+        ec = boost::system::error_code();
+        return length;
     }
 
     void fastInit(const boost::uint8_t *data, std::size_t count, boost::system::error_code &ec)
@@ -104,6 +154,11 @@ public:
         ec = boost::system::error_code();
     }
 
+    void addrInit(boost::uint8_t addrCode, boost::system::error_code &ec)
+    {
+        ec = boost::asio::error::operation_not_supported;
+    }
+
     void finishExecute(bool isFinish)
     {
         if (isFinish)
@@ -114,81 +169,11 @@ public:
         }
     }
 
-    void addrInit(boost::uint8_t addrCode, boost::system::error_code &ec)
-    {
-        boost::array<boost::uint8_t, 3> temp;
-        if (!_box->setCommCtrl(BoxType::Constant::PWC | BoxType::Constant::REFC |
-                               BoxType::Constant::RZFC | BoxType::Constant::CK, BoxType::Constant::SET_NULL) ||
-                !_box->setCommLink(BoxType::Constant::RS_232 | BoxType::Constant::BIT9_MARK |
-                                   BoxType::Constant::SEL_SL | BoxType::Constant::SET_DB20, BoxType::Constant::SET_NULL,
-                                   BoxType::Constant::INVERTBYTE) ||
-                !_box->setCommBaud(5) ||
-                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(5))) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(12))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(400))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))) ||
-                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
-        {
-            ec = boost::asio::error::connection_refused;
-            return;
-        }
-
-        BoxType::sleep(BoxType::Seconds(1));
-
-        _shared->buffID = 0;
-
-        if (!_box->newBatch(_shared->buffID))
-        {
-            ec = boost::asio::error::connection_refused;
-            return;
-        }
-
-        if (!_box->sendOutData(&addrCode, 1) ||
-                !_box->setCommLine((_recvLine == BoxType::Constant::RK_NO) ? _sendLine : BoxType::Constant::SK_NO, _recvLine) ||
-                !_box->runReceive(BoxType::Constant::SET55_BAUD) ||
-                !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                !_box->turnOverOneByOne() ||
-                !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                !_box->turnOverOneByOne() ||
-                !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                !_box->endBatch())
-        {
-            _box->delBatch(_shared->buffID);
-            ec = boost::asio::error::connection_refused;
-            return;
-        }
-
-        if (!_box->runBatch(&(_shared->buffID), 1, false) ||
-                (_box->readData(temp.data(), temp.size(), BoxType::toMicroSeconds(BoxType::Seconds(3))) <= 0) ||
-                !_box->checkResult(BoxType::toMicroSeconds(BoxType::Seconds(5))))
-        {
-            _box->delBatch(_shared->buffID);
-            ec = boost::asio::error::connection_refused;
-            return;
-        }
-
-        if (!_box->delBatch(_shared->buffID) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(55))))
-        {
-            ec = boost::asio::error::connection_refused;
-            return;
-        }
-
-        if (temp[2] != 0)
-        {
-            ec = boost::asio::error::connection_refused;
-            return;
-        }
-
-        ec = boost::system::error_code();
-    }
-
     void setLines(boost::int32_t comLine, bool lLine, boost::system::error_code &ec)
     {
-        // According the connector to determine the send and receive line
         if (_shared->connector == CN_OBDII_16)
         {
-            switch (comLine)
+            switch(comLine)
             {
             case 7:
                 _sendLine = BoxType::Constant::SK1;
@@ -237,9 +222,7 @@ public:
     {
         boost::array<boost::uint8_t, 255> buff;
         std::size_t length;
-        _mode = _linkMode;
         length = pack(data, count, buff.data(), buff.size(), ec);
-        _mode = _msgMode;
         _default->setKeepLink(buff.data(), length, ec);
     }
 private:
@@ -364,7 +347,7 @@ private:
 private:
     boost::shared_ptr<BoxType> _box;
     boost::shared_ptr<Shared> _shared;
-    boost::shared_ptr<Default<BoxType, ISO14230<BoxType> > >_default;
+    boost::shared_ptr<Default<BoxType, BesturnKWP<BoxType> > >_default;
     bool _lLine;
     boost::uint8_t _sendLine;
     boost::uint8_t _recvLine;

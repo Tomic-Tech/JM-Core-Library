@@ -20,6 +20,7 @@ enum ProtocolType
     PRC_ALDL8192,
     PRC_KWP1281,
     PRC_MIKUNI,
+    PRC_BESTURN_KWP,
     PRC_UNKNOW
 };
 }

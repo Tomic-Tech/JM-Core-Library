@@ -5,6 +5,8 @@
 #include "jm/system/register.hpp"
 #include "jm/system/database.hpp"
 #include "jm/ui/message.hpp"
+#include "jm/ui/statusbox.hpp"
+#include "jm/ui/msgbox.hpp"
 #include "jm/diag/boxfactory.hpp"
 #include "database.hpp"
 #include "base.hpp"
@@ -27,7 +29,7 @@ private:
         , _openCommboxSuccess(false)
         , _hnd(NULL)
     {
-
+         
     }
 
     bool load(const std::string &fileName, const std::string &path)
@@ -79,14 +81,13 @@ private:
     bool openCommbox()
     {
         std::string text = System::Database::inst().text("OpenCommbox");
-        UI::Message::inst().msgBoxBtnClr();
-        UI::Message::inst().msgBoxSetMsg(text);
-        UI::Message::inst().msgBoxShow();
+        UI::StatusBox statusBox("", text);
+        statusBox.show();
 
         Diag::BoxVersionPtr box = Diag::BoxFactory::inst().getBox();
         if (box.get() == NULL)
         {
-            UI::Message::inst().msgBoxHide();
+            statusBox.hide();
             return false;
         }
 
@@ -96,11 +97,9 @@ private:
 
         if (ec)
         {
-            UI::Message::inst().msgBoxHide();
             return false;
         }
 
-        UI::Message::inst().msgBoxHide();
         _openCommboxSuccess = true;
         return true;
     }
@@ -111,14 +110,12 @@ private:
             return true;
 
         std::string text = System::Database::inst().text("CloseCommbox");
-        UI::Message::inst().msgBoxBtnClr();
-        UI::Message::inst().msgBoxSetMsg(text);
-        UI::Message::inst().msgBoxShow();
+        UI::StatusBox statusBox("", text);
+        statusBox.show();
 
         Diag::BoxVersionPtr box = Diag::BoxFactory::inst().getBox();
         if (box.get() == NULL)
         {
-            UI::Message::inst().msgBoxHide();
             return false;
         }
 
@@ -128,11 +125,9 @@ private:
 
         if (ec)
         {
-            UI::Message::inst().msgBoxHide();
             return false;
         }
 
-        UI::Message::inst().msgBoxHide();
         _openCommboxSuccess = false;
         return true;
     }
@@ -223,16 +218,15 @@ bool Loader::run(const std::string &name,
         std::string text = System::Database::inst().text("No Commbox, Continue");
         std::string go = System::Database::inst().text("Go");
         std::string back = System::Database::inst().text("Back");
+        StringVector btns;
+        btns.push_back(go);
+        btns.push_back(back);
 
-        UI::Message::inst().msgBoxBtnClr();
-        UI::Message::inst().msgBoxAddBtn(go);
-        UI::Message::inst().msgBoxAddBtn(back);
-        UI::Message::inst().msgBoxSetMsg(text);
-        UI::Message::inst().msgBoxShow();
+        UI::MsgBox msgBox("", text);
+        msgBox.addBtns(btns);
+        std::string ret = msgBox.exec();
 
-        std::string input = UI::Message::inst().btnClicked(true);
-        UI::Message::inst().msgBoxHide();
-        if (input.compare(back) == 0)
+        if (ret.compare(back) == 0)
             return false;
 
     }

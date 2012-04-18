@@ -13,6 +13,7 @@
 #include <jm/diag/v1/iso14230.hpp>
 #include <jm/diag/v1/iso15765.hpp>
 #include <jm/diag/v1/mikuni.hpp>
+#include <jm/diag/v1/besturnkwp.hpp>
 
 namespace JM
 {
@@ -49,6 +50,9 @@ private:
             break;
         case PRC_MIKUNI:
             ret.reset(new BoxLink<BoxType, Mikuni<BoxType> > (box, _shared));
+            break;
+        case PRC_BESTURN_KWP:
+            ret.reset(new BoxLink<BoxType, BesturnKWP<BoxType> > (box, _shared));
             break;
         default:
             break;

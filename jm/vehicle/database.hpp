@@ -29,8 +29,8 @@ public:
     JMCORE_API std::string getText(const std::string &name);
     JMCORE_API std::string getTroubleCode(const std::string &code);
 
-    template<typename ConstBufferSequence>
-    ConstBufferSequence getCommand(const std::string &name)
+    template<typename MutableBufferSequence>
+    std::size_t getCommand(const std::string &name, const MutableBufferSequence &buff)
     {
         if (_getCommandStmt == NULL)
         {
@@ -41,7 +41,7 @@ public:
             {
                 sqlite3_finalize(_getCommandStmt);
                 _getCommandStmt = NULL;
-                return ConstBufferSequence();
+                return 0;
             }
         }
         if ((sqlite3_reset(_getCommandStmt) == SQLITE_OK) &&
@@ -50,14 +50,15 @@ public:
                 (sqlite3_step(_getCommandStmt) == SQLITE_ROW))
         {
             const boost::uint8_t *bytes = (const boost::uint8_t*)sqlite3_column_blob(_getCommandStmt, 0);
-            boost::int32_t size = sqlite3_column_bytes(_getCommandStmt, 0);
-            return ConstBufferSequence(bytes, size);
+            std::size_t size = sqlite3_column_bytes(_getCommandStmt, 0);
+            memcpy (boost::asio::buffer_cast<boost::uint8_t*>(buff), bytes, size > boost::asio::buffer_size(buff) ? boost::asio::buffer_size(buff) : size);
+            return size > boost::asio::buffer_size(buff) ? boost::asio::buffer_size(buff) : size;
         }
-        return ConstBufferSequence();
+        return 0;
     }
 
-    template<typename ConstBufferSequence>
-    ConstBufferSequence getCommandByID(boost::int32_t id)
+    template<typename MutableBufferSequence>
+    std::size_t getCommandByID(boost::int32_t id, const MutableBufferSequence &buff)
     {
         if (_getCommandByIDStmt == NULL)
         {
@@ -67,7 +68,7 @@ public:
             {
                 sqlite3_finalize(_getCommandByIDStmt);
                 _getCommandByIDStmt = NULL;
-                return ConstBufferSequence();
+                return 0;
             }
         }
 
@@ -77,9 +78,10 @@ public:
         {
             const boost::uint8_t *bytes = (const boost::uint8_t*) sqlite3_column_blob(_getCommandByIDStmt, 0);
             boost::int32_t size = sqlite3_column_bytes(_getCommandByIDStmt, 0);
-            return ConstBufferSequence(bytes, size);
+            memcpy(boost::asio::buffer_cast<boost::uint8_t*>(buff), bytes, size > boost::asio::buffer_size(buff) ? boost::asio::buffer_size(buff) : size);
+            return size > boost::asio::buffer_size(buff) ? boost::asio::buffer_size(buff) : size;
         }
-        return ConstBufferSequence();
+        return 0;
     }
 
     JMCORE_API Diag::LiveDataVectorPtr getLiveData(bool showed);

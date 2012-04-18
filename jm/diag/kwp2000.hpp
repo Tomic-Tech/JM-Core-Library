@@ -56,6 +56,13 @@ public:
     virtual JMCORE_API void fastInit(const boost::uint8_t *data,
                                      std::size_t count,
                                      boost::system::error_code &ec) = 0;
+    template<typename ConstBufferSequence>
+    void fastInit(const ConstBufferSequence &buff, boost::system::error_code &ec)
+    {
+        const boost::uint8_t *data = boost::asio::buffer_cast<const boost::uint8_t*>(buff);
+        std::size_t count = boost::asio::buffer_size(buff);
+        fastInit(data, count, ec);
+    }
     virtual JMCORE_API void setLines(boost::int32_t comLine,
                                      bool lLine,
                                      boost::system::error_code &ec) = 0;

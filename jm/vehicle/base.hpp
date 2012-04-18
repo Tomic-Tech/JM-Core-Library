@@ -8,15 +8,16 @@
 #include <hash_map>
 #include <string>
 #include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace JM
 {
 namespace Vehicle
 {
-
-typedef void (*MainFunc)(void);
-typedef std::hash_map<std::string, MainFunc> FuncMap;
+typedef void (*MainFunc)();
+typedef boost::function<void ()> VoidFunc0;
+typedef std::hash_map<std::string, VoidFunc0> VoidFunc0Map;
 class Base : public boost::noncopyable
 {
 public:

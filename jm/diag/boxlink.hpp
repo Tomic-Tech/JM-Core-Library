@@ -8,6 +8,10 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/system/error_code.hpp>
 #include <jm/types.hpp>
+#include <jm/diag/canbus.hpp>
+#include <jm/diag/kwp2000.hpp>
+#include <jm/diag/kwp1281.hpp>
+#include <jm/diag/mikuni.hpp>
 
 namespace JM
 {
