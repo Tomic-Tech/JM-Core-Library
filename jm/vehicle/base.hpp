@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <hash_map>
+#include <map>
 #include <string>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
@@ -17,7 +17,7 @@ namespace Vehicle
 {
 typedef void (*MainFunc)();
 typedef boost::function<void ()> VoidFunc0;
-typedef std::hash_map<std::string, VoidFunc0> VoidFunc0Map;
+typedef std::map<std::string, VoidFunc0> VoidFunc0Map;
 class Base : public boost::noncopyable
 {
 public:

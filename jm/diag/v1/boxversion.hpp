@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <hash_map>
+#include <map>
 #include <jm/diag/boxversion.hpp>
 #include <jm/diag/v1/c168/box.hpp>
 #include <jm/diag/v1/w80/box.hpp>
@@ -64,8 +64,8 @@ private:
     boost::shared_ptr<C168::Box> _c168;
     boost::shared_ptr<W80::Box> _w80;
     void *_currentBox;
-    std::hash_map<ProtocolType, boost::shared_ptr<Diag::BoxLink> > _w80PrcHash;
-    std::hash_map<ProtocolType, boost::shared_ptr<Diag::BoxLink> > _c168PrcHash;
+    std::map<ProtocolType, boost::shared_ptr<Diag::BoxLink> > _w80PrcHash;
+    std::map<ProtocolType, boost::shared_ptr<Diag::BoxLink> > _c168PrcHash;
 };
 }
 }

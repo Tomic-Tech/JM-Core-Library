@@ -69,9 +69,9 @@ static std::string GetRegKeyValue(HKEY key, const std::string &property)
     return ret;
 }
 
-static std::vector<std::string> EnumerateDeviceWin(const GUID* guid)
+static StringVector EnumerateDeviceWin(const GUID* guid)
 {
-    std::vector<std::string> arr;
+    StringVector arr;
     HDEVINFO dev_info;
     if ((dev_info = SetupDiGetClassDevsA(guid, NULL, NULL, DIGCF_PRESENT)) != INVALID_HANDLE_VALUE)
     {
@@ -95,7 +95,7 @@ static std::vector<std::string> EnumerateDeviceWin(const GUID* guid)
     return arr;
 }
 
-std::vector<std::string> SerialPort::getSystemPorts()
+StringVector SerialPort::getSystemPorts()
 {
     return EnumerateDeviceWin(&GUID_DEVCLASS_PORTS);
 }
@@ -137,15 +137,118 @@ std::size_t SerialPort::bytesAvailable(HANDLE handle,
     COMSTAT status;
     if (handle == INVALID_HANDLE_VALUE)
     {
+        ec = boost::asio::error::not_connected;
         return 0;
     }
 
     if (!ClearCommError(handle, &errors, &status))
     {
-
+        ec = boost::system::error_code(GetLastError(), boost::system::get_generic_category());
         return 0;
     }
+    ec = boost::system::error_code();
     return (std::size_t)status.cbInQue;
+}
+#else
+void SerialPort::setDtr(int fd, bool set, boost::system::error_code &ec)
+{
+    if (fd == -1)
+    {
+        ec = boost::asio::error::not_connected;
+        return;
+    }
+
+    int status;
+    int ret = ioctl(fd, TIOCMGET, &status);
+    if (ret != 0)
+    {
+        ec = boost::system::error_code(ret, boost::system::get_generic_category());
+        return;
+    }
+
+    if (set)
+    {
+        status |= TIOCM_DTR;
+    }
+    else
+    {
+        status &= ~TIOCM_DTR;
+    }
+
+    ret = ioctl(fd, TIOCMSET, &status);
+    if (ret != 0)
+    {
+        ec = boost::system::error_code(ret, boost::system::get_generic_category());
+        return;
+    }
+    ec = boost::system::error_code();
+}
+
+std::size_t SerialPort::bytesAvailable(int fd, boost::system::error_code &ec)
+{
+    if (fd == -1)
+    {
+        ec = boost::asio::error::not_connected;
+        return 0;
+    }
+
+    int bytesQueued;
+
+    ret = ioctl(fd, FIONREAD, &bytesQueued);
+    if (ret != 0)
+    {
+        ec = boost::system::error_code(ret, boost::system::get_generic_category());
+        return 0;
+    }
+
+    ec = boost::system::error_code();
+    return static_cast<std::size_t>(bytesQueued);
+}
+
+StringVector SerialPort::getSystemPorts()
+{
+    StringVector arr;
+    struct dirent *ent = NULL;
+    DIR *dir_p;
+    char dir[512];
+    struct stat statbuf;
+
+    if ((dir_p = opendir("/dev")) == NULL)
+    {
+        return arr;
+    }
+
+    while ((ent == readdir(dir_p)) != NULL)
+    {
+        // get file absolute name
+        snprintf(dir, 512, "%s/%s", "/dev", ent->d_name);
+        // get file information
+        lstat(dir, &statbuf);
+        if (S_ISDIR(statbuf.st_mode))
+        {
+            // skip directory
+        }
+        else
+        {
+            if ((ent->d_name[0] == 't') && (ent->d_name[1] == 't') &&
+                (ent->d_name[2] == 'y'))
+            {
+                if ((ent->d_name[3] == 'S') || 
+                    ((ent->d_name[3] == 'U') && (ent->d_name[4] == 'S') && (ent->d_name[5] == 'B')) ||
+                    ((ent->d_name[3] == 'A') && (ent->d_name[4] == 'C') && (ent->d_name[5] == 'M')))
+                {
+                    arr.push_back(ent->d_name);
+                }
+            }
+            else if ((ent->d_name[0] == 'r') && (ent->d_name[1] == 'f') && 
+                (ent->d_name[2] == 'c') && (ent->d_name[3] == 'o') &&
+                (ent->d_name[4] == 'm') && (ent->d_name[5] == 'm'))
+            {
+                arr.push_back(ent->d_name);
+            }
+        }
+    }
+    return arr;
 }
 #endif
 }

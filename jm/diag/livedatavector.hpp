@@ -6,7 +6,7 @@
 #endif
 
 #include <vector>
-#include <hash_map>
+#include <map>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/thread.hpp>
@@ -41,7 +41,7 @@ private:
 private:
     std::vector<LiveDataPtr> _vector;
     std::vector<boost::int32_t> _showIndexes;
-    std::hash_map<boost::int32_t, boost::int32_t> _showPositions;
+    std::map<boost::int32_t, boost::int32_t> _showPositions;
     std::vector<boost::int32_t> _enabledIndexes;
     boost::int32_t _currentEnabledIndex;
     std::size_t _enabledSize;

@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <hash_map>
+#include <map>
 #include <boost/smart_ptr.hpp>
 #include <jm/diag/commbox.hpp>
 #include <jm/diag/boxversion.hpp>
@@ -32,7 +32,7 @@ private:
     BoxFactory();
     ~BoxFactory();
 private:
-    std::hash_map<Version, BoxVersionPtr > _boxHash;
+    std::map<Version, BoxVersionPtr > _boxHash;
     Version _ver;
 };
 

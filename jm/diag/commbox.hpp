@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <hash_map>
+#include <map>
 #include <boost/smart_ptr.hpp>
 #include <jm/diag/physicalstream.hpp>
 #include <jm/diag/virsualstream.hpp>
@@ -66,7 +66,7 @@ private:
     Stream _fromCommbox;
     boost::mutex _mutex;
     boost::condition_variable _cond;
-    std::hash_map<Type, void* > _physicalStreams;
+    std::map<Type, void* > _physicalStreams;
     boost::shared_ptr<VisualStream> _visualStream;
     Type _type;
 };

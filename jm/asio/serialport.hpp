@@ -10,6 +10,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/config.hpp>
 #include <boost/asio.hpp>
+#include <jm/types.hpp>
 
 #ifdef BOOST_WINDOWS
 #include <Windows.h>
@@ -22,13 +23,18 @@ namespace Asio
 class SerialPort : public boost::noncopyable
 {
 public:
-    static std::vector<std::string> getSystemPorts();
+    static StringVector getSystemPorts();
 
 #ifdef BOOST_WINDOWS
     static void setDtr(HANDLE handle, bool set,
                        boost::system::error_code &ec);
     static std::size_t bytesAvailable(HANDLE handle,
                                       boost::system::error_code &ec);
+#else
+	static void setDtr(int fd, bool set,
+		boost::system::error_code &ec);
+	static std::size_type bytesAvailable(int fd,
+		boost::system::error_code &ec);
 #endif
     template<typename NativeHandle>
     static void setDtr(NativeHandle handle, bool set,
