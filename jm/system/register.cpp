@@ -94,7 +94,7 @@ class RegisterPrivate
         std::vector<std::string> result;
         boost::algorithm::split(result, std::string(recovered.get()), boost::is_any_of("\n"));
 
-        if (result.size() < (Register::MESSAGE_LINES + 1))
+        if (result.size() < Register::MESSAGE_LINES )
         {
             return std::vector<std::string>();
         }
