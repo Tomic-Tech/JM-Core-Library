@@ -413,7 +413,7 @@ public:
         {
             boost::array<boost::uint8_t, 6> receiveBuff;
             std::size_t i;
-            if (!commboxDo(Constant::ECHO, echoBuff, echoLen) ||
+            if (!commboxDo(Constant::Echo, echoBuff, echoLen) ||
                     (readData(receiveBuff.data(), echoLen, MilliSeconds(100).total_microseconds()) != echoLen))
             {
                 return false;
@@ -428,7 +428,7 @@ public:
             }
             return checkResult(MilliSeconds(100).total_microseconds());
         }
-        return addToBuff(Constant::ECHO, echoBuff, echoLen);
+        return addToBuff(Constant::Echo, echoBuff, echoLen);
     }
 
     bool keepLink(bool isRunLink)

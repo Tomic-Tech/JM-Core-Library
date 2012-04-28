@@ -13,6 +13,8 @@
 
 #ifdef BOOST_WINDOWS
 #include <Windows.h>
+#else
+#include <dlfcn.h>
 #endif
 
 namespace JM
@@ -176,7 +178,36 @@ private:
         void* address = (void*)GetProcAddress(_hnd, symbol.c_str());
         return address;
     }
+#else
+    bool loadSys(const std::string &fileName)
+    {
+        std::string attempt = fileName + ".so";
+        int dlFlags = RTLD_NOW;
+        _hnd = (void*)dlopen(attempt.c_str(), dlFlags);
 
+        if (!_hnd)
+        {
+            // Cannot load library
+            return false;
+        }
+
+        return true;
+    }
+
+    bool unloadSys()
+    {
+        if (dlclose(_hnd))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    void* resolveSys(const std::string &symbol)
+    {
+        void* address = (void*)dlsym(_hnd, symbol.c_str());
+        return address;
+    }
 #endif
 private:
     std::string _path;
@@ -184,6 +215,8 @@ private:
 
 #ifdef BOOST_WINDOWS
     HINSTANCE _hnd;
+#else
+    void * _hnd;
 #endif
 };
 

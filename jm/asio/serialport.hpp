@@ -33,7 +33,7 @@ public:
 #else
 	static void setDtr(int fd, bool set,
 		boost::system::error_code &ec);
-	static std::size_type bytesAvailable(int fd,
+	static std::size_t bytesAvailable(int fd,
 		boost::system::error_code &ec);
 #endif
     template<typename NativeHandle>

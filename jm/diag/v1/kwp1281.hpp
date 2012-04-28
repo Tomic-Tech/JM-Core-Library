@@ -35,7 +35,7 @@ public:
         if (isFinish)
         {
             _box->delBatch(_shared->buffID);
-            _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500)));
+            _box->checkResult(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500)));
         }
     }
 
@@ -52,7 +52,7 @@ public:
 
         _shared->buffID = 0;
         _box->stopNow(true);
-        _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(50)));
+        _box->checkResult(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(50)));
 
         dl0 = (_lLine == BoxType::Constant::SK_NO && _kLine == BoxType::Constant::RK_NO) ? true : false;
         valueOpen = BoxType::Constant::PWC | BoxType::Constant::REFC | BoxType::Constant::RZFC | (dl0 ? BoxType::Constant::DLC0 : BoxType::Constant::CK);
@@ -66,16 +66,16 @@ public:
                 !_box->setCommLink(ctrlWord1, ctrlWord2, ctrlWord3) ||
                 !_box->setCommBaud(5) ||
                 !_box->setCommTime(BoxType::Constant::SETBYTETIME, 0) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(25))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(610))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(610))) ||
-                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(710))))
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(25))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(610))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(610))) ||
+                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(710))))
         {
             ec = boost::asio::error::connection_refused;
             return;
         }
 
-        BoxType::sleep(BoxType::Seconds(1));
+        BoxType::sleep(typename BoxType::Seconds(1));
 
         if (!_box->newBatch(_shared->buffID))
         {
@@ -89,8 +89,8 @@ public:
                 !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
                 !_box->turnOverOneByOne() ||
                 !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
-                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(2))) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(2))) ||
+                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(2))) ||
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(2))) ||
                 !_box->runReceive(BoxType::Constant::REC_FR) ||
                 !_box->turnOverOneByOne() ||
                 !_box->runReceive(BoxType::Constant::REC_LEN_1) ||
@@ -107,7 +107,7 @@ public:
             return;
         }
 
-        if (_box->readData(temp.data(), 2, BoxType::toMicroSeconds(BoxType::MilliSeconds(3500))) != 2)
+        if (_box->readData(temp.data(), 2, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(3500))) != 2)
         {
             _box->delBatch(_shared->buffID);
             ec = boost::asio::error::connection_refused;
@@ -120,7 +120,7 @@ public:
             return;
         }
 
-        if (!_box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
+        if (!_box->checkResult(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))))
         {
             _box->delBatch(_shared->buffID);
             ec = boost::asio::error::connection_refused;

@@ -53,17 +53,17 @@ public:
                 !_box->setCommLine(_sendLine, _recvLine) ||
                 !_box->setCommLink(BoxType::Constant::RS_232 | BoxType::Constant::BIT9_MARK | BoxType::Constant::SEL_SL | BoxType::Constant::UN_DB20, BoxType::Constant::SET_NULL, BoxType::Constant::SET_NULL) ||
                 !_box->setCommBaud(_baud) ||
-                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(5))) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(0))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(400))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))) ||
-                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
+                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(5))) ||
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(0))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(400))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))) ||
+                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))))
         {
             ec = boost::asio::error::connection_refused;
             return;
         }
 
-        BoxType::sleep(BoxType::Seconds(1));
+        BoxType::sleep(typename BoxType::Seconds(1));
 
         _shared->buffID = 0;
 
@@ -76,9 +76,9 @@ public:
         length = pack(data, count, packEnter.data(), packEnter.size(), ec);
 
         if (!_box->setLineLevel(BoxType::Constant::COMS, BoxType::Constant::SET_NULL) ||
-                !_box->commboxDelay(BoxType::toMicroSeconds(BoxType::MilliSeconds(25))) ||
+                !_box->commboxDelay(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(25))) ||
                 !_box->setLineLevel(BoxType::Constant::SET_NULL, BoxType::Constant::COMS) ||
-                !_box->commboxDelay(BoxType::toMicroSeconds(BoxType::MilliSeconds(25))) ||
+                !_box->commboxDelay(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(25))) ||
                 !_box->sendOutData(packEnter.data(), length) ||
                 !_box->runReceive(BoxType::Constant::REC_FR) ||
                 !_box->endBatch())
@@ -100,7 +100,7 @@ public:
             return;
         }
 
-        _box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(55)));
+        _box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(55)));
         ec = boost::system::error_code();
     }
 
@@ -110,7 +110,7 @@ public:
         {
             _box->stopNow(true);
             _box->delBatch(_shared->buffID);
-            _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500)));
+            _box->checkResult(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500)));
         }
     }
 
@@ -123,17 +123,17 @@ public:
                                    BoxType::Constant::SEL_SL | BoxType::Constant::SET_DB20, BoxType::Constant::SET_NULL,
                                    BoxType::Constant::INVERTBYTE) ||
                 !_box->setCommBaud(5) ||
-                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(5))) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(12))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(400))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))) ||
-                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
+                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(5))) ||
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(12))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(400))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))) ||
+                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))))
         {
             ec = boost::asio::error::connection_refused;
             return;
         }
 
-        BoxType::sleep(BoxType::Seconds(1));
+        BoxType::sleep(typename BoxType::Seconds(1));
 
         _shared->buffID = 0;
 
@@ -159,8 +159,8 @@ public:
         }
 
         if (!_box->runBatch(&(_shared->buffID), 1, false) ||
-                (_box->readData(temp.data(), temp.size(), BoxType::toMicroSeconds(BoxType::Seconds(3))) <= 0) ||
-                !_box->checkResult(BoxType::toMicroSeconds(BoxType::Seconds(5))))
+                (_box->readData(temp.data(), temp.size(), BoxType::toMicroSeconds(typename BoxType::Seconds(3))) <= 0) ||
+                !_box->checkResult(BoxType::toMicroSeconds(typename BoxType::Seconds(5))))
         {
             _box->delBatch(_shared->buffID);
             ec = boost::asio::error::connection_refused;
@@ -168,7 +168,7 @@ public:
         }
 
         if (!_box->delBatch(_shared->buffID) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(55))))
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(55))))
         {
             ec = boost::asio::error::connection_refused;
             return;

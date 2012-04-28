@@ -65,7 +65,7 @@ class RegisterPrivate
     {
         std::ifstream in;
 
-        in.open(datPath, std::ios::in);
+        in.open(datPath.c_str(), std::ios::in);
 
         if (in.fail())
             return std::vector<std::string>();
@@ -92,7 +92,8 @@ class RegisterPrivate
         }
 
         std::vector<std::string> result;
-        boost::algorithm::split(result, std::string(recovered.get()), boost::is_any_of("\n"));
+        std::string temp(recovered.get());
+        boost::algorithm::split(result, temp, boost::is_any_of("\n"));
 
         if (result.size() < Register::MESSAGE_LINES )
         {
@@ -119,7 +120,7 @@ void Register::setPath(const std::string &path)
 void Register::saveReg(const std::string &reg)
 {
     std::ofstream out;
-    out.open(_priv->datPath, std::ios::trunc);
+    out.open(_priv->datPath.c_str(), std::ios::trunc);
 
     out << reg;
 }

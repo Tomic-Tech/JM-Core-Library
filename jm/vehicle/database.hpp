@@ -8,6 +8,7 @@
 #include <sqlite/sqlite3.h>
 #include <string>
 #include <boost/noncopyable.hpp>
+#include <boost/asio.hpp>
 #include <jm/types.hpp>
 #include <jm/diag/livedatavector.hpp>
 

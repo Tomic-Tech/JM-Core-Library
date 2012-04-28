@@ -194,7 +194,7 @@ std::size_t SerialPort::bytesAvailable(int fd, boost::system::error_code &ec)
 
     int bytesQueued;
 
-    ret = ioctl(fd, FIONREAD, &bytesQueued);
+    int ret = ioctl(fd, FIONREAD, &bytesQueued);
     if (ret != 0)
     {
         ec = boost::system::error_code(ret, boost::system::get_generic_category());
@@ -218,7 +218,7 @@ StringVector SerialPort::getSystemPorts()
         return arr;
     }
 
-    while ((ent == readdir(dir_p)) != NULL)
+    while ((ent = readdir(dir_p)) != NULL)
     {
         // get file absolute name
         snprintf(dir, 512, "%s/%s", "/dev", ent->d_name);

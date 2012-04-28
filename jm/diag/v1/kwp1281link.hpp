@@ -19,7 +19,7 @@ class KWP1281Link : public BoxLink<BoxType, KWP1281<BoxType> >
 {
 public:
     KWP1281Link(const boost::shared_ptr<BoxType> &box, const boost::shared_ptr<Shared> &shared)
-        : Link(box, shared)
+        : BoxLink<BoxType, KWP1281<BoxType> >(box, shared)
     {
 
     }
@@ -28,12 +28,12 @@ public:
                             std::size_t maxLength,
                             boost::system::error_code &ec)
     {
-        std::size_t length = sendOneFrame(send, count, ec);
+        std::size_t length = BoxLink<BoxType, KWP1281<BoxType> >::_protocol->sendOneFrame(send, count, ec);
         if (ec)
         {
             return 0;
         }
-        return readOneFrame(recv, maxLength, ec);
+        return BoxLink<BoxType, KWP1281<BoxType> >::_protocol->readOneFrame(recv, maxLength, ec);
     }
 };
 }

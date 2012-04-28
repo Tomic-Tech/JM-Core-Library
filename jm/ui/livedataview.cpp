@@ -34,7 +34,7 @@ void LiveDataView::operator ()()
     Message::inst().ldShow();
 
     Message::inst().ldBtnClr();
-    for (StringVector::const_iterator it = _btns.cbegin(); it != _btns.cend(); ++it)
+    for (StringVector::const_iterator it = _btns.begin(); it != _btns.end(); ++it)
     {
         Message::inst().ldAddBtn(*it);
     }

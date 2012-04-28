@@ -100,9 +100,9 @@ public:
                      std::size_t count,
                      boost::system::error_code &ec)
     {
-        return _protocol->setKeepLink(data, count, ec);
+        _protocol->setKeepLink(data, count, ec);
     }
-private:
+protected:
     boost::shared_ptr<BoxType> _box;
     boost::shared_ptr<Shared> _shared;
     boost::shared_ptr<P> _protocol;

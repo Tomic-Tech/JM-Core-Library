@@ -118,7 +118,7 @@ struct Constant
     * //接受字节超时错误判断 db20（vpw为指令数） ，只用2个数据位，单字节为低字节，双字节高字节在前，低字节在后。 #define
     * SETRECFROUT 0x98 //接受一帧超时错误判断?db20?，只用2个数据位，单字节为低字节，双字节高字节在前，低字节在后。
     */
-    static const boost::uint8_t ECHO = 0x9C; // 回传指定数据，按序回传数据
+    static const boost::uint8_t Echo = 0x9C; // 回传指定数据，按序回传数据
     static const boost::uint8_t SETPORT0 = 0xA0; // 只有一个字节的数据，设定端口0
     static const boost::uint8_t SETPORT1 = 0xA4; // 只有一个字节的数据，设定端口1
     static const boost::uint8_t SETPORT2 = 0xA8; // 只有一个字节的数据，设定端口2

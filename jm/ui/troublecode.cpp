@@ -19,7 +19,7 @@ TroubleCode::~TroubleCode()
 void TroubleCode::addItems(const TCVector &vec)
 {
     Message::inst().tcItemClr();
-    for (TCVector::const_iterator it = vec.cbegin(); it != vec.cend(); ++it)
+    for (TCVector::const_iterator it = vec.begin(); it != vec.end(); ++it)
     {
         Message::inst().tcAddItem(it->first, it->second);
     }
@@ -38,7 +38,7 @@ std::string TroubleCode::btnClicked()
 void TroubleCode::operator()()
 {
     Message::inst().tcBtnClr();
-    for (StringVector::const_iterator it = _btns.cbegin(); it != _btns.cend(); ++it)
+    for (StringVector::const_iterator it = _btns.begin(); it != _btns.end(); ++it)
     {
         Message::inst().tcAddBtn(*it);
     }

@@ -98,7 +98,7 @@ public:
         {
             _box->stopNow(false);
             _box->delBatch(_shared->buffID);
-            _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(200)));
+            _box->checkResult(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(200)));
         }
     }
 
@@ -145,17 +145,17 @@ public:
                 !_box->setCommLink(ctrlWord1, BoxType::Constant::SET_NULL, BoxType::Constant::SET_NULL) ||
                 !_box->setCommBaud(57600) ||
                 !_box->setCommTime(BoxType::Constant::SETBYTETIME, 500) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(55))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(100))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(200))) ||
-                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(55))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(100))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(200))) ||
+                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))))
         {
             ec = boost::asio::error::connection_refused;
             return;
         }
         localID = _idVector[0];
 
-        BoxType::sleep(BoxType::MilliSeconds(100));
+        BoxType::sleep(typename BoxType::MilliSeconds(100));
 
         if (!beginSet() ||
                 !setBaud(B500K) ||
@@ -411,7 +411,7 @@ private:
             return 0;
         }
 
-        BoxType::sleep(BoxType::MicroSeconds(count * _shared->reqByteToByte + _shared->reqWaitTime));
+        BoxType::sleep(typename BoxType::MicroSeconds(count * _shared->reqByteToByte + _shared->reqWaitTime));
         return count;
     }
 

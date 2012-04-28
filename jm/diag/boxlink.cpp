@@ -12,14 +12,11 @@ BoxLink::BoxLink()
 
 BoxLink::~BoxLink()
 {
-    if (_ptr != NULL)
-        delete _ptr;
+
 }
 
 void BoxLink::setProtocol(void *p)
 {
-    if (_ptr != NULL)
-        delete _ptr;
     _ptr = p;
 }
 }

@@ -51,17 +51,17 @@ public:
                 !_box->setCommLine(sendLine, recvLine) ||
                 !_box->setCommLink(ctrlWord1, ctrlWord2, ctrlWord3) ||
                 !_box->setCommBaud(19200) ||
-                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(100))) ||
-                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(1))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(400))) ||
-                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))) ||
-                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(BoxType::MilliSeconds(500))))
+                !_box->setCommTime(BoxType::Constant::SETBYTETIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(100))) ||
+                !_box->setCommTime(BoxType::Constant::SETWAITTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(1))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECBBOUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(400))) ||
+                !_box->setCommTime(BoxType::Constant::SETRECFROUT, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))) ||
+                !_box->setCommTime(BoxType::Constant::SETLINKTIME, BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500))))
         {
             ec = boost::asio::error::connection_refused;
             return;
         }
 
-        BoxType::sleep(BoxType::Seconds(1));
+        BoxType::sleep(typename BoxType::Seconds(1));
         ec = boost::system::error_code();
 
     }
@@ -72,7 +72,7 @@ public:
         {
             _box->stopNow(true);
             _box->delBatch(_shared->buffID);
-            _box->checkResult(BoxType::toMicroSeconds(BoxType::MilliSeconds(500)));
+            _box->checkResult(BoxType::toMicroSeconds(typename BoxType::MilliSeconds(500)));
         }
     }
 

@@ -9,11 +9,20 @@
 #include <string>
 #include <boost/cstdint.hpp>
 #include <boost/array.hpp>
+#include <boost/config.hpp>
 
+#ifdef BOOST_WINDOWS
 #ifdef JMCORE_BUILD
 #define JMCORE_API _declspec(dllexport)
 #else
 #define JMCORE_API _declspec(dllimport)
+#endif
+#else
+#ifdef JMCORE_BUILD
+#define JMCORE_API
+#else
+#define JMCORE_API extern
+#endif
 #endif
 
 namespace JM

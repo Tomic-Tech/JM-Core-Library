@@ -198,8 +198,8 @@ void Message::menuAddItem(const std::string &text)
 
 void Message::menuAddItems(const std::vector<std::string> &menus)
 {
-    for (std::vector<std::string>::const_iterator it = menus.cbegin();
-        it != menus.cend(); ++it)
+    for (std::vector<std::string>::const_iterator it = menus.begin();
+        it != menus.end(); ++it)
     {
         menuAddItem(*it);
     }
