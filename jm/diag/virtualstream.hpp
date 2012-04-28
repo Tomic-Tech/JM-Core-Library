@@ -1,5 +1,5 @@
-#ifndef __JM_DIAG_VISUAL_STREAM_HPP__
-#define __JM_DIAG_VISUAL_STREAM_HPP__
+#ifndef __JM_DIAG_VIRTUAL_STREAM_HPP__
+#define __JM_DIAG_VIRTUAL_STREAM_HPP__
 
 #ifdef _MSC_VER
 #pragma once
@@ -13,10 +13,10 @@ namespace JM
 namespace Diag
 {
 
-class VisualStream : public boost::noncopyable
+class VirtualStream : public boost::noncopyable
 {
 public:
-    VisualStream(Stream &toCommbox,
+    VirtualStream(Stream &toCommbox,
                  Stream &fromCommbox,
                  boost::mutex &mutex,
                  boost::condition_variable &cond);

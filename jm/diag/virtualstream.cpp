@@ -1,11 +1,11 @@
-#include "virsualstream.hpp"
+#include "virtualstream.hpp"
 
 namespace JM
 {
 namespace Diag
 {
 
-VisualStream::VisualStream(Stream &toCommbox,
+VirtualStream::VirtualStream(Stream &toCommbox,
                            Stream &fromCommbox,
                            boost::mutex &mutex,
                            boost::condition_variable &cond)
@@ -17,17 +17,17 @@ VisualStream::VisualStream(Stream &toCommbox,
 
 }
 
-std::size_t VisualStream::bytesAvailable()
+std::size_t VirtualStream::bytesAvailable()
 {
     return _fromCommbox.bytesAvailable();
 }
 
-void VisualStream::discardOutBuffer()
+void VirtualStream::discardOutBuffer()
 {
     _toCommbox.clear();
 }
 
-void VisualStream::discardInBuffer()
+void VirtualStream::discardInBuffer()
 {
     _fromCommbox.clear();
 }

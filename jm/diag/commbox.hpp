@@ -8,7 +8,7 @@
 #include <map>
 #include <boost/smart_ptr.hpp>
 #include <jm/diag/physicalstream.hpp>
-#include <jm/diag/virsualstream.hpp>
+#include <jm/diag/virtualstream.hpp>
 
 namespace JM
 {
@@ -57,7 +57,7 @@ public:
             return NULL;
     }
 
-    boost::shared_ptr<VisualStream> visualStream();
+    boost::shared_ptr<VirtualStream> visualStream();
 private:
     Commbox();
     ~Commbox();
@@ -67,7 +67,7 @@ private:
     boost::mutex _mutex;
     boost::condition_variable _cond;
     std::map<Type, void* > _physicalStreams;
-    boost::shared_ptr<VisualStream> _visualStream;
+    boost::shared_ptr<VirtualStream> _visualStream;
     Type _type;
 };
 }

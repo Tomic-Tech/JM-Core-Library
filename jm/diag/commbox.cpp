@@ -10,7 +10,7 @@ Commbox::Commbox()
     , _mutex()
     , _cond()
     , _physicalStreams()
-    , _visualStream(new VisualStream(_toCommbox, _fromCommbox, _mutex, _cond))
+    , _visualStream(new VirtualStream(_toCommbox, _fromCommbox, _mutex, _cond))
     , _type(Unknow)
 {
 
@@ -37,7 +37,7 @@ Commbox::Type Commbox::type()
     return _type;
 }
 
-boost::shared_ptr<VisualStream> Commbox::visualStream()
+boost::shared_ptr<VirtualStream> Commbox::visualStream()
 {
     return _visualStream;
 }

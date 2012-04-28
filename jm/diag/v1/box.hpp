@@ -44,7 +44,7 @@ public:
         return Commbox::inst();
     }
 
-    static boost::shared_ptr<VisualStream> stream()
+    static boost::shared_ptr<VirtualStream> stream()
     {
         return commbox().visualStream();
     }
