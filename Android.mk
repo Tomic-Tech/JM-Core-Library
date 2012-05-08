@@ -19,7 +19,7 @@ LOCAL_SRC_FILES := cyo/CyoDecode.c \
 				   jm/diag/livedatavector.cpp \
 				   jm/diag/mikuni.cpp \
 				   jm/diag/stream.cpp \
-				   jm/diag/virsualstream.cpp \
+				   jm/diag/virtualstream.cpp \
 				   jm/system/app.cpp \
 				   jm/system/database.cpp \
 				   jm/system/register.cpp \
