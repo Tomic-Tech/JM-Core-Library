@@ -1,19 +1,25 @@
-#include "mikuni.hpp"
+#include "mikuni.h"
 
 namespace JM
 {
 namespace Diag
 {
+
 Mikuni::Mikuni()
 {
 
 }
 
-std::size_t Mikuni::pack(const boost::uint8_t *src,
+Mikuni::~Mikuni()
+{
+
+}
+
+std::size_t Mikuni::pack(const boost::uint8_t* src,
                          std::size_t srcLength,
-                         boost::uint8_t *tar,
+                         boost::uint8_t* tar,
                          std::size_t tarLength,
-                         boost::system::error_code &ec)
+                         boost::system::error_code& ec)
 {
     if (srcLength <= 0)
     {
@@ -60,5 +66,6 @@ std::size_t Mikuni::unpack(const boost::uint8_t *src,
 
     return srcLength - 3;
 }
+
 }
 }

@@ -1,10 +1,11 @@
-#include "canbus.hpp"
-#include <jm/utils.hpp>
+#include "canbus.h"
+#include "../utils.h"
 
 namespace JM
 {
 namespace Diag
 {
+
 Canbus::Canbus()
 {
     _flowControl[0] = 0x30;
@@ -22,6 +23,20 @@ Canbus::~Canbus()
 
 }
 
+boost::system::error_code Canbus::config(const Canbus::Options &opts, boost::system::error_code &ec)
+{
+    _opts.baud = opts.baud;
+    _opts.filterMask = opts.filterMask;
+    _opts.frameType = opts.frameType;
+    _opts.highPin = opts.highPin;
+    _opts.idMode = opts.idMode;
+    _opts.idVector = opts.idVector;
+    _opts.lowPin = opts.lowPin;
+    _opts.targetID = opts.targetID;
+    ec = boost::system::error_code();
+    return ec;
+}
+
 std::size_t Canbus::pack(const boost::uint8_t *src,
                          std::size_t srcLength,
                          boost::uint8_t *tar,
@@ -34,34 +49,34 @@ std::size_t Canbus::pack(const boost::uint8_t *src,
         return 0;
     }
 
-    if (_idMode == StdID)
+    if (_opts.idMode == StdID)
     {
-        tar[1] = HighByte(LowWord(_targetID));
-        tar[2] = LowByte(LowWord(_targetID));
-        if (_frameType == DataFrame)
+        tar[1] = high_byte(low_word(_opts.targetID));
+        tar[2] = low_byte(low_word(_opts.targetID));
+        if (_opts.frameType == DataFrame)
         {
-            tar[0] = LowByte(srcLength | StdID | DataFrame);
+            tar[0] = low_byte(srcLength | StdID | DataFrame);
         }
         else
         {
-            tar[0] = LowByte(srcLength | StdID | RemoteFrame);
+            tar[0] = low_byte(srcLength | StdID | RemoteFrame);
         }
         memcpy(tar + 3, src, srcLength);
         return srcLength + 3;
     }
-    if (_idMode == ExtID)
+    if (_opts.idMode == ExtID)
     {
-        tar[1] = HighByte(HighWord(_targetID));
-        tar[2] = LowByte(HighWord(_targetID));
-        tar[3] = HighByte(LowWord(_targetID));
-        tar[4] = LowByte(LowWord(_targetID));
-        if (_frameType == DataFrame)
+        tar[1] = high_byte(high_word(_opts.targetID));
+        tar[2] = low_byte(high_word(_opts.targetID));
+        tar[3] = high_byte(low_word(_opts.targetID));
+        tar[4] = low_byte(low_word(_opts.targetID));
+        if (_opts.frameType == DataFrame)
         {
-            tar[0] = LowByte(srcLength | ExtID | DataFrame);
+            tar[0] = low_byte(srcLength | ExtID | DataFrame);
         }
         else
         {
-            tar[0] = LowByte(srcLength | ExtID | RemoteFrame);
+            tar[0] = low_byte(srcLength | ExtID | RemoteFrame);
         }
         memcpy(tar + 5, src, srcLength);
         return srcLength + 5;
@@ -108,33 +123,6 @@ std::size_t Canbus::unpack(const boost::uint8_t *src,
         memcpy(tar, src + 5, length);
     }
     return length;
-}
-
-void Canbus::setLines(boost::int32_t high, boost::int32_t low,
-                      boost::system::error_code &ec)
-{
-    _high = high;
-    _low = low;
-
-    ec = boost::system::error_code();
-}
-
-void Canbus::setFilter(const std::vector<boost::int32_t> &idVector,
-                       boost::system::error_code &ec)
-{
-    _idVector = idVector;
-    ec = boost::system::error_code();
-}
-
-void Canbus::setOptions(boost::int32_t id, Baud baud, IDMode idMode,
-                        FilterMask mask, FrameType frame, boost::system::error_code &ec)
-{
-    _baud = baud;
-    _idMode = idMode;
-    _filterMask = mask;
-    _frameType = frame;
-    _targetID = id;
-    ec = boost::system::error_code();
 }
 
 }

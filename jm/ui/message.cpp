@@ -1,5 +1,4 @@
-#include "message.hpp"
-#include <sstream>
+#include "message.h"
 
 namespace JM
 {
@@ -7,13 +6,13 @@ namespace UI
 {
 
 Message::Message()
-    : _msgQueue()
-    , _mutex()
-    , _btnClicked()
-    , _btnMutex()
-    , _btnCond()
-    , _menuSel()
-    , _menuMutex()
+: _msgQueue()
+, _mutex()
+, _btnClicked()
+, _btnMutex()
+, _btnCond()
+, _menuSel()
+, _menuMutex()
 {
 
 }
@@ -32,7 +31,7 @@ Message& Message::inst()
     return instance;
 }
 
-Message::Msg* Message::popMsg()
+Message::Msg* Message::pop_msg()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     if (_msgQueue.empty())
@@ -44,13 +43,13 @@ Message::Msg* Message::popMsg()
     return msg;
 }
 
-std::size_t Message::msgCount()
+std::size_t Message::msg_count()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     return _msgQueue.size();
 }
 
-void Message::mainShow()
+void Message::main_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg *msg = new Message::Msg;
@@ -60,7 +59,7 @@ void Message::mainShow()
 
 }
 
-void Message::msgBoxBtnClr()
+void Message::msg_box_btn_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -70,7 +69,7 @@ void Message::msgBoxBtnClr()
 
 }
 
-void Message::msgBoxAddBtn(const std::string &text)
+void Message::msg_box_add_btn(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -80,7 +79,7 @@ void Message::msgBoxAddBtn(const std::string &text)
 
 }
 
-void Message::msgBoxSetMsg(const std::string &text)
+void Message::msg_box_set_msg(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -91,7 +90,7 @@ void Message::msgBoxSetMsg(const std::string &text)
 
 }
 
-void Message::msgBoxSetTitle(const std::string &text)
+void Message::msg_box_set_title(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -101,7 +100,7 @@ void Message::msgBoxSetTitle(const std::string &text)
     _msgQueue.push_back(msg);
 }
 
-void Message::msgBoxShow()
+void Message::msg_box_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -110,7 +109,7 @@ void Message::msgBoxShow()
     _msgQueue.push_back(msg);
 }
 
-void Message::msgBoxHide()
+void Message::msg_box_hide()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -119,7 +118,7 @@ void Message::msgBoxHide()
     _msgQueue.push_back(msg);
 }
 
-void Message::listBoxBtnClr()
+void Message::list_box_btn_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -128,7 +127,7 @@ void Message::listBoxBtnClr()
     _msgQueue.push_back(msg);
 }
 
-void Message::listBoxAddBtn(const std::string &text)
+void Message::list_box_add_btn(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -138,7 +137,7 @@ void Message::listBoxAddBtn(const std::string &text)
     _msgQueue.push_back(msg);
 }
 
-void Message::listBoxAddItem(const std::string &caption, const std::string &item)
+void Message::list_box_add_item(const std::string &caption, const std::string &item)
 {
     std::stringstream ss;
     ss << caption << "|" << item;
@@ -150,7 +149,7 @@ void Message::listBoxAddItem(const std::string &caption, const std::string &item
     _msgQueue.push_back(msg);
 }
 
-void Message::listBoxItemClr()
+void Message::list_box_item_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -159,7 +158,7 @@ void Message::listBoxItemClr()
     _msgQueue.push_back(msg);
 }
 
-void Message::listBoxShow()
+void Message::list_box_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -168,7 +167,7 @@ void Message::listBoxShow()
     _msgQueue.push_back(msg);
 }
 
-void Message::listBoxHide()
+void Message::list_box_hide()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -177,7 +176,7 @@ void Message::listBoxHide()
     _msgQueue.push_back(msg);
 }
 
-void Message::menuItemClr()
+void Message::menu_item_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -186,7 +185,7 @@ void Message::menuItemClr()
     _msgQueue.push_back(msg);
 }
 
-void Message::menuAddItem(const std::string &text)
+void Message::menu_add_item(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -196,16 +195,16 @@ void Message::menuAddItem(const std::string &text)
     _msgQueue.push_back(msg);
 }
 
-void Message::menuAddItems(const std::vector<std::string> &menus)
+void Message::menu_add_items(const std::vector<std::string> &menus)
 {
     for (std::vector<std::string>::const_iterator it = menus.begin();
         it != menus.end(); ++it)
     {
-        menuAddItem(*it);
+        menu_add_item(*it);
     }
 }
 
-void Message::menuShow()
+void Message::menu_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -214,7 +213,7 @@ void Message::menuShow()
     _msgQueue.push_back(msg);
 }
 
-void Message::tcItemClr()
+void Message::tc_item_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -223,7 +222,7 @@ void Message::tcItemClr()
     _msgQueue.push_back(msg);
 }
 
-void Message::tcAddItem(const std::string &code, const std::string &text)
+void Message::tc_add_item(const std::string &code, const std::string &text)
 {
     std::stringstream ss;
     ss << code << "|" << text;
@@ -235,7 +234,7 @@ void Message::tcAddItem(const std::string &code, const std::string &text)
     _msgQueue.push_back(msg);
 }
 
-void Message::tcAddBtn(const std::string &text)
+void Message::tc_add_btn(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -245,7 +244,7 @@ void Message::tcAddBtn(const std::string &text)
     _msgQueue.push_back(msg);
 }
 
-void Message::tcBtnClr()
+void Message::tc_btn_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -254,7 +253,7 @@ void Message::tcBtnClr()
     _msgQueue.push_back(msg);
 }
 
-void Message::tcShow()
+void Message::tc_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -263,7 +262,7 @@ void Message::tcShow()
     _msgQueue.push_back(msg);
 }
 
-void Message::ldPrepareShow()
+void Message::ld_prepare_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -272,7 +271,7 @@ void Message::ldPrepareShow()
     _msgQueue.push_back(msg);
 }
 
-void Message::ldShow()
+void Message::ld_show()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -281,7 +280,7 @@ void Message::ldShow()
     _msgQueue.push_back(msg);
 }
 
-void Message::ldBtnClr()
+void Message::ld_btn_clr()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -290,7 +289,7 @@ void Message::ldBtnClr()
     _msgQueue.push_back(msg);
 }
 
-void Message::ldAddBtn(const std::string &text)
+void Message::ld_add_btn(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     Message::Msg* msg = new Message::Msg;
@@ -300,7 +299,7 @@ void Message::ldAddBtn(const std::string &text)
     _msgQueue.push_back(msg);
 }
 
-void Message::ldSetValue(int32_t index, const std::string &value)
+void Message::ld_set_value(int32_t index, const std::string &value)
 {
     std::stringstream ss;
     ss << index << "|" << value;
@@ -313,7 +312,7 @@ void Message::ldSetValue(int32_t index, const std::string &value)
     _msgQueue.push_back(msg);
 }
 
-std::string Message::btnClicked(bool isBlocked)
+std::string Message::btn_clicked(bool isBlocked)
 {
     boost::unique_lock<boost::mutex> lock(_btnMutex);
 
@@ -345,14 +344,14 @@ std::string Message::btnClicked(bool isBlocked)
     return ret;
 }
 
-void Message::setBtnClicked(const std::string &text)
+void Message::set_btn_clicked(const std::string &text)
 {
     boost::lock_guard<boost::mutex> lock(_btnMutex);
     _btnClicked = text;
     _btnCond.notify_one();
 }
 
-std::string Message::menuSelected()
+std::string Message::menu_selected()
 {
     boost::unique_lock<boost::mutex> lock(_menuMutex);
     std::string ret = _menuSel;
@@ -360,10 +359,11 @@ std::string Message::menuSelected()
     return ret;
 }
 
-void Message::setMenuSelected(const std::string &text)
+void Message::set_menu_selected(const std::string &text)
 {
     boost::unique_lock<boost::mutex> lock(_menuMutex);
     _menuSel = text;
 }
+
 }
 }

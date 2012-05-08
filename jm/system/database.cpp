@@ -1,29 +1,47 @@
-#include "database.hpp"
+#include "database.h"
+#include <sqlite3.h>
+#include "register.h"
 
 namespace JM
 {
 namespace System
 {
+class DatabasePrivate
+{
+    friend class Database;
+    DatabasePrivate()
+        : path()
+        , db(NULL)
+        , getTextStmt(NULL)
+    {
+
+    }
+    ~DatabasePrivate()
+    {
+        if (db == NULL)
+            return;
+
+        sqlite3_stmt *stmt = NULL;
+        while ((stmt = sqlite3_next_stmt(db, 0)) != NULL)
+        {
+            sqlite3_finalize(stmt);
+        }
+        sqlite3_close(db);
+        db = NULL;
+    }
+    std::string path;
+    sqlite3 *db;
+    sqlite3_stmt *getTextStmt;
+};
 Database::Database()
-    : _path()
-    , _db(NULL)
-    , _getTextStmt(NULL)
+    : _priv(new DatabasePrivate())
 {
     sqlite3_enable_shared_cache(1);
 }
 
 Database::~Database()
 {
-    if (_db == NULL)
-        return;
-
-    sqlite3_stmt *stmt = NULL;
-    while ((stmt = sqlite3_next_stmt(_db, 0)) != NULL)
-    {
-        sqlite3_finalize(stmt);
-    }
-    sqlite3_close(_db);
-    _db = NULL;
+    delete _priv;
 }
 Database& Database::inst()
 {
@@ -31,52 +49,52 @@ Database& Database::inst()
     return instance;
 }
 
-void Database::setPath(const std::string &path)
+void Database::set_path(const std::string &path)
 {
-    _path = path;
+    _priv->path = path;
 }
 
 std::string Database::text(const std::string &name)
 {
     std::string result(name);
 
-    if (_db == NULL)
+    if (_priv->db == NULL)
     {
         int ret;
-        std::string dbPath = _path;
+        std::string dbPath = _priv->path;
         dbPath.append("sys.db");
         std::string dbPW = Register::inst().decrypt(Register::DB_PW);
 
-        ret = sqlite3_open_v2(dbPath.c_str(), &_db, SQLITE_OPEN_READONLY, NULL);
+        ret = sqlite3_open_v2(dbPath.c_str(), &_priv->db, SQLITE_OPEN_READONLY, NULL);
         if (ret != SQLITE_OK)
         {
-            _db = NULL;
+            _priv->db = NULL;
             return result;
         }
-        sqlite3_key(_db, dbPW.c_str(), dbPW.length());
+        sqlite3_key(_priv->db, dbPW.c_str(), dbPW.length());
     }
 
-    if (_getTextStmt == NULL)
+    if (_priv->getTextStmt == NULL)
     {
         std::string lang = Register::inst().decrypt(Register::LANG);
         int ret = 0;
         std::string temp = "SELECT Content FROM[Text";
         temp += lang;
         temp += "] WHERE Name=:name";
-        ret = sqlite3_prepare_v2(_db, temp.c_str(), temp.length(), &_getTextStmt, NULL);
+        ret = sqlite3_prepare_v2(_priv->db, temp.c_str(), temp.length(), &_priv->getTextStmt, NULL);
         if (ret != SQLITE_OK)
         {
-            sqlite3_finalize(_getTextStmt);
-            _getTextStmt = NULL;
+            sqlite3_finalize(_priv->getTextStmt);
+            _priv->getTextStmt = NULL;
             return result;
         }
     }
 
-    if ((sqlite3_reset(_getTextStmt) == SQLITE_OK) &&
-            (sqlite3_bind_text(_getTextStmt, 1, name.c_str(), name.length(), SQLITE_STATIC) == SQLITE_OK) &&
-            (sqlite3_step(_getTextStmt) == SQLITE_ROW))
+    if ((sqlite3_reset(_priv->getTextStmt) == SQLITE_OK) &&
+            (sqlite3_bind_text(_priv->getTextStmt, 1, name.c_str(), name.length(), SQLITE_STATIC) == SQLITE_OK) &&
+            (sqlite3_step(_priv->getTextStmt) == SQLITE_ROW))
     {
-        const char* temp = (const char*)sqlite3_column_text(_getTextStmt, 0);
+        const char* temp = (const char*)sqlite3_column_text(_priv->getTextStmt, 0);
         if (temp != NULL)
             result = temp;
     }

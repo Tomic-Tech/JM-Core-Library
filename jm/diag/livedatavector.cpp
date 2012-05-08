@@ -1,18 +1,19 @@
-#include "livedatavector.hpp"
-#include "../ui/message.hpp"
+#include "livedatavector.h"
+#include "../ui/message.h"
 
 namespace JM
 {
 namespace Diag
 {
+
 LiveDataVector::LiveDataVector()
-    : _showIndexes()
-    , _showPositions()
-    , _enabledIndexes()
-    , _currentEnabledIndex(-1)
-    , _enabledSize(0)
-    , _showSize(0)
-    , _mutex()
+: _showIndexes()
+, _showPositions()
+, _enabledIndexes()
+, _currentEnabledIndex(-1)
+, _enabledSize(0)
+, _showSize(0)
+, _mutex()
 {
 
 }
@@ -22,12 +23,12 @@ LiveDataVector::~LiveDataVector()
 
 }
 
-void LiveDataVector::setValue(boost::int32_t index, const std::string &value)
+void LiveDataVector::set_value(boost::int32_t index, const std::string &value)
 {
-    UI::Message::inst().ldSetValue(index, value);
+    UI::Message::inst().ld_set_value(index, value);
 }
 
-void LiveDataVector::setShowed(boost::int32_t index, bool showed)
+void LiveDataVector::set_showed(boost::int32_t index, bool showed)
 {
     if (_vector[index]->showed())
     {
@@ -45,7 +46,7 @@ void LiveDataVector::setShowed(boost::int32_t index, bool showed)
     }
 }
 
-void LiveDataVector::setEnabled(boost::int32_t index, bool enabled)
+void LiveDataVector::set_enabled(boost::int32_t index, bool enabled)
 {
     if (!_vector[index]->enabled())
     {
@@ -74,12 +75,12 @@ void LiveDataVector::setEnabled(boost::int32_t index, bool enabled)
 void LiveDataVector::push_back(const LiveDataPtr &ptr)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
-    ptr->setIndex(_vector.size());
+    ptr->set_index(_vector.size());
     _vector.push_back(ptr);
 
-    ptr->valueChanged.connect(boost::bind(&LiveDataVector::setValue, this, _vector.size() - 1, _1));
-    ptr->showedChanged.connect(boost::bind(&LiveDataVector::setShowed, this, _vector.size() - 1, _1));
-    ptr->enabledChanged.connect(boost::bind(&LiveDataVector::setEnabled, this, _vector.size() - 1, _1));
+    ptr->value_changed.connect(boost::bind(&LiveDataVector::set_value, this, _vector.size() - 1, _1));
+    ptr->showed_changed.connect(boost::bind(&LiveDataVector::set_showed, this, _vector.size() - 1, _1));
+    ptr->enabled_changed.connect(boost::bind(&LiveDataVector::set_enabled, this, _vector.size() - 1, _1));
 
     if (ptr->enabled())
     {
@@ -91,7 +92,7 @@ void LiveDataVector::push_back(const LiveDataPtr &ptr)
     }
 }
 
-boost::int32_t LiveDataVector::nextShowedIndex()
+boost::int32_t LiveDataVector::next_showed_index()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     if (_showIndexes.size() == 0)
@@ -106,7 +107,7 @@ boost::int32_t LiveDataVector::nextShowedIndex()
     return ret;
 }
 
-boost::int32_t LiveDataVector::getEnabledIndex(boost::int32_t index)
+boost::int32_t LiveDataVector::get_enabled_index(boost::int32_t index)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     if ((std::size_t)index > _enabledIndexes.size())
@@ -117,13 +118,13 @@ boost::int32_t LiveDataVector::getEnabledIndex(boost::int32_t index)
     return _enabledIndexes[index];
 }
 
-boost::int32_t LiveDataVector::queryShowedPosition(boost::int32_t index)
+boost::int32_t LiveDataVector::query_showed_position(boost::int32_t index)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     return _showPositions[index];
 }
 
-boost::int32_t LiveDataVector::getShowedIndex(boost::int32_t index)
+boost::int32_t LiveDataVector::get_showed_index(boost::int32_t index)
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     if ((std::size_t)index > _showIndexes.size())
@@ -134,7 +135,7 @@ boost::int32_t LiveDataVector::getShowedIndex(boost::int32_t index)
     return _showIndexes[index];
 }
 
-void LiveDataVector::deployEnabledIndex()
+void LiveDataVector::deploy_enabled_index()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     _enabledIndexes.clear();
@@ -148,7 +149,7 @@ void LiveDataVector::deployEnabledIndex()
     }
 }
 
-void LiveDataVector::deployShowedIndex()
+void LiveDataVector::deploy_showed_index()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     _showIndexes.clear();
@@ -174,7 +175,7 @@ std::size_t LiveDataVector::size()
     return _vector.size();
 }
 
-std::size_t LiveDataVector::showedSize()
+std::size_t LiveDataVector::showed_size()
 {
     boost::unique_lock<boost::mutex> lock(_mutex);
     return _showIndexes.size();
@@ -190,10 +191,11 @@ const LiveDataPtr& LiveDataVector::operator [] (std::size_t index)
     return _vector[index];
 }
 
-std::size_t LiveDataVector::enabledSize()
+std::size_t LiveDataVector::enabled_size()
 {
     return _enabledSize;
 }
+
 
 }
 }

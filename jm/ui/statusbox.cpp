@@ -1,15 +1,16 @@
-#include "statusbox.hpp"
-#include "message.hpp"
+#include "statusbox.h"
+#include "message.h"
 
 namespace JM
 {
 namespace UI
 {
-StatusBox::StatusBox(const std::string &title, const std::string &msg)
-    : _title(title)
-    , _msg(msg)
-{
 
+StatusBox::StatusBox(const std::string &title, const std::string &msg)
+: _title(title)
+, _msg(msg)
+{
+    
 }
 
 StatusBox::~StatusBox()
@@ -19,15 +20,16 @@ StatusBox::~StatusBox()
 
 void StatusBox::show()
 {
-    Message::inst().msgBoxBtnClr();
-    Message::inst().msgBoxSetTitle(_title);
-    Message::inst().msgBoxSetMsg(_msg);
-    Message::inst().msgBoxShow();
+    Message::inst().msg_box_btn_clr();
+    Message::inst().msg_box_set_title(_title);
+    Message::inst().msg_box_set_msg(_msg);
+    Message::inst().msg_box_show();
 }
 
 void StatusBox::hide()
 {
-    Message::inst().msgBoxHide();
+    Message::inst().msg_box_hide();
 }
+
 }
 }

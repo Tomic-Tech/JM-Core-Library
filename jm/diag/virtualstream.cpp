@@ -1,4 +1,4 @@
-#include "virtualstream.hpp"
+#include "virtualstream.h"
 
 namespace JM
 {
@@ -17,21 +17,20 @@ VirtualStream::VirtualStream(Stream &toCommbox,
 
 }
 
-std::size_t VirtualStream::bytesAvailable()
+std::size_t VirtualStream::bytes_available()
 {
-    return _fromCommbox.bytesAvailable();
+    return _fromCommbox.bytes_available();
 }
 
-void VirtualStream::discardOutBuffer()
+void VirtualStream::discard_out_buffer()
 {
     _toCommbox.clear();
 }
 
-void VirtualStream::discardInBuffer()
+void VirtualStream::discard_in_buffer()
 {
     _fromCommbox.clear();
 }
-
 
 }
 }

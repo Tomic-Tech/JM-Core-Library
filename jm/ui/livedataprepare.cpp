@@ -1,40 +1,44 @@
-#include "livedataprepare.hpp"
-#include "../system/app.hpp"
-#include "message.hpp"
+#include "livedataprepare.h"
+#include "message.h"
+#include "../system/app.h"
+
 
 namespace JM
 {
 namespace UI
 {
+
 LiveDataPrepare::LiveDataPrepare()
     : _ptr()
 {
-
+    
 }
 
 LiveDataPrepare::~LiveDataPrepare()
 {
-
+    
 }
 
 bool LiveDataPrepare::enter()
 {
-    std::string input = Message::inst().btnClicked(true);
+    std::string input = Message::inst().btn_clicked(true);
     return input.compare(".") == 0;
 }
 
-void LiveDataPrepare::setPtr(const Diag::LiveDataVectorPtr &ptr)
+void LiveDataPrepare::set_ptr(const Diag::LiveDataVectorPtr &ptr)
 {
     _ptr = ptr;
 }
 
 void LiveDataPrepare::operator()()
 {
-    _ptr->deployEnabledIndex();
-    System::app().ldVecPtr = _ptr;
-    Message::inst().ldPrepareShow();
+    _ptr->deploy_enabled_index();
+    System::App::inst().ldVectorPtr = _ptr;
+    Message::inst().ld_prepare_show();
     if (enter())
+    {
         enterEvent();
+    }
 }
 
 }

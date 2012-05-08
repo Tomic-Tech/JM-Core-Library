@@ -1,17 +1,18 @@
-#include "app.hpp"
-#include "jm/system/database.hpp"
-#include "jm/system/register.hpp"
+#include "App.h"
+#include "database.h"
 
 namespace JM
 {
 namespace System
 {
+
 class AppPrivate
 {
     friend class App;
 private:
 
 };
+
 App::App()
 {
 
@@ -30,14 +31,14 @@ App& App::inst()
 
 void App::init(const std::string &appPath)
 {
-    Database::inst().setPath(appPath);
-    reg().setPath(appPath);
-    vldr().setPath(appPath);
+    JM::System::Database::inst().set_path(appPath);
+    reg().set_path(appPath);
+    vldr().set_path(appPath);
 }
 
 JM::System::Register& App::reg()
 {
-    return Register::inst();
+    return JM::System::Register::inst();
 }
 
 JM::Vehicle::Database& App::vdb()
@@ -60,9 +61,9 @@ JM::Diag::BoxFactory& App::box()
     return JM::Diag::BoxFactory::inst();
 }
 
-JM::Diag::Commbox& App::commbox()
+JM::Diag::BoxStream& App::stream()
 {
-    return JM::Diag::Commbox::inst();
+    return JM::Diag::BoxStream::inst();
 }
 
 }

@@ -1,45 +1,48 @@
-#include "livedataview.hpp"
-#include "../system/app.hpp"
+#include "livedataview.h"
+#include "../System/app.h"
+#include "message.h"
 
 namespace JM
 {
 namespace UI
 {
+
 LiveDataView::LiveDataView()
-    : _ptr()
-    , _btns()
+: _ptr()
+, _btns()
 {
+
 }
 
 LiveDataView::~LiveDataView()
 {
-
+    
 }
 
-void LiveDataView::setPtr(const Diag::LiveDataVectorPtr &ptr)
+void LiveDataView::set_ptr(const Diag::LiveDataVectorPtr &ptr)
 {
     _ptr = ptr;
 }
 
-void LiveDataView::addBtns(const StringVector &btns)
+void LiveDataView::add_btns(const StringVector &btns)
 {
     _btns = btns;
 }
 
-void LiveDataView::operator ()()
+void LiveDataView::operator() ()
 {
-    System::app().ldVecPtr = _ptr;
-    _ptr->deployEnabledIndex();
-    _ptr->deployShowedIndex();
-    Message::inst().ldShow();
-
-    Message::inst().ldBtnClr();
-    for (StringVector::const_iterator it = _btns.begin(); it != _btns.end(); ++it)
+    System::App::inst().ldVectorPtr = _ptr;
+    _ptr->deploy_enabled_index();
+    _ptr->deploy_showed_index();
+    Message::inst().ld_show();
+    
+    Message::inst().ld_btn_clr();
+    for (StringVector::iterator it = _btns.begin(); it != _btns.end(); ++it)
     {
-        Message::inst().ldAddBtn(*it);
+        Message::inst().ld_add_btn(*it);
     }
-
-    while (btnClickedEvent(Message::inst().btnClicked(false)));
+    
+    while (btnClickedEvent(Message::inst().btn_clicked(false)));
 }
 
 }

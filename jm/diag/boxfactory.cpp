@@ -1,5 +1,5 @@
-#include "boxfactory.hpp"
-#include "jm/diag/v1/boxversion.hpp"
+#include "boxfactory.h"
+#include "v1/commbox.h"
 
 namespace JM
 {
@@ -23,9 +23,9 @@ BoxFactory& BoxFactory::inst()
     return instance;
 }
 
-void BoxFactory::setVersion(Version ver)
+void BoxFactory::set_version(Version ver)
 {
-    BoxVersion *box = NULL;
+    Commbox *box = NULL;
     switch(ver)
     {
     case V1:
@@ -35,7 +35,7 @@ void BoxFactory::setVersion(Version ver)
         }
         if (box != NULL)
             break;
-        box = new V1::BoxVersion();
+        box = new V1::Commbox();
         _boxHash[ver].reset(box);
         break;
     default:
@@ -44,11 +44,11 @@ void BoxFactory::setVersion(Version ver)
     _ver = ver;
 }
 
-BoxVersionPtr BoxFactory::getBox()
+CommboxPtr BoxFactory::get_box()
 {
     if (_boxHash.find(_ver) != _boxHash.end())
         return _boxHash[_ver];
-    return BoxVersionPtr();
+    return CommboxPtr();
 }
 
 }

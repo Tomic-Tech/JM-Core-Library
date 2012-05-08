@@ -1,15 +1,15 @@
-#include "loader.hpp"
+#include "loader.h"
 #include <sstream>
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
-#include "jm/system/register.hpp"
-#include "jm/system/database.hpp"
-#include "jm/ui/message.hpp"
-#include "jm/ui/statusbox.hpp"
-#include "jm/ui/msgbox.hpp"
-#include "jm/diag/boxfactory.hpp"
-#include "database.hpp"
-#include "base.hpp"
+#include "jm/system/register.h"
+#include "jm/system/database.h"
+#include "jm/ui/message.h"
+#include "jm/ui/statusbox.h"
+#include "jm/ui/msgbox.h"
+#include "jm/diag/boxfactory.h"
+#include "database.h"
+#include "base.h"
 
 #ifdef BOOST_WINDOWS
 #include <Windows.h>
@@ -49,7 +49,7 @@ private:
 
     bool unload()
     {
-        if (_hnd)
+        if (!_hnd)
         {
             return false;
         }
@@ -86,7 +86,7 @@ private:
         UI::StatusBox statusBox("", text);
         statusBox.show();
 
-        Diag::BoxVersionPtr box = Diag::BoxFactory::inst().getBox();
+        Diag::CommboxPtr box = Diag::BoxFactory::inst().get_box();
         if (box.get() == NULL)
         {
             statusBox.hide();
@@ -115,7 +115,7 @@ private:
         UI::StatusBox statusBox("", text);
         statusBox.show();
 
-        Diag::BoxVersionPtr box = Diag::BoxFactory::inst().getBox();
+        Diag::CommboxPtr box = Diag::BoxFactory::inst().get_box();
         if (box.get() == NULL)
         {
             return false;
@@ -256,7 +256,7 @@ bool Loader::run(const std::string &name,
         btns.push_back(back);
 
         UI::MsgBox msgBox("", text);
-        msgBox.addBtns(btns);
+        msgBox.add_btns(btns);
         std::string ret = msgBox.exec();
 
         if (ret.compare(back) == 0)
@@ -272,10 +272,11 @@ bool Loader::run(const std::string &name,
     }
 
     _priv->closeCommbox();
+    _priv->unload();
     return true;
 }
 
-void Loader::setPath(const std::string &appPath)
+void Loader::set_path(const std::string &appPath)
 {
     std::vector<std::string> strArray;
 

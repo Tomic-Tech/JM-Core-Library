@@ -1,40 +1,19 @@
-#include "kwp2000.hpp"
-#include <jm/utils.hpp>
+#include "kwp2000.h"
+#include "../utils.h"
 
 namespace JM
 {
 namespace Diag
 {
+
 KWP2000::KWP2000()
-    : _mode(Mode8X)
-    , _linkMode(Mode8X)
-    , _msgMode(Mode8X)
-    , _baud(10416)
-    , _targetAddress(0x12)
-    , _sourceAddress(0xF1)
 {
 
 }
 
-void KWP2000::setOptions(Mode msgMode, Mode linkMode, boost::int32_t baud,
-                         boost::system::error_code &ec)
+KWP2000::~KWP2000()
 {
-    _msgMode = msgMode;
-    _linkMode = linkMode;
-    _mode = msgMode;
-    _baud = baud;
 
-    ec = boost::system::error_code();
-}
-
-void KWP2000::setAddress(boost::uint8_t targetAddress,
-                         boost::uint8_t sourceAddress,
-                         boost::system::error_code &ec)
-{
-    _targetAddress = targetAddress;
-    _sourceAddress = sourceAddress;
-
-    ec = boost::system::error_code();
 }
 
 std::size_t KWP2000::pack(const boost::uint8_t* src,
@@ -49,39 +28,39 @@ std::size_t KWP2000::pack(const boost::uint8_t* src,
 
     if (_mode == Mode8X)
     {
-        tar[pos++] = LowByte(0x80 | srcLength);
-        tar[pos++] = LowByte(_targetAddress);
-        tar[pos++] = LowByte(_sourceAddress);
+        tar[pos++] = low_byte(0x80 | srcLength);
+        tar[pos++] = low_byte(_opts.targetAddress);
+        tar[pos++] = low_byte(_opts.sourceAddress);
         memcpy(tar + pos, src, srcLength);
         pos += srcLength;
     }
     else if (_mode == ModeCX)
     {
-        tar[pos++] = LowByte(0xC0 | srcLength);
-        tar[pos++] = LowByte(_targetAddress);
-        tar[pos++] = LowByte(_sourceAddress);
+        tar[pos++] = low_byte(0xC0 | srcLength);
+        tar[pos++] = low_byte(_opts.targetAddress);
+        tar[pos++] = low_byte(_opts.sourceAddress);
         memcpy(tar + pos, src, srcLength);
         pos += srcLength;
     }
     else if (_mode == Mode80)
     {
-        tar[pos++] = LowByte(0x80);
-        tar[pos++] = LowByte(_targetAddress);
-        tar[pos++] = LowByte(_sourceAddress);
-        tar[pos++] = LowByte(srcLength);
+        tar[pos++] = low_byte(0x80);
+        tar[pos++] = low_byte(_opts.targetAddress);
+        tar[pos++] = low_byte(_opts.sourceAddress);
+        tar[pos++] = low_byte(srcLength);
         memcpy(tar + pos, src, srcLength);
         pos += srcLength;
     }
     else if (_mode == Mode00)
     {
         tar[pos++] = 0x00;
-        tar[pos++] = LowByte(srcLength);
+        tar[pos++] = low_byte(srcLength);
         memcpy(tar + pos, src, srcLength);
         pos += srcLength;
     }
     else if (_mode == ModeXX)
     {
-        tar[pos++] = LowByte(srcLength);
+        tar[pos++] = low_byte(srcLength);
         memcpy(tar + pos, src, srcLength);
         pos += srcLength;
     }
@@ -110,7 +89,7 @@ std::size_t KWP2000::unpack(const boost::uint8_t *src,
     if (src[0] > 0x80)
     {
         length = src[0] - 0x80;
-        if (src[1] != _sourceAddress)
+        if (src[1] != _opts.sourceAddress)
         {
             ec = boost::system::error_code(boost::system::errc::bad_message,
                                            boost::system::get_system_category());
@@ -131,7 +110,7 @@ std::size_t KWP2000::unpack(const boost::uint8_t *src,
     else if (src[0] == 0x80)
     {
         length = src[0];
-        if (src[1] != _sourceAddress)
+        if (src[1] != _opts.sourceAddress)
         {
             ec = boost::system::error_code(boost::system::errc::bad_message,
                                            boost::system::get_system_category());
@@ -170,5 +149,14 @@ std::size_t KWP2000::unpack(const boost::uint8_t *src,
     }
     return length;
 }
+
+boost::system::error_code
+KWP2000::config(const KWP2000::Options &opts, boost::system::error_code &ec)
+{
+    memcpy(&_opts, &opts, sizeof (Options));
+    ec = boost::system::error_code();
+    return ec;
+}
+
 }
 }

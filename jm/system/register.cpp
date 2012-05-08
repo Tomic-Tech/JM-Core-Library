@@ -1,9 +1,9 @@
-#include "register.hpp"
+#include "register.h"
 
 #ifdef BOOST_WINDOWS
-#include <jm/system/detail/windiskinfo.hpp>
+#include <jm/system/detail/windiskinfo.h>
 #else
-#include <jm/system/detail/unixdiskinfo.hpp>
+#include <jm/system/detail/unixdiskinfo.h>
 #endif
 
 #include <cstring>
@@ -11,8 +11,8 @@
 #include <openssl/rsa.h>
 #include <openssl/des.h>
 #include <openssl/err.h>
-#include "cyo/CyoEncode.h"
-#include "cyo/CyoDecode.h"
+#include "CyoEncode.h"
+#include "CyoDecode.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -20,11 +20,6 @@
 #include <sstream>
 #include <boost/smart_ptr.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
 
 
 namespace JM
@@ -111,13 +106,13 @@ Register& Register::inst()
     return instance;
 }
 
-void Register::setPath(const std::string &path)
+void Register::set_path(const std::string &path)
 {
     _priv->datPath = path;
     _priv->datPath += "demo.dat";
 }
 
-void Register::saveReg(const std::string &reg)
+void Register::save_reg(const std::string &reg)
 {
     std::ofstream out;
     out.open(_priv->datPath.c_str(), std::ios::trunc);
@@ -125,7 +120,7 @@ void Register::saveReg(const std::string &reg)
     out << reg;
 }
 
-std::string Register::queryIDCode()
+std::string Register::query_id_code()
 {
     std::string idCode;
     boost::scoped_array<char> result;
@@ -137,7 +132,7 @@ std::string Register::queryIDCode()
 
     for (i = 0; i < count; i++)
     {
-        temp = DiskInfo::inst().serialNumber(i);
+        temp = DiskInfo::inst().serial_number(i);
         plain << temp << std::endl;
     }
 
@@ -152,7 +147,7 @@ std::string Register::queryIDCode()
     return idCode;
 }
 
-bool Register::checkReg()
+bool Register::check_reg()
 {
     std::vector<std::string> vec = _priv->decrypt();
     if (vec.empty())
@@ -161,12 +156,12 @@ bool Register::checkReg()
     if (vec.size() < MESSAGE_LINES)
         return false;
     std::string idCode1 = vec[ID_CODE];
-    std::string idCode2 = queryIDCode();
+    std::string idCode2 = query_id_code();
 
     return idCode1.compare(idCode2) == 0;
 }
 
-std::string Register::encryptLogText(const std::string &log)
+std::string Register::encrypt_log_text(const std::string &log)
 {
     std::string logPW = decrypt(LOG_PW);
     if (logPW.empty())
