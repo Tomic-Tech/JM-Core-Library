@@ -244,7 +244,7 @@ boost::system::error_code serial_port::set_dtr(bool set, boost::system::error_co
     if (ret != 0)
     {
         ec = boost::system::error_code(ret, boost::system::get_generic_category());
-        return;
+        return ec;
     }
 
     if (set)
@@ -260,9 +260,10 @@ boost::system::error_code serial_port::set_dtr(bool set, boost::system::error_co
     if (ret != 0)
     {
         ec = boost::system::error_code(ret, boost::system::get_generic_category());
-        return;
+        return ec;
     }
     ec = boost::system::error_code();
+	return ec;
 }
 
 boost::system::error_code serial_port::set_rts(bool set, boost::system::error_code &ec)
