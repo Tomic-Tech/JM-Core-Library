@@ -44,7 +44,7 @@ namespace JM
             std::size_t get_command(boost::int32_t id, const MutableBufferSequence &buff)
             {
                 std::size_t count = 0;
-                const boost::uint8_t *bytes = get_command(id);
+                const boost::uint8_t *bytes = get_command(id, count);
                 if (count == 0)
                     return count;
                 memcpy(boost::asio::buffer_cast<boost::uint8_t *>(buff), bytes, count > boost::asio::buffer_size(buff) ? boost::asio::buffer_size(buff) : count);

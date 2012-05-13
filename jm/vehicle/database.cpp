@@ -243,7 +243,7 @@ const boost::uint8_t * Database::get_command(const std::string &name, std::size_
 {
     if (_priv->get_commandStmt == NULL)
     {
-        static char *text = "SELECT Command FROM [Command] WHERE Name=:name AND Catalog=:catalog";
+        static const char *text = "SELECT Command FROM [Command] WHERE Name=:name AND Catalog=:catalog";
         int ret;
         ret = sqlite3_prepare_v2(_priv->handle, text, strlen(text), &_priv->get_commandStmt, NULL);
         if (ret != SQLITE_OK)
@@ -269,7 +269,7 @@ const boost::uint8_t * Database::get_command(boost::int32_t id, std::size_t &cou
 {
     if (_priv->get_commandByIDStmt == NULL)
     {
-        static char *text = "SELECT Command FROM [Command] WHERE ID=:id";
+        static const char *text = "SELECT Command FROM [Command] WHERE ID=:id";
         int ret = sqlite3_prepare_v2(_priv->handle, text, strlen(text), &_priv->get_commandByIDStmt, NULL);
         if (ret != SQLITE_OK)
         {

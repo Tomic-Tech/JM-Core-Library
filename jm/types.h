@@ -34,7 +34,7 @@
 
 #else // BOOST_WINDOWS
 
-#define JM_CORE_API __attribute__((visibility("default")))
+#define JMCORE_API __attribute__((visibility("default")))
 
 #endif
 

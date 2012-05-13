@@ -4,15 +4,11 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := jmcore
 ### Add all source file names to be included in lib separated by a whitespace
-LOCAL_SRC_FILES := cyo/CyoDecode.c \
-				   cyo/CyoEncode.c \
-				   sqlite/sqlite3.c \
-				   jm/asio/serialport.cpp \
-				   jm/diag/v1/boxversion.cpp \
+LOCAL_SRC_FILES := jm/asio/serialport.cpp \
+				   jm/diag/v1/commbox.cpp \
 				   jm/diag/boxfactory.cpp \
-				   jm/diag/boxlink.cpp \
+				   jm/diag/boxstream.cpp \
 				   jm/diag/canbus.cpp \
-				   jm/diag/commbox.cpp \
 				   jm/diag/kwp1281.cpp \
 				   jm/diag/kwp2000.cpp \
 				   jm/diag/livedata.cpp \
@@ -36,13 +32,16 @@ LOCAL_SRC_FILES := cyo/CyoDecode.c \
 				   
 LOCAL_CFLAGS := -DANDROID \
 				-DSQLITE_HAS_CODEC \
-				-DSQLITE_NO_SYNC \
 				-DJMCORE_BUILD
 				
-LOCAL_STATIC_LIBRARIES += boost_thread \
-						  boost_system \
-						  crypto
+LOCAL_STATIC_LIBRARIES += crypto \
+						  sqlite \
+						  cyo \
+						  boost_thread \
+						  boost_system
 
 include $(BUILD_SHARED_LIBRARY)
-$(call import-module, boost_1_47_0)
 $(call import-module, openssl)
+$(call import-module, sqlite)
+$(call import-module, cyo)
+$(call import-module, boost_1_47_0)
