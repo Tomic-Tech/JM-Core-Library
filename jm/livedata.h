@@ -18,6 +18,9 @@ struct _LiveData {
     GString *defaultValue;
     GString *value;
     gint32 cmdID;
+    gboolean enabled;
+    gboolean showed;
+    gint32 index;
 };
 
 LiveData * live_data_new(const gchar *shortName,
@@ -32,7 +35,14 @@ const gchar* live_data_content(LiveData *obj);
 const gchar* live_data_unit(LiveData *obj);
 const gchar* live_data_default_value(LiveData *obj);
 const gchar* live_data_value(LiveData *obj);
+void live_data_set_value(LiveData *obj, const gchar *value);
 gint32 live_data_cmd_id(LiveData *obj);
+gboolean live_data_enabled(LiveData *obj);
+void live_data_set_enabled(LiveData *obj, gboolean enabled);
+gboolean live_data_showed(LiveData *obj);
+void live_data_set_showed(LiveData *obj, gboolean showed);
+gint32 live_data_index(LiveData *obj);
+void live_data_set_index(LiveData *obj, gint32 index);
 
 G_END_DECLS
 
