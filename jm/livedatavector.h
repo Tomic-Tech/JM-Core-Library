@@ -20,6 +20,7 @@ LiveDataVector * live_data_vector_new(void);
 void live_data_vector_dispose(LiveDataVector *obj);
 LiveDataVector* live_data_vector_push_back(LiveDataVector *obj, LiveData *ld);
 LiveData* live_data_vector_index(LiveDataVector *obj, size_t index);
+size_t live_data_vector_size(LiveDataVector *obj);
     
 G_END_DECLS
 

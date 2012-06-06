@@ -31,3 +31,9 @@ LiveData* live_data_vector_index(LiveDataVector *obj, size_t index)
     g_return_val_if_fail(index < obj->arr->len, NULL);
     return (LiveData*)g_ptr_array_index(obj->arr, index);
 }
+
+size_t live_data_vector_size(LiveDataVector *obj)
+{
+  g_return_val_if_fail(obj != NULL, 0);
+  return obj->arr->len;
+}
