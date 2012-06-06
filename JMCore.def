@@ -18,6 +18,12 @@ live_data_unit
 live_data_default_value
 live_data_value
 live_data_cmd_id
+live_data_enabled
+live_data_set_enabled
+live_data_showed
+live_data_set_showed
+live_data_index
+live_data_set_index
 database_new
 database_dispose
 database_set_tc_catalog
