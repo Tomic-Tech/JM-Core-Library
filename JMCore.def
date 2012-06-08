@@ -12,6 +12,7 @@ sys_db_get_text
 live_data_vector_new
 live_data_vector_dispose
 live_data_vector_index
+live_data_vector_size
 live_data_short_name
 live_data_content
 live_data_unit
