@@ -17,6 +17,7 @@ LiveData * live_data_new(const gchar *shortName,
     obj->enabled = TRUE;
     obj->showed = FALSE;
     obj->index = -1;
+    return obj;
 }
 
 void live_data_dispose(LiveData *obj)
@@ -32,8 +33,8 @@ void live_data_dispose(LiveData *obj)
 
 const gchar* live_data_short_name(LiveData *obj)
 {
-    g_return_val_if_fail(obj != NULL, NULL);
-    return obj->shortName->str;
+  g_return_val_if_fail(obj != NULL, NULL);
+  return obj->shortName->str;
 }
 
 const gchar* live_data_content(LiveData *obj)

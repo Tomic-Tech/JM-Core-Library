@@ -46,6 +46,7 @@ LOCAL_SRC_FILES := eglib/garray.c \
 LOCAL_CFLAGS := -DSQLITE_HAS_CODEC
 LOCAL_C_INCLUDES += eglib
 LOCAL_SHARED_LIBRARIES += crypto
-				   
+LOCAL_LDLIBS += -llog
+TARGET_PLATFORM := android-7				   
 include $(BUILD_SHARED_LIBRARY)
 $(call import-module, openssl)

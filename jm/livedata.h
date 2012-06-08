@@ -12,15 +12,15 @@ G_BEGIN_DECLS
 typedef struct _LiveData LiveData;
 
 struct _LiveData {
-    GString *shortName;
-    GString *content;
-    GString *unit;
-    GString *defaultValue;
-    GString *value;
-    gint32 cmdID;
-    gboolean enabled;
-    gboolean showed;
-    gint32 index;
+  gboolean enabled;
+  gboolean showed;
+  gint32 cmdID;
+  gint32 index;
+  GString *shortName;
+  GString *content;
+  GString *unit;
+  GString *defaultValue;
+  GString *value;
 };
 
 LiveData * live_data_new(const gchar *shortName,
