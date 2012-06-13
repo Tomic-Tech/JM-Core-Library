@@ -8,6 +8,7 @@
 #include "macros.h"
 #ifdef OS_ANDROID
 
+#include <android/log.h>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -33,39 +34,43 @@
 #endif
 
 /* This is a copy of System.IO.Ports.Handshake */
-typedef enum {
-    NoneHandshake = 0,
-    XOnXOff = 1,
-    RequestToSend = 2,
-    RequestToSendXOnXOff = 3
-} MonoHandshake;
+typedef enum
+{
+	NoneHandshake = 0,
+	XOnXOff = 1,
+	RequestToSend = 2,
+	RequestToSendXOnXOff = 3
+}MonoHandshake;
 
 /* This is a copy of System.IO.Ports.Parity */
-typedef enum {
-    NoneParity = 0,
-    Odd = 1,
-    Even = 2,
-    Mark = 3,
-    Space = 4
-} MonoParity;
+typedef enum
+{
+	NoneParity = 0,
+	Odd = 1,
+	Even = 2,
+	Mark = 3,
+	Space = 4
+}MonoParity;
 
 /* This is a copy of System.IO.Ports.StopBits */
-typedef enum {
-    NoneStopBits = 0,
-    One = 1,
-    Two = 2,
-    OnePointFive = 3
-} MonoStopBits;
+typedef enum
+{
+	NoneStopBits = 0,
+	One = 1,
+	Two = 2,
+	OnePointFive = 3
+}MonoStopBits;
 
 /* This is a copy of System.IO.Ports.SerialSignal */
-typedef enum {
-    NoneSignal,
-    Cd = 1, /* Carrier detect */
-    Cts = 2, /* Clear to send */
-    Dsr = 4, /* Data set ready */
-    Dtr = 8, /* Data terminal ready */
-    Rts = 16 /* Request to send */
-} MonoSerialSignal;
+typedef enum
+{
+	NoneSignal,
+	Cd = 1, /* Carrier detect */
+	Cts = 2, /* Clear to send */
+	Dsr = 4, /* Data set ready */
+	Dtr = 8, /* Data terminal ready */
+	Rts = 16 /* Request to send */
+}MonoSerialSignal;
 
 /*
  * Silence the compiler, we do not need these prototypes to be public, since these are only
@@ -90,380 +95,461 @@ void *list_serial_devices(void);
 int
 open_serial(char *devfile)
 {
-    int fd;
-    fd = open(devfile, O_RDWR | O_NOCTTY | O_NONBLOCK);
-
-    return fd;
+	int fd;
+	char absFileName[56];
+	g_sprintf(absFileName, "/dev/%s", devfile);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Open", absFileName);
+	//fd = open(absFileName, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	fd = open(absFileName, O_RDWR);
+	if (fd < 0)
+	{
+		char number[16];
+		g_sprintf(number, "%x", errno);
+		__android_log_write(ANDROID_LOG_WARN, "SerialPort Open", number);
+	}
+	return fd;
 }
 
 int
 close_serial(int unix_fd)
 {
-    // Linus writes: do not retry close after EINTR
-    return close(unix_fd);
+	// Linus writes: do not retry close after EINTR
+	return close(unix_fd);
 }
 
 guint32
 read_serial(int fd, guchar *buffer, int offset, int count)
 {
-    guint32 n;
+	int i;
+	gchar temp[128] = {0};
+	guint32 n;
 
-    n = read(fd, buffer + offset, count);
+	n = read(fd, buffer + offset, count);
+	g_sprintf(temp, "%d", n);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort ReadSize", temp);
 
-    return (guint32) n;
+	for (i = 0; i < n; i++)
+	{
+		g_sprintf(temp + i * 3, "%02X ", buffer[offset + i]);
+	}
+
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Read", temp);
+	return (guint32) n;
 }
 
 int
 write_serial(int fd, guchar *buffer, int offset, int count, int timeout)
 {
-    struct pollfd pinfo;
-    guint32 n;
+#if 0
+	gchar temp[128] = {0};
+	int i;
+	struct pollfd pinfo;
+	guint32 n;
 
-    pinfo.fd = fd;
-    pinfo.events = POLLOUT;
-    pinfo.revents = POLLOUT;
+	pinfo.fd = fd;
+	pinfo.events = POLLOUT;
+	pinfo.revents = POLLOUT;
 
-    n = count;
+	n = count;
 
-    while (n > 0) {
-        ssize_t t;
+	while (n > 0)
+	{
+		ssize_t t;
 
-        if (timeout != 0) {
-            int c;
+		if (timeout != 0)
+		{
+			int c;
 
-            while ((c = poll(&pinfo, 1, timeout)) == -1 && errno == EINTR)
-                ;
-            if (c == -1)
-                return -1;
-        }
+			while ((c = poll(&pinfo, 1, timeout)) == -1 && errno == EINTR);
+			if (c == -1) return -1;
+		}
 
-        do {
-            t = write(fd, buffer + offset, n);
-        } while (t == -1 && errno == EINTR);
+		do
+		{
+			t = write(fd, buffer + offset, n);
+		}while (t == -1 && errno == EINTR);
 
-        if (t < 0)
-            return -1;
+		if (t < 0) return -1;
 
-        offset += t;
-        n -= t;
-    }
+		offset += t;
+		n -= t;
+	}
 
-    return 0;
+	for (i = 0; i < n; i++)
+	{
+		g_sprintf(temp + i * 3, "%02X ", buffer[offset + i]);
+	}
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Write", temp);
+
+	return 0;
+
+#endif
+
+	gchar temp[128] = {0};
+	int i;
+
+	if (write(fd, buffer + offset, count) == count)
+	{
+		for (i = 0; i < count; i++)
+		{
+			g_sprintf(temp + i * 3, "%02X ", buffer[offset + i]);
+		}
+		__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Write", temp);
+		return 0;
+	}
+	return -1;
 }
 
 int
 discard_buffer(int fd, gboolean input)
 {
-    return tcflush(fd, input ? TCIFLUSH : TCOFLUSH);
+	return tcflush(fd, input ? TCIFLUSH : TCOFLUSH);
 }
 
 gint32
 get_bytes_in_buffer(int fd, gboolean input)
 {
-    gint32 retval;
+	gchar temp[12] = {0};
+	gint32 retval;
 
-    if (ioctl(fd, input ? FIONREAD : TIOCOUTQ, &retval) == -1) {
-        return -1;
-    }
+	if (ioctl(fd, input ? FIONREAD : TIOCOUTQ, &retval) == -1)
+	{
+		return -1;
+	}
 
-    return retval;
+	g_sprintf(temp, "%d", retval);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort BytesInBuffer", temp);
+	return retval;
 }
 
 gboolean
 is_baud_rate_legal(int baud_rate)
 {
-    return setup_baud_rate(baud_rate) != -1;
+	return setup_baud_rate(baud_rate) != -1;
 }
 
 int
 setup_baud_rate(int baud_rate)
 {
-    switch (baud_rate) {
-        /*Some values are not defined on OSX and *BSD */
+	switch (baud_rate)
+	{
+		/*Some values are not defined on OSX and *BSD */
 #if defined(B921600)
-    case 921600:
-        baud_rate = B921600;
-        break;
+		case 921600:
+		baud_rate = B921600;
+		break;
 #endif
 #if defined(B460800)
-    case 460800:
-        baud_rate = B460800;
-        break;
+		case 460800:
+		baud_rate = B460800;
+		break;
 #endif
-    case 230400:
-        baud_rate = B230400;
-        break;
-    case 115200:
-        baud_rate = B115200;
-        break;
-    case 57600:
-        baud_rate = B57600;
-        break;
-    case 38400:
-        baud_rate = B38400;
-        break;
-    case 19200:
-        baud_rate = B19200;
-        break;
-    case 9600:
-        baud_rate = B9600;
-        break;
-    case 4800:
-        baud_rate = B4800;
-        break;
-    case 2400:
-        baud_rate = B2400;
-        break;
-    case 1800:
-        baud_rate = B1800;
-        break;
-    case 1200:
-        baud_rate = B1200;
-        break;
-    case 600:
-        baud_rate = B600;
-        break;
-    case 300:
-        baud_rate = B300;
-        break;
-    case 200:
-        baud_rate = B200;
-        break;
-    case 150:
-        baud_rate = B150;
-        break;
-    case 134:
-        baud_rate = B134;
-        break;
-    case 110:
-        baud_rate = B110;
-        break;
-    case 75:
-        baud_rate = B75;
-        break;
-    case 50:
-    case 0:
-    default:
-        baud_rate = -1;
-        break;
-    }
-    return baud_rate;
+		case 230400:
+		baud_rate = B230400;
+		break;
+		case 115200:
+		baud_rate = B115200;
+		break;
+		case 57600:
+		baud_rate = B57600;
+		break;
+		case 38400:
+		baud_rate = B38400;
+		break;
+		case 19200:
+		baud_rate = B19200;
+		break;
+		case 9600:
+		baud_rate = B9600;
+		break;
+		case 4800:
+		baud_rate = B4800;
+		break;
+		case 2400:
+		baud_rate = B2400;
+		break;
+		case 1800:
+		baud_rate = B1800;
+		break;
+		case 1200:
+		baud_rate = B1200;
+		break;
+		case 600:
+		baud_rate = B600;
+		break;
+		case 300:
+		baud_rate = B300;
+		break;
+		case 200:
+		baud_rate = B200;
+		break;
+		case 150:
+		baud_rate = B150;
+		break;
+		case 134:
+		baud_rate = B134;
+		break;
+		case 110:
+		baud_rate = B110;
+		break;
+		case 75:
+		baud_rate = B75;
+		break;
+		case 50:
+		case 0:
+		default:
+		baud_rate = -1;
+		break;
+	}
+	return baud_rate;
 }
 
 gboolean
 set_attributes(int fd, int baud_rate, MonoParity parity, int dataBits, MonoStopBits stopBits, MonoHandshake handshake)
 {
-    struct termios newtio;
+	gchar temp[128] = {0};
 
-    if (tcgetattr(fd, &newtio) == -1)
-        return FALSE;
+	struct termios newtio;
 
-    newtio.c_cflag |= (CLOCAL | CREAD);
-    newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
-    newtio.c_oflag &= ~(OPOST);
-    newtio.c_iflag = IGNBRK;
+	if (tcgetattr(fd, &newtio) == -1) return FALSE;
 
-    /* setup baudrate */
-    baud_rate = setup_baud_rate(baud_rate);
+	g_sprintf(temp, "%d", baud_rate);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Baudrate", temp);
 
-    /* char lenght */
-    newtio.c_cflag &= ~CSIZE;
-    switch (dataBits) {
-    case 5:
-        newtio.c_cflag |= CS5;
-        break;
-    case 6:
-        newtio.c_cflag |= CS6;
-        break;
-    case 7:
-        newtio.c_cflag |= CS7;
-        break;
-    case 8:
-    default:
-        newtio.c_cflag |= CS8;
-        break;
-    }
+	g_sprintf(temp, "%d", parity);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Parity", temp);
 
-    /* stopbits */
-    switch (stopBits) {
-    case NoneStopBits:
-        /* Unhandled */
-        break;
-    case One: /* One */
-        /* do nothing, the default is one stop bit */
-        newtio.c_cflag &= ~CSTOPB;
-        break;
-    case Two: /* Two */
-        newtio.c_cflag |= CSTOPB;
-        break;
-    case OnePointFive: /* OnePointFive */
-        /* XXX unhandled */
-        break;
-    }
+	g_sprintf(temp, "%d", dataBits);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Databits", temp);
 
-    /* parity */
-    newtio.c_iflag &= ~(INPCK | ISTRIP);
+	g_sprintf(temp, "%d", stopBits);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Stopbits", temp);
 
-    switch (parity) {
-    case NoneParity: /* None */
-        newtio.c_cflag &= ~(PARENB | PARODD);
-        break;
+	g_sprintf(temp, "%d", handshake);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Handshake", temp);
 
-    case Odd: /* Odd */
-        newtio.c_cflag |= PARENB | PARODD;
-        break;
+	newtio.c_cflag |= (CLOCAL | CREAD);
+	newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
+	newtio.c_oflag &= ~(OPOST);
+	newtio.c_iflag = IGNBRK;
 
-    case Even: /* Even */
-        newtio.c_cflag &= ~(PARODD);
-        newtio.c_cflag |= (PARENB);
-        break;
+	/* setup baudrate */
+	baud_rate = setup_baud_rate(baud_rate);
 
-    case Mark: /* Mark */
-        /* XXX unhandled */
-        break;
-    case Space: /* Space */
-        /* XXX unhandled */
-        break;
-    }
+	/* char lenght */
+	newtio.c_cflag &= ~CSIZE;
+	switch (dataBits)
+	{
+		case 5:
+		newtio.c_cflag |= CS5;
+		break;
+		case 6:
+		newtio.c_cflag |= CS6;
+		break;
+		case 7:
+		newtio.c_cflag |= CS7;
+		break;
+		case 8:
+		default:
+		newtio.c_cflag |= CS8;
+		break;
+	}
 
-    newtio.c_iflag &= ~(IXOFF | IXON);
+	/* stopbits */
+	switch (stopBits)
+	{
+		case NoneStopBits:
+		/* Unhandled */
+		break;
+		case One: /* One */
+		/* do nothing, the default is one stop bit */
+		newtio.c_cflag &= ~CSTOPB;
+		break;
+		case Two: /* Two */
+		newtio.c_cflag |= CSTOPB;
+		break;
+		case OnePointFive: /* OnePointFive */
+		/* XXX unhandled */
+		break;
+	}
+
+	/* parity */
+	newtio.c_iflag &= ~(INPCK | ISTRIP);
+
+	switch (parity)
+	{
+		case NoneParity: /* None */
+		newtio.c_cflag &= ~(PARENB | PARODD);
+		break;
+
+		case Odd: /* Odd */
+		newtio.c_cflag |= PARENB | PARODD;
+		break;
+
+		case Even: /* Even */
+		newtio.c_cflag &= ~(PARODD);
+		newtio.c_cflag |= (PARENB);
+		break;
+
+		case Mark: /* Mark */
+		/* XXX unhandled */
+		break;
+		case Space: /* Space */
+		/* XXX unhandled */
+		break;
+	}
+
+	newtio.c_iflag &= ~(IXOFF | IXON);
 #ifdef CRTSCTS
-    newtio.c_cflag &= ~CRTSCTS;
+	newtio.c_cflag &= ~CRTSCTS;
 #endif /* def CRTSCTS */
 
-    switch (handshake) {
-    case NoneHandshake: /* None */
-        /* do nothing */
-        break;
-    case RequestToSend: /* RequestToSend (RTS) */
+	switch (handshake)
+	{
+		case NoneHandshake: /* None */
+		/* do nothing */
+		break;
+		case RequestToSend: /* RequestToSend (RTS) */
 #ifdef CRTSCTS
-        newtio.c_cflag |= CRTSCTS;
+		newtio.c_cflag |= CRTSCTS;
 #endif /* def CRTSCTS */
-        break;
-    case RequestToSendXOnXOff: /* RequestToSendXOnXOff (RTS + XON/XOFF) */
+		break;
+		case RequestToSendXOnXOff: /* RequestToSendXOnXOff (RTS + XON/XOFF) */
 #ifdef CRTSCTS
-        newtio.c_cflag |= CRTSCTS;
+		newtio.c_cflag |= CRTSCTS;
 #endif /* def CRTSCTS */
-        /* fall through */
-    case XOnXOff: /* XOnXOff */
-        newtio.c_iflag |= IXOFF | IXON;
-        break;
-    }
+		/* fall through */
+		case XOnXOff: /* XOnXOff */
+		newtio.c_iflag |= IXOFF | IXON;
+		break;
+	}
 
-    if (cfsetospeed(&newtio, baud_rate) < 0 || cfsetispeed(&newtio, baud_rate) < 0 ||
-        tcsetattr(fd, TCSANOW, &newtio) < 0) {
-        return FALSE;
-    } else {
-        return TRUE;
-    }
+	if (cfsetospeed(&newtio, baud_rate) < 0 || cfsetispeed(&newtio, baud_rate) < 0 ||
+			tcsetattr(fd, TCSANOW, &newtio) < 0)
+	{
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 static gint32
 get_signal_code(MonoSerialSignal signal)
 {
-    switch (signal) {
-    case Cd:
-        return TIOCM_CAR;
-    case Cts:
-        return TIOCM_CTS;
-    case Dsr:
-        return TIOCM_DSR;
-    case Dtr:
-        return TIOCM_DTR;
-    case Rts:
-        return TIOCM_RTS;
-    default:
-        return 0;
-    }
+	switch (signal)
+	{
+		case Cd:
+		return TIOCM_CAR;
+		case Cts:
+		return TIOCM_CTS;
+		case Dsr:
+		return TIOCM_DSR;
+		case Dtr:
+		return TIOCM_DTR;
+		case Rts:
+		return TIOCM_RTS;
+		default:
+		return 0;
+	}
 
-    /* Not reached */
-    return 0;
+	/* Not reached */
+	return 0;
 }
 
 static MonoSerialSignal
 get_mono_signal_codes(int signals)
 {
-    MonoSerialSignal retval = NoneSignal;
+	MonoSerialSignal retval = NoneSignal;
 
-    if ((signals & TIOCM_CAR) != 0)
-        retval |= Cd;
-    if ((signals & TIOCM_CTS) != 0)
-        retval |= Cts;
-    if ((signals & TIOCM_DSR) != 0)
-        retval |= Dsr;
-    if ((signals & TIOCM_DTR) != 0)
-        retval |= Dtr;
-    if ((signals & TIOCM_RTS) != 0)
-        retval |= Rts;
+	if ((signals & TIOCM_CAR) != 0)
+	retval |= Cd;
+	if ((signals & TIOCM_CTS) != 0)
+	retval |= Cts;
+	if ((signals & TIOCM_DSR) != 0)
+	retval |= Dsr;
+	if ((signals & TIOCM_DTR) != 0)
+	retval |= Dtr;
+	if ((signals & TIOCM_RTS) != 0)
+	retval |= Rts;
 
-    return retval;
+	return retval;
 }
 
 MonoSerialSignal
 get_signals(int fd, gint32 *error)
 {
-    int signals;
+	int signals;
 
-    *error = 0;
+	*error = 0;
 
-    if (ioctl(fd, TIOCMGET, &signals) == -1) {
-        *error = -1;
-        return NoneSignal;
-    }
+	if (ioctl(fd, TIOCMGET, &signals) == -1)
+	{
+		*error = -1;
+		return NoneSignal;
+	}
 
-    return get_mono_signal_codes(signals);
+	return get_mono_signal_codes(signals);
 }
 
 gint32
 set_signal(int fd, MonoSerialSignal signal, gboolean value)
 {
-    int signals, expected, activated;
+	gchar temp[128] = {0};
+	int signals, expected, activated;
 
-    expected = get_signal_code(signal);
-    if (ioctl(fd, TIOCMGET, &signals) == -1)
-        return -1;
+	g_sprintf(temp, "%d", signal);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Set", temp);
+	g_sprintf(temp, "%d", value);
+	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Value", temp);
 
-    activated = (signals & expected) != 0;
-    if (activated == value) /* Already set */
-        return 1;
+	expected = get_signal_code(signal);
+	if (ioctl(fd, TIOCMGET, &signals) == -1) return -1;
 
-    if (value)
-        signals |= expected;
-    else
-        signals &= ~expected;
+	activated = (signals & expected) != 0;
+	if (activated == value) /* Already set */
+		return 1;
 
-    if (ioctl(fd, TIOCMSET, &signals) == -1)
-        return -1;
+	if (value)
+		signals |= expected;
+	else
+		signals &= ~expected;
 
-    return 1;
+	if (ioctl(fd, TIOCMSET, &signals) == -1)
+		return -1;
+
+	return 1;
 }
 
 int
 breakprop(int fd)
 {
-    return tcsendbreak(fd, 0);
+	return tcsendbreak(fd, 0);
 }
 
 gboolean
 poll_serial(int fd, gint32 *error, int timeout)
 {
-    struct pollfd pinfo;
+	struct pollfd pinfo;
 
-    *error = 0;
+	*error = 0;
 
-    pinfo.fd = fd;
-    pinfo.events = POLLIN;
-    pinfo.revents = 0;
+	pinfo.fd = fd;
+	pinfo.events = POLLIN;
+	pinfo.revents = 0;
 
-    while (poll(&pinfo, 1, timeout) == -1 && errno == EINTR) {
-        /* EINTR is an OK condition, we should not throw in the upper layer an IOException */
-        if (errno != EINTR) {
-            *error = -1;
-            return FALSE;
-        }
-    }
+	while (poll(&pinfo, 1, timeout) == -1 && errno == EINTR)
+	{
+		/* EINTR is an OK condition, we should not throw in the upper layer an IOException */
+		if (errno != EINTR)
+		{
+			*error = -1;
+			return FALSE;
+		}
+	}
 
-    return (pinfo.revents & POLLIN) != 0 ? 1 : 0;
+	return (pinfo.revents & POLLIN) != 0 ? 1 : 0;
 }
 
 /*
@@ -475,7 +561,7 @@ poll_serial(int fd, gint32 *error, int timeout)
 void*
 list_serial_devices(void)
 {
-    return NULL;
+	return NULL;
 }
 
 #if 0
@@ -483,36 +569,39 @@ list_serial_devices(void)
 MonoArray *
 list_serial_devices(void)
 {
-    MonoArray *array;
+	MonoArray *array;
 #if defined(linux)
-    /* Linux serial files are of the form ttyS[0-9]+ */
-    GSList *l, *list = NULL;
-    GDir* dir = g_dir_open("/dev", 0, NULL);
-    const char *filename;
-    int i = 0;
+	/* Linux serial files are of the form ttyS[0-9]+ */
+	GSList *l, *list = NULL;
+	GDir* dir = g_dir_open("/dev", 0, NULL);
+	const char *filename;
+	int i = 0;
 
-    while ((filename = g_dir_read_name(dir))) {
-        if (filename) {
-            if (!strncmp(filename, "ttyS", 4))
-                list = g_slist_append(list, g_strconcat("/dev/", filename, NULL));
-        }
-    }
+	while ((filename = g_dir_read_name(dir)))
+	{
+		if (filename)
+		{
+			if (!strncmp(filename, "ttyS", 4))
+			list = g_slist_append(list, g_strconcat("/dev/", filename, NULL));
+		}
+	}
 
-    g_dir_close(dir);
+	g_dir_close(dir);
 
-    array = mono_array_new(mono_domain_get(), mono_get_string_class(), g_slist_length(list));
-    for (l = list; l; l = l->next) {
-        mono_array_set(array, gpointer, i++, mono_string_new(mono_domain_get(), (char*) l->data));
-        g_free(l->data);
-    }
+	array = mono_array_new(mono_domain_get(), mono_get_string_class(), g_slist_length(list));
+	for (l = list; l; l = l->next)
+	{
+		mono_array_set(array, gpointer, i++, mono_string_new(mono_domain_get(), (char*) l->data));
+		g_free(l->data);
+	}
 
-    g_slist_free(list);
+	g_slist_free(list);
 
 #else
 #warning "list_serial_devices isn't ported to this OS"
 #endif
 
-    return array;
+	return array;
 }
 #endif
 
