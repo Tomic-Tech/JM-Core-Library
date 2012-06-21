@@ -98,14 +98,11 @@ open_serial(char *devfile)
 	int fd;
 	char absFileName[56];
 	g_sprintf(absFileName, "/dev/%s", devfile);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Open", absFileName);
 	//fd = open(absFileName, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	fd = open(absFileName, O_RDWR);
-	if (fd < 0)
+	if (fd != -1)
 	{
-		char number[16];
-		g_sprintf(number, "%x", errno);
-		__android_log_write(ANDROID_LOG_WARN, "SerialPort Open", number);
+		__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Open", absFileName);
 	}
 	return fd;
 }
@@ -113,6 +110,7 @@ open_serial(char *devfile)
 int
 close_serial(int unix_fd)
 {
+	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Close", "Now");
 	// Linus writes: do not retry close after EINTR
 	return close(unix_fd);
 }
@@ -120,20 +118,16 @@ close_serial(int unix_fd)
 guint32
 read_serial(int fd, guchar *buffer, int offset, int count)
 {
-	int i;
 	gchar temp[128] = {0};
 	guint32 n;
-
 	n = read(fd, buffer + offset, count);
-	g_sprintf(temp, "%d", n);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort ReadSize", temp);
-
-	for (i = 0; i < n; i++)
+	if (n > 0)
 	{
-		g_sprintf(temp + i * 3, "%02X ", buffer[offset + i]);
+		int i;
+		for (i = 0; i < n; i++)
+			g_sprintf(temp + i * 3, "%02X ", buffer[offset + i]);
+		__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Read", temp);
 	}
-
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Read", temp);
 	return (guint32) n;
 }
 
@@ -186,15 +180,15 @@ write_serial(int fd, guchar *buffer, int offset, int count, int timeout)
 #endif
 
 	gchar temp[128] = {0};
-	int i;
 
 	if (write(fd, buffer + offset, count) == count)
 	{
-		for (i = 0; i < count; i++)
+		int i;
+		for(i = 0; i < count; i++)
 		{
 			g_sprintf(temp + i * 3, "%02X ", buffer[offset + i]);
 		}
-		__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Write", temp);
+		__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Write", temp);
 		return 0;
 	}
 	return -1;
@@ -209,7 +203,6 @@ discard_buffer(int fd, gboolean input)
 gint32
 get_bytes_in_buffer(int fd, gboolean input)
 {
-	gchar temp[12] = {0};
 	gint32 retval;
 
 	if (ioctl(fd, input ? FIONREAD : TIOCOUTQ, &retval) == -1)
@@ -217,8 +210,6 @@ get_bytes_in_buffer(int fd, gboolean input)
 		return -1;
 	}
 
-	g_sprintf(temp, "%d", retval);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort BytesInBuffer", temp);
 	return retval;
 }
 
@@ -307,26 +298,9 @@ setup_baud_rate(int baud_rate)
 gboolean
 set_attributes(int fd, int baud_rate, MonoParity parity, int dataBits, MonoStopBits stopBits, MonoHandshake handshake)
 {
-	gchar temp[128] = {0};
-
 	struct termios newtio;
 
 	if (tcgetattr(fd, &newtio) == -1) return FALSE;
-
-	g_sprintf(temp, "%d", baud_rate);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Baudrate", temp);
-
-	g_sprintf(temp, "%d", parity);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Parity", temp);
-
-	g_sprintf(temp, "%d", dataBits);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Databits", temp);
-
-	g_sprintf(temp, "%d", stopBits);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Stopbits", temp);
-
-	g_sprintf(temp, "%d", handshake);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Handshake", temp);
 
 	newtio.c_cflag |= (CLOCAL | CREAD);
 	newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
@@ -496,13 +470,7 @@ get_signals(int fd, gint32 *error)
 gint32
 set_signal(int fd, MonoSerialSignal signal, gboolean value)
 {
-	gchar temp[128] = {0};
 	int signals, expected, activated;
-
-	g_sprintf(temp, "%d", signal);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Set", temp);
-	g_sprintf(temp, "%d", value);
-	__android_log_write(ANDROID_LOG_DEBUG, "SerialPort Value", temp);
 
 	expected = get_signal_code(signal);
 	if (ioctl(fd, TIOCMGET, &signals) == -1) return -1;
