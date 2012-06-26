@@ -204,11 +204,14 @@ gint32
 get_bytes_in_buffer(int fd, gboolean input)
 {
 	gint32 retval;
+	gchar temp[128] = {0};
 
 	if (ioctl(fd, input ? FIONREAD : TIOCOUTQ, &retval) == -1)
 	{
 		return -1;
 	}
+	g_sprintf(temp, "%d", retval);
+	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort BytesInBuffer", temp);
 
 	return retval;
 }
@@ -298,9 +301,13 @@ setup_baud_rate(int baud_rate)
 gboolean
 set_attributes(int fd, int baud_rate, MonoParity parity, int dataBits, MonoStopBits stopBits, MonoHandshake handshake)
 {
+	gchar temp[128] = {0};
 	struct termios newtio;
 
 	if (tcgetattr(fd, &newtio) == -1) return FALSE;
+
+	g_sprintf(temp, "Baud = %d, Parity = %d, DataBits = %d, StopBits = %d, handshake = %d", baud_rate, parity, dataBits, stopBits, handshake);
+	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Attribute", temp);
 
 	newtio.c_cflag |= (CLOCAL | CREAD);
 	newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
