@@ -61,6 +61,71 @@ const gchar* live_data_value(LiveData *obj)
     return obj->value->str;
 }
 
+gboolean live_data_get_short_name(LiveData *obj, gunichar2 *text)
+{
+	long items_read = 0;
+	long items_written = 0;
+	gunichar2 *temp = NULL;
+	g_return_val_if_fail(obj != NULL, FALSE);
+
+	temp = g_utf8_to_utf16(obj->shortName->str, obj->shortName->len, &items_read, &items_written, NULL);
+	memcpy(text, temp, sizeof(gunichar2) * (items_written + 1));
+	g_free(temp);
+	return TRUE;
+}
+
+gboolean live_data_get_content(LiveData *obj, gunichar2 *text)
+{
+	long items_read = 0;
+	long items_written = 0;
+	gunichar2 *temp = NULL;
+	g_return_val_if_fail(obj != NULL, FALSE);
+
+	temp = g_utf8_to_utf16(obj->content->str, obj->content->len, &items_read, &items_written, NULL);
+	memcpy(text, temp, sizeof(gunichar2) * (items_written + 1));
+	g_free(temp);
+	return TRUE;
+}
+
+gboolean live_data_get_unit(LiveData *obj, gunichar2 *text)
+{
+	long items_read = 0;
+	long items_written = 0;
+	gunichar2 *temp = NULL;
+	g_return_val_if_fail(obj != NULL, FALSE);
+
+	temp = g_utf8_to_utf16(obj->unit->str, obj->unit->len, &items_read, &items_written, NULL);
+	memcpy(text, temp, sizeof(gunichar2) * (items_written + 1));
+	g_free(temp);
+	return TRUE;
+}
+
+gboolean live_data_get_default_value(LiveData *obj, gunichar2 *text)
+{
+	long items_read = 0;
+	long items_written = 0;
+	gunichar2 *temp = NULL;
+	g_return_val_if_fail(obj != NULL, FALSE);
+
+	temp = g_utf8_to_utf16(obj->defaultValue->str, obj->defaultValue->len, &items_read, &items_written, NULL);
+	memcpy(text, temp, sizeof(gunichar2) * (items_written + 1));
+	g_free(temp);
+	return TRUE;
+}
+
+gboolean live_data_get_value(LiveData *obj, gunichar2 *text)
+{
+	long items_read = 0;
+	long items_written = 0;
+	gunichar2 *temp = NULL;
+	g_return_val_if_fail(obj != NULL, FALSE);
+
+	temp = g_utf8_to_utf16(obj->value->str, obj->value->len, &items_read, &items_written, NULL);
+	memcpy(text, temp, sizeof(gunichar2) * (items_written + 1));
+	g_free(temp);
+	return TRUE;
+}
+
 void live_data_set_value(LiveData *obj, const gchar *value)
 {
   g_return_if_fail(obj != NULL);

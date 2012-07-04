@@ -204,14 +204,14 @@ gint32
 get_bytes_in_buffer(int fd, gboolean input)
 {
 	gint32 retval;
-	gchar temp[128] = {0};
+//	gchar temp[128] = {0};
 
 	if (ioctl(fd, input ? FIONREAD : TIOCOUTQ, &retval) == -1)
 	{
 		return -1;
 	}
-	g_sprintf(temp, "%d", retval);
-	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort BytesInBuffer", temp);
+//	g_sprintf(temp, "%d", retval);
+//	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort BytesInBuffer", temp);
 
 	return retval;
 }

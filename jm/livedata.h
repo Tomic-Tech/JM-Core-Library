@@ -30,11 +30,16 @@ LiveData * live_data_new(const gchar *shortName,
     const gchar *value,
     gint32 cmdID);
 void live_data_dispose(LiveData *obj);
-const gchar* live_data_short_name(LiveData *obj);
-const gchar* live_data_content(LiveData *obj);
-const gchar* live_data_unit(LiveData *obj);
-const gchar* live_data_default_value(LiveData *obj);
-const gchar* live_data_value(LiveData *obj);
+gboolean live_data_get_short_name(LiveData *obj, gunichar2 *text);
+gboolean live_data_get_content(LiveData *obj, gunichar2 *text);
+gboolean live_data_get_unit(LiveData *obj, gunichar2 *text);
+gboolean live_data_get_default_value(LiveData *obj, gunichar2 *text);
+gboolean live_data_get_value(LiveData *obj, gunichar2 *text);
+//const gchar* live_data_short_name(LiveData *obj);
+//const gchar* live_data_content(LiveData *obj);
+//const gchar* live_data_unit(LiveData *obj);
+//const gchar* live_data_default_value(LiveData *obj);
+//const gchar* live_data_value(LiveData *obj);
 void live_data_set_value(LiveData *obj, const gchar *value);
 gint32 live_data_cmd_id(LiveData *obj);
 gboolean live_data_enabled(LiveData *obj);
