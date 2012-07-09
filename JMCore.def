@@ -236,6 +236,8 @@ database_set_ld_catalog
 database_set_cmd_catalog
 database_get_text
 database_get_trouble_code
-database_get_live_data
+;database_get_live_data
+database_live_data_prepare
+database_live_data_next
 database_get_command
 database_get_command_by_id
