@@ -95,6 +95,7 @@ void *list_serial_devices(void);
 int
 open_serial(char *devfile)
 {
+#if 0
 	int fd;
 	char absFileName[56];
 	g_sprintf(absFileName, "/dev/%s", devfile);
@@ -105,20 +106,32 @@ open_serial(char *devfile)
 		__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Open", absFileName);
 	}
 	return fd;
+#endif
+#if 1
+	char absFileName[56];
+	g_sprintf(absFileName, "/dev/%s", devfile);
+	return open(absFileName, O_RDWR);
+#endif
 }
 
 int
 close_serial(int unix_fd)
 {
+#if 0
 	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Close", "Now");
 	// Linus writes: do not retry close after EINTR
 	return close(unix_fd);
+#endif
+#if 1
+	return close(unix_fd);
+#endif
 }
 
 guint32
 read_serial(int fd, guchar *buffer, int offset, int count)
 {
-	gchar temp[128] = {0};
+#if 0
+	gchar temp[1024] = {0};
 	guint32 n;
 	n = read(fd, buffer + offset, count);
 	if (n > 0)
@@ -129,6 +142,10 @@ read_serial(int fd, guchar *buffer, int offset, int count)
 		__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Read", temp);
 	}
 	return (guint32) n;
+#endif
+#if 1
+	return read(fd, buffer + offset, count);
+#endif
 }
 
 int
@@ -178,7 +195,7 @@ write_serial(int fd, guchar *buffer, int offset, int count, int timeout)
 	return 0;
 
 #endif
-
+#if 0
 	gchar temp[128] = {0};
 
 	if (write(fd, buffer + offset, count) == count)
@@ -192,6 +209,12 @@ write_serial(int fd, guchar *buffer, int offset, int count, int timeout)
 		return 0;
 	}
 	return -1;
+#endif
+#if 1
+	if (write(fd, buffer + offset, count) == count)
+		return 0;
+	return -1;
+#endif
 }
 
 int
@@ -301,13 +324,13 @@ setup_baud_rate(int baud_rate)
 gboolean
 set_attributes(int fd, int baud_rate, MonoParity parity, int dataBits, MonoStopBits stopBits, MonoHandshake handshake)
 {
-	gchar temp[128] = {0};
+//	gchar temp[128] = {0};
 	struct termios newtio;
 
 	if (tcgetattr(fd, &newtio) == -1) return FALSE;
 
-	g_sprintf(temp, "Baud = %d, Parity = %d, DataBits = %d, StopBits = %d, handshake = %d", baud_rate, parity, dataBits, stopBits, handshake);
-	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Attribute", temp);
+//	g_sprintf(temp, "Baud = %d, Parity = %d, DataBits = %d, StopBits = %d, handshake = %d", baud_rate, parity, dataBits, stopBits, handshake);
+//	__android_log_write(ANDROID_LOG_VERBOSE, "SerialPort Attribute", temp);
 
 	newtio.c_cflag |= (CLOCAL | CREAD);
 	newtio.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
