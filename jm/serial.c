@@ -109,6 +109,9 @@ open_serial(char *devfile)
 #endif
 #if 1
 	char absFileName[56];
+//	g_sprintf(absFileName, "chmod 777 /dev/%s", devfile);
+//	system(absFileName);
+//	memset(absFileName, 0, sizeof(absFileName));
 	g_sprintf(absFileName, "/dev/%s", devfile);
 	return open(absFileName, O_RDWR);
 #endif
@@ -518,6 +521,62 @@ set_signal(int fd, MonoSerialSignal signal, gboolean value)
 		return -1;
 
 	return 1;
+}
+
+static gboolean
+start_card_module(void)
+{
+	static char *startcardmodule = "/system/bin/startcardmodule";
+	gboolean ret = FALSE;
+	int id = 0;
+
+	if ((id = system(startcardmodule)) == -1)
+	{
+		__android_log_write(ANDROID_LOG_VERBOSE, "start card module", "fail");
+	}
+	else
+	{
+		char n[12];
+		sprintf(n, "ID = %d", id);
+		__android_log_write(ANDROID_LOG_VERBOSE, "start card module", n);
+		ret = TRUE;
+	}
+	usleep(1000000);
+	return ret;
+}
+
+static gboolean
+stop_card_module(void)
+{
+	static char *stopcardmodule = "/system/bin/stopcardmodule";
+	gboolean ret = FALSE;
+	int id = 0;
+
+	if ((id = system(stopcardmodule)) == -1)
+	{
+		__android_log_write(ANDROID_LOG_VERBOSE, "stop card module", "fail");
+	}
+	else
+	{
+		char n[12];
+		sprintf(n, "ID = %d", id);
+		__android_log_write(ANDROID_LOG_VERBOSE, "stop card module", n);
+		ret = TRUE;
+	}
+	usleep(1000000);
+	return ret;
+}
+
+gint32
+reset_serial(void)
+{
+	if (!start_card_module() ||
+		!stop_card_module())
+	{
+		return -1;
+	}
+
+	return 0;
 }
 
 int
