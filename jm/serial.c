@@ -523,61 +523,14 @@ set_signal(int fd, MonoSerialSignal signal, gboolean value)
 	return 1;
 }
 
-static gboolean
-start_card_module(void)
-{
-	static char *startcardmodule = "/system/bin/startcardmodule";
-	gboolean ret = FALSE;
-	int id = 0;
-
-	if ((id = system(startcardmodule)) == -1)
-	{
-		__android_log_write(ANDROID_LOG_VERBOSE, "start card module", "fail");
-	}
-	else
-	{
-		char n[12];
-		sprintf(n, "ID = %d", id);
-		__android_log_write(ANDROID_LOG_VERBOSE, "start card module", n);
-		ret = TRUE;
-	}
-	usleep(1000000);
-	return ret;
-}
-
-static gboolean
-stop_card_module(void)
-{
-	static char *stopcardmodule = "/system/bin/stopcardmodule";
-	gboolean ret = FALSE;
-	int id = 0;
-
-	if ((id = system(stopcardmodule)) == -1)
-	{
-		__android_log_write(ANDROID_LOG_VERBOSE, "stop card module", "fail");
-	}
-	else
-	{
-		char n[12];
-		sprintf(n, "ID = %d", id);
-		__android_log_write(ANDROID_LOG_VERBOSE, "stop card module", n);
-		ret = TRUE;
-	}
-	usleep(1000000);
-	return ret;
-}
-
 gint32
-reset_serial(void)
+serial_command(char *name)
 {
-	if (!start_card_module() ||
-		!stop_card_module())
-	{
-		return -1;
-	}
-
-	return 0;
+	char buff[256];
+	sprintf(buff, "%s/%s", "/system/bin", name);
+	return system(buff);
 }
+
 
 int
 breakprop(int fd)
