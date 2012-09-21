@@ -128,9 +128,9 @@ gboolean database_get_text(const gchar *name, const gchar *cls, gunichar2 *text)
 		//temp = g_string_append(temp, lang);
 		//temp = g_string_append(temp, "] WHERE Name=:name");
 
-		ret = sqlite3_prepare_v2(db, temp, strlen(temp),
-				&getTextStmt, NULL);
+		ret = sqlite3_prepare_v2(db, temp, strlen(temp), &getTextStmt, NULL);
 		if (ret != SQLITE_OK) {
+			const char *msg = sqlite3_errmsg(db);
 			sqlite3_finalize(getTextStmt);
 			getTextStmt = NULL;
 			return FALSE;
