@@ -40,8 +40,7 @@ LOCAL_SRC_FILES := eglib/garray.c \
 				   jm/livedata.c \
 				   jm/livedatavector.c \
 				   jm/register.c \
-				   jm/serial.c \
-				   jm/sysdb.c
+				   jm/serial.c 
 
 LOCAL_CFLAGS := -DSQLITE_HAS_CODEC
 LOCAL_C_INCLUDES += eglib

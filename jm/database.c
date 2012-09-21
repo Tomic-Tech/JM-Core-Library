@@ -1,6 +1,5 @@
 #include "database.h"
 #include "register.h"
-#include "sysdb.h"
 
 static gchar dbPath[1024];
 static sqlite3 *db = NULL;
