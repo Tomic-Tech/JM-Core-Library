@@ -74,7 +74,11 @@ static gchar ** decrypt(void)
     recovered = (gchar*)g_malloc(sizeof(gchar) * flen);
     memset(recovered, 0, flen);
     
-    flen = RSA_private_decrypt(result, (const unsigned char*)cipher, (unsigned char*)recovered, rsa, RSA_PKCS1_OAEP_PADDING);
+    flen = RSA_private_decrypt(result, 
+		(const unsigned char*)cipher, 
+		(unsigned char*)recovered, 
+		rsa, 
+		RSA_PKCS1_OAEP_PADDING);
     g_free(cipher);
     if (flen < 0) {
         g_free(recovered);
@@ -153,7 +157,8 @@ gboolean register_query_id_code(gchar *id_code)
     size_t i;
     
     plain = g_string_new("");
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++)
+	{
         temp = disk_info_serial_number(i);
         plain = g_string_append(plain, temp);
         g_free(temp);
@@ -179,7 +184,8 @@ gboolean register_check(void)
     if (vec == NULL)
         return FALSE;
     
-    if (g_strv_length(vec) < MessageLines) {
+    if (g_strv_length(vec) < MessageLines)
+	{
         g_strfreev(vec);
         return FALSE;
     }
@@ -195,11 +201,13 @@ gboolean register_check(void)
 gboolean register_decrypt(DecryptType index, char *result)
 {
     gchar **vec = decrypt();
-    if (vec == NULL) {
+    if (vec == NULL)
+	{
         return FALSE;
     }
     
-    if (index >= g_strv_length(vec)) {
+    if (index >= g_strv_length(vec))
+	{
         g_strfreev(vec);
         return FALSE;
     }

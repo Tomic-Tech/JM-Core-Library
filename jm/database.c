@@ -36,7 +36,8 @@ void database_init(const gchar *path)
 void database_dispose(void)
 {
 	sqlite3_stmt *stmt = NULL;
-	while ((stmt = sqlite3_next_stmt(db, 0)) != NULL) {
+	while ((stmt = sqlite3_next_stmt(db, 0)) != NULL)
+	{
 		sqlite3_finalize(stmt);
 	}
 	sqlite3_close(db);
@@ -111,17 +112,18 @@ void database_dispose(void)
 //	g_string_append(obj->cmdCatalog, catalog);
 //}
 
-gboolean database_get_text(const gchar *name, const gchar *cls, gunichar2 *text) {
+gboolean database_get_text(const gchar *name, const gchar *cls, gunichar2 *text)
+{
 	long items_read = 0;
 	long items_written = 0;
 	gunichar2 *temp = NULL;
 
-	temp = g_utf8_to_utf16(name, g_utf8_strlen(name, -1), &items_read,
-			&items_written, NULL);
+	temp = g_utf8_to_utf16(name, g_utf8_strlen(name, -1), &items_read, &items_written, NULL);
 	memcpy(text, temp, sizeof(gunichar2) * (items_written + 1));
 	g_free(temp);
 
-	if (getTextStmt == NULL) {
+	if (getTextStmt == NULL)
+	{
 		int ret = 0;
 		gchar *temp = "SELECT Content FROM \"Text\" WHERE \"Name\"=:name AND \"Language\"=:language AND \"Class\"=:class";
 
@@ -129,8 +131,8 @@ gboolean database_get_text(const gchar *name, const gchar *cls, gunichar2 *text)
 		//temp = g_string_append(temp, "] WHERE Name=:name");
 
 		ret = sqlite3_prepare_v2(db, temp, strlen(temp), &getTextStmt, NULL);
-		if (ret != SQLITE_OK) {
-			const char *msg = sqlite3_errmsg(db);
+		if (ret != SQLITE_OK)
+		{
 			sqlite3_finalize(getTextStmt);
 			getTextStmt = NULL;
 			return FALSE;
@@ -141,7 +143,8 @@ gboolean database_get_text(const gchar *name, const gchar *cls, gunichar2 *text)
 			&& (sqlite3_bind_text(getTextStmt, 1, name, strlen(name), SQLITE_STATIC) == SQLITE_OK)
 			&& (sqlite3_bind_text(getTextStmt, 2, language, strlen(language), SQLITE_STATIC) == SQLITE_OK)
 			&& (sqlite3_bind_text(getTextStmt, 3, cls, strlen(cls), SQLITE_STATIC) == SQLITE_OK)
-			&& (sqlite3_step(getTextStmt) == SQLITE_ROW)) {
+			&& (sqlite3_step(getTextStmt) == SQLITE_ROW))
+	{
 		const gunichar2 *temp = (const gunichar2 *) sqlite3_column_text16(getTextStmt, 0);
 		if (temp != NULL)
 			memcpy(text, temp, sqlite3_column_bytes16(getTextStmt, 0)+ sizeof(gunichar2));
@@ -150,7 +153,8 @@ gboolean database_get_text(const gchar *name, const gchar *cls, gunichar2 *text)
 	return TRUE;
 }
 
-gboolean database_get_trouble_code(const gchar *code, const gchar *cls, gunichar2 *content, gunichar2 *description) {
+gboolean database_get_trouble_code(const gchar *code, const gchar *cls, gunichar2 *content, gunichar2 *description)
+{
 	long items_read = 0;
 	long items_written = 0;
 	gunichar2 *temp = NULL;
@@ -158,7 +162,8 @@ gboolean database_get_trouble_code(const gchar *code, const gchar *cls, gunichar
 	memcpy(content, temp, sizeof(gunichar2) * (items_written + 1));
 	g_free(temp);
 
-	if (getTroubleCodeStmt == NULL) {
+	if (getTroubleCodeStmt == NULL)
+	{
 		int ret = 0;
 		gchar *temp = "SELECT \"Content\", \"Description\" FROM \"TroubleCode\" WHERE \"Code\"=:code AND \"Language\"=:language AND \"Class\"=:class";
 
@@ -166,7 +171,8 @@ gboolean database_get_trouble_code(const gchar *code, const gchar *cls, gunichar
 		//temp = g_string_append(temp, "] WHERE Code=:code AND Catalog=:catalog");
 
 		ret = sqlite3_prepare_v2(db, temp, strlen(temp), &getTroubleCodeStmt, NULL);
-		if (ret != SQLITE_OK) {
+		if (ret != SQLITE_OK)
+		{
 			sqlite3_finalize(getTroubleCodeStmt);
 			getTroubleCodeStmt = NULL;
 			return FALSE;
@@ -176,22 +182,32 @@ gboolean database_get_trouble_code(const gchar *code, const gchar *cls, gunichar
 	if ((sqlite3_reset(getTroubleCodeStmt) == SQLITE_OK)
 			&& (sqlite3_bind_text(getTroubleCodeStmt, 1, code, strlen(code), SQLITE_STATIC) == SQLITE_OK)
 			&& (sqlite3_bind_text(getTroubleCodeStmt, 2, language, strlen(language), SQLITE_STATIC) == SQLITE_OK)
-			&& (sqlite3_bind_text(getTroubleCodeStmt, 3, cls, strlen(cls), SQLITE_STATIC) == SQLITE_OK)) {
+			&& (sqlite3_bind_text(getTroubleCodeStmt, 3, cls, strlen(cls), SQLITE_STATIC) == SQLITE_OK))
+	{
 		int rc = sqlite3_step(getTroubleCodeStmt);
-		if (rc == SQLITE_ROW) {
+		if (rc == SQLITE_ROW)
+		{
 			const gunichar2* temp = (const gunichar2*) sqlite3_column_text16(getTroubleCodeStmt, 0);
-			if (temp) {
+			if (temp)
+			{
 				memcpy(content, temp, sqlite3_column_bytes16(getTroubleCodeStmt, 0) + sizeof(gunichar2));
-			} else {
+			}
+			else
+			{
 				database_get_text("Undefined", "System", content);
 			}
 			temp = (const gunichar2*) sqlite3_column_text16(getTroubleCodeStmt, 1);
-			if (temp) {
+			if (temp)
+			{
 				memcpy(description, temp, sqlite3_column_bytes16(getTroubleCodeStmt, 1) + sizeof(gunichar2));
-			} else {
+			}
+			else
+			{
 				database_get_text("Undefined", "System", description);
 			}
-		} else if (rc == SQLITE_DONE) {
+		}
+		else if (rc == SQLITE_DONE)
+		{
 			database_get_text("Undefined", "System", content);
 			database_get_text("Undefined", "System", description);
 		}
@@ -200,8 +216,10 @@ gboolean database_get_trouble_code(const gchar *code, const gchar *cls, gunichar
 	return TRUE;
 }
 
-gboolean database_live_data_prepare(const gchar *cls) {
-	if (getLiveDataStmt == NULL) {
+gboolean database_live_data_prepare(const gchar *cls)
+{
+	if (getLiveDataStmt == NULL)
+	{
 		//gchar *temp = "SELECT \"ShortName\", \"Content\", \"Unit\", \"DefaultValue\", \"CommandID\", \"Description\" FROM \"LiveData\" WHERE \"Language\"=:language AND \"Class\"=:class";
 		//gchar *temp = "SELECT * FROM LiveData WHERE Language=:language AND Class=:class";
 		gchar *temp = "SELECT \"ShortName\", \"Content\", \"Unit\", \"DefaultValue\", \"CommandID\", \"Description\" FROM LiveData WHERE \"Language\"=:language AND \"Class\"=:class";
@@ -212,7 +230,8 @@ gboolean database_live_data_prepare(const gchar *cls) {
 
 		ret = sqlite3_prepare_v2(db, temp, strlen(temp), &getLiveDataStmt, NULL);
 
-		if (ret != SQLITE_OK) {
+		if (ret != SQLITE_OK)
+		{
 			sqlite3_finalize(getLiveDataStmt);
 			getLiveDataStmt = NULL;
 			return FALSE;
@@ -224,15 +243,20 @@ gboolean database_live_data_prepare(const gchar *cls) {
 
 	if ((sqlite3_reset(getLiveDataStmt) == SQLITE_OK)
 		&& (sqlite3_bind_text(getLiveDataStmt, 1, language, strlen(language), SQLITE_STATIC) == SQLITE_OK)
-		&& (sqlite3_bind_text(getLiveDataStmt, 2, liveDataClass->str, liveDataClass->len, SQLITE_STATIC) == SQLITE_OK)) {
+		&& (sqlite3_bind_text(getLiveDataStmt, 2, liveDataClass->str, liveDataClass->len, SQLITE_STATIC) == SQLITE_OK))
+	{
 		return TRUE;
 	}
 
 	return FALSE;
 }
 
-gboolean database_live_data_next(gunichar2 *shortName, gunichar2 *content, gunichar2 *unit, 
-	gunichar2 *defaultValue, gint32 *cmdID, gunichar2* description)
+gboolean database_live_data_next(gunichar2 *shortName, 
+								 gunichar2 *content, 
+								 gunichar2 *unit, 
+								 gunichar2 *defaultValue, 
+								 gint32 *cmdID, 
+								 gunichar2* description)
 {
 	if (sqlite3_step(getLiveDataStmt) == SQLITE_ROW)
 	{
@@ -350,12 +374,15 @@ gboolean database_live_data_next(gunichar2 *shortName, gunichar2 *content, gunic
 //    return FALSE;
 //}
 
-gboolean database_get_command(const gchar *name, const gchar *cls, guint8 *buffer, size_t *count) {
-	if (getCommandStmt == NULL) {
+gboolean database_get_command(const gchar *name, const gchar *cls, guint8 *buffer, size_t *count)
+{
+	if (getCommandStmt == NULL)
+	{
 		const char *temp = "SELECT \"Command\" FROM \"Command\" WHERE \"Name\"=:name AND \"Class\"=:catalog";
 		int ret;
 		ret = sqlite3_prepare_v2(db, temp, strlen(temp), &getCommandStmt, NULL);
-		if (ret != SQLITE_OK) {
+		if (ret != SQLITE_OK)
+		{
 			sqlite3_finalize(getCommandStmt);
 			getCommandStmt = NULL;
 			return FALSE;
@@ -364,7 +391,8 @@ gboolean database_get_command(const gchar *name, const gchar *cls, guint8 *buffe
 	if ((sqlite3_reset(getCommandStmt) == SQLITE_OK)
 			&& (sqlite3_bind_text(getCommandStmt, 1, name, strlen(name), SQLITE_STATIC) == SQLITE_OK)
 			&& (sqlite3_bind_text(getCommandStmt, 2, cls, strlen(cls), SQLITE_STATIC) == SQLITE_OK)
-			&& (sqlite3_step(getCommandStmt) == SQLITE_ROW)) {
+			&& (sqlite3_step(getCommandStmt) == SQLITE_ROW))
+	{
 		const guint8 *bytes = (const guint8*) sqlite3_column_blob(getCommandStmt, 0);
 		*count = sqlite3_column_bytes(getCommandStmt, 0);
 		memcpy(buffer, bytes, *count);
@@ -374,12 +402,15 @@ gboolean database_get_command(const gchar *name, const gchar *cls, guint8 *buffe
 	return FALSE;
 }
 
-gboolean database_get_command_by_id(gint32 id, guint8 *buffer, size_t *count) {
+gboolean database_get_command_by_id(gint32 id, guint8 *buffer, size_t *count)
+{
 
-	if (getCommandByIdStmt == NULL) {
+	if (getCommandByIdStmt == NULL)
+	{
 		const gchar *text = "SELECT \"Command\" FROM \"Command\" WHERE \"ID\"=:id";
 		int ret = sqlite3_prepare_v2(db, text, strlen(text), &getCommandByIdStmt, NULL);
-		if (ret != SQLITE_OK) {
+		if (ret != SQLITE_OK)
+		{
 			sqlite3_finalize(getCommandByIdStmt);
 			getCommandByIdStmt = NULL;
 			return FALSE;
@@ -388,7 +419,8 @@ gboolean database_get_command_by_id(gint32 id, guint8 *buffer, size_t *count) {
 
 	if ((sqlite3_reset(getCommandByIdStmt) == SQLITE_OK)
 			&& (sqlite3_bind_int(getCommandByIdStmt, 1, id) == SQLITE_OK)
-			&& (sqlite3_step(getCommandByIdStmt) == SQLITE_ROW)) {
+			&& (sqlite3_step(getCommandByIdStmt) == SQLITE_ROW))
+	{
 		const guint8 *bytes = (const guint8*) sqlite3_column_blob(getCommandByIdStmt, 0);
 		*count = sqlite3_column_bytes(getCommandByIdStmt, 0);
 		memcpy(buffer, bytes, *count);
