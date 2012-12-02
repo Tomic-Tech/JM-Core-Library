@@ -15,7 +15,7 @@ void database_dispose(void);
 gboolean database_get_text(const char *name, const char *cls, wchar_t *text);
 gboolean database_get_trouble_code(const char *code, const char *cls, wchar_t *content, wchar_t *description);
 gboolean database_live_data_prepare(const char *cls);
-gboolean database_live_data_next(wchar_t *shortName, wchar_t *content, wchar_t *unit, wchar_t *defaultValue, wchar_t *cmdName, wchar_t *cmdClass, wchar_t* description);
+gboolean database_live_data_next(wchar_t *shortName, wchar_t *content, wchar_t *unit, wchar_t *defaultValue, wchar_t *cmdName, wchar_t *cmdClass, wchar_t* description, int32_t *index);
 gboolean database_get_command(const char *name, const char *cls, uint8_t *buffer, size_t *count);
 gboolean database_get_command_by_id(int32_t id, uint8_t *buffer, size_t *count);
 

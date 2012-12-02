@@ -153,7 +153,7 @@ gboolean database_live_data_prepare(const char *cls)
 {
 	if (getLiveDataStmt == NULL)
 	{
-		char *temp = "SELECT [ShortName], [Content], [Unit], [DefaultValue], [CommandName], [CommandClass], [Description] FROM [LiveData] WHERE [Language]=:language AND [Class]=:class";
+		char *temp = "SELECT [ShortName], [Content], [Unit], [DefaultValue], [CommandName], [CommandClass], [Description], [Index] FROM [LiveData] WHERE [Language]=:language AND [Class]=:class";
 		int ret = 0;
 		ret = sqlite3_prepare_v2(db, temp, strlen(temp), &getLiveDataStmt, NULL);
 
@@ -186,7 +186,8 @@ gboolean database_live_data_next(wchar_t *shortName,
 								 wchar_t *defaultValue, 
 								 wchar_t *cmdName,
 								 wchar_t *cmdClass,
-								 wchar_t* description)
+								 wchar_t* description,
+								 int32_t *index)
 {
 	if (sqlite3_step(getLiveDataStmt) == SQLITE_ROW)
 	{
@@ -259,6 +260,7 @@ gboolean database_live_data_next(wchar_t *shortName,
 		{
 			description[0] = 0;
 		}
+		*index = sqlite3_column_int(getLiveDataStmt, 7);
 
 		return TRUE;
 	}
